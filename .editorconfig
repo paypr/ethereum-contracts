@@ -7,15 +7,19 @@ root = true
 [*]
 insert_final_newline = true
 
-[{*.css,*.less}]
-indent_style = space
-indent_size = 2
-
-[{*.js,*.json}]
+[{*.css,*.less,*.scss}]
 indent_style = space
 indent_size = 2
 
 [{*.html,*.hbs}]
+indent_style = space
+indent_size = 2
+
+[{*.java,*.kt}]
+indent_style = space
+indent_size = 2
+
+[{*.js,*.json}]
 indent_style = space
 indent_size = 2
 
