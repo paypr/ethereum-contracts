@@ -63,6 +63,7 @@ Session.vim
 
 # User-specific stuff:
 .idea/
+*.iml
 
 # Gradle:
 .idea/gradle.xml
