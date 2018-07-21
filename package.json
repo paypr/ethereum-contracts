@@ -14,8 +14,8 @@
     "url": "https://bitbucket.org/denormans/CHANGEME/issues"
   },
   "scripts": {
-    "prepare": "tsc",
-    "pretest": "tsc && tsc -p spec/tsconfig.json",
+    "prepare": "pretty-quick --stage && tsc",
+    "pretest": "pretty-quick --stage && tsc && tsc -p spec/tsconfig.json",
     "test": "jasmine",
     "test:integration": "npm run pretest && jasmine --config=spec/support/jasmine-integration.json",
     "posttest": "npm run lint",
@@ -27,6 +27,8 @@
     "@types/node": "10.5.2",
     "jasmine": "3.1.0",
     "jasmine-spec-reporter": "4.2.1",
+    "prettier": "1.13.7",
+    "pretty-quick": "1.6.0",
     "tslint": "5.11.0",
     "tslint-config-airbnb": "5.9.2",
     "tslint-react": "3.6.0",
