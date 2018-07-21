@@ -19,11 +19,15 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
-[{*.js,*.json}]
+[*.ts]
 indent_style = space
 indent_size = 2
 
 [*.md]
+indent_style = space
+indent_size = 2
+
+[{*.js,*.json}]
 indent_style = space
 indent_size = 2
 
