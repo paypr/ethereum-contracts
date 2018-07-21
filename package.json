@@ -1,0 +1,38 @@
+{
+  "author": "Michael D. Norman",
+  "name": "CHANGEME",
+  "description": "",
+  "private": true,
+  "license": "commercial",
+  "version": "0.0.0",
+  "homepage": "https://bitbucket.org/denormans/CHANGEME/wiki/Home",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/denormans/CHANGEME"
+  },
+  "bugs": {
+    "url": "https://bitbucket.org/denormans/CHANGEME/issues"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "pretest": "tsc && tsc -p spec/tsconfig.json",
+    "test": "jasmine",
+    "test:integration": "npm run pretest && jasmine --config=spec/support/jasmine-integration.json",
+    "posttest": "npm run lint",
+    "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine": "3.1.0",
+    "jasmine-spec-reporter": "4.2.1",
+    "tslint": "5.11.0",
+    "tslint-config-airbnb": "5.9.2",
+    "tslint-react": "3.6.0",
+    "typescript": "2.9.2"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "npm": ">=6.1.0",
+    "node": ">=10.7.0"
+  }
+}

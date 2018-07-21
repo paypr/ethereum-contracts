@@ -121,6 +121,9 @@ coverage
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
+# Compilation output
+built/
+
 # Dependency directory
 node_modules
 
