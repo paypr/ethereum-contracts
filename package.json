@@ -23,6 +23,8 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@types/jasmine": "2.8.8",
+    "@types/node": "10.5.2",
     "jasmine": "3.1.0",
     "jasmine-spec-reporter": "4.2.1",
     "tslint": "5.11.0",

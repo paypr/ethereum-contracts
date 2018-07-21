@@ -11,6 +11,10 @@
     "noUnusedLocals": true,
     "outDir": "built"
   },
+  "files": [
+    "./node_modules/@types/jasmine/index.d.ts",
+    "./node_modules/@types/node/index.d.ts"
+  ],
   "exclude": [
     "built",
     "node_modules",
