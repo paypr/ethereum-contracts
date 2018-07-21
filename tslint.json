@@ -5,12 +5,7 @@
   ],
   "jsRules": {},
   "rules": {
-    "strict": [ "error", "global" ],
-
-    "max-len": [ "error", 120, 2, {
-      "ignoreUrls": true,
-      "ignoreComments": false
-    }]
+    "max-line-length": [true, 120]
   },
   "rulesDirectory": []
 }
