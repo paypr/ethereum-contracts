@@ -3,20 +3,24 @@
     "sourceMap": true,
     "declaration": true,
     "pretty": true,
-    "module": "CommonJS",
+    "module": "commonjs",
     "target": "es5",
     "lib": ["es6"],
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "outDir": "built"
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist"
   },
   "files": [
     "./node_modules/@types/jasmine/index.d.ts",
     "./node_modules/@types/node/index.d.ts"
   ],
   "exclude": [
-    "built",
+    "dist",
     "node_modules",
     "examples",
     "spec"
