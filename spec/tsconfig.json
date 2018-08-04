@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
+    "pretty": true,
     "module": "commonjs",
     "target": "es5",
     "lib": ["es6"],
-    "pretty": true
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "../out"
   },
-  "include": [
-    "./**/*.ts"
-  ]
+  "include": ["./**/*.ts"]
 }
