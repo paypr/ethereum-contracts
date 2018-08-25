@@ -5,13 +5,13 @@
   "private": true,
   "license": "commercial",
   "version": "0.0.0",
-  "homepage": "https://bitbucket.org/denormans/CHANGEME/wiki/Home",
+  "homepage": "https://github.com/mdnorman/CHANGEME/wiki/Home",
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/denormans/CHANGEME"
+    "url": "https://github.com/mdnorman/CHANGEME"
   },
   "bugs": {
-    "url": "https://bitbucket.org/denormans/CHANGEME/issues"
+    "url": "https://github.com/mdnorman/CHANGEME/issues"
   },
   "scripts": {
     "prepare": "pretty-quick --stage && tsc",
