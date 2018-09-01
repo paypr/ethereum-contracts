@@ -14,12 +14,13 @@
     "url": "https://github.com/mdnorman/CHANGEME/issues"
   },
   "scripts": {
-    "prepare": "pretty-quick --stage && tsc",
-    "pretest": "pretty-quick --stage && tsc && tsc -p spec/tsconfig.json",
+    "prepare": "tsc",
+    "pretest": "tsc && tsc -p spec/tsconfig.json",
     "test": "jasmine",
     "test:integration": "npm run pretest && jasmine --config=spec/support/jasmine-integration.json",
     "posttest": "npm run lint",
-    "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json"
+    "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json",
+    "pretty": "pretty-quick --stage"
   },
   "dependencies": {},
   "devDependencies": {
