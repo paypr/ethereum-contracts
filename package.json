@@ -15,6 +15,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist && rm -rf out",
+    "build": "tsc",
     "prepare": "tsc",
     "pretest": "tsc && tsc -p spec/tsconfig.json",
     "test": "jasmine",
