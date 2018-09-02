@@ -5,7 +5,8 @@
   "rules": {
     "import-name": [false],
     "max-line-length": [true, 120],
-    "variable-name": [true, "check-format", "allow-pascal-case"]
+    "variable-name": [true, "check-format", "allow-pascal-case", "allow-leading-underscore"],
+    "no-unused-variable": [true, { "ignore-pattern": "^_" }]
   },
   "rulesDirectory": []
 }
