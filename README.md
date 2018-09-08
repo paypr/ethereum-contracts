@@ -4,7 +4,7 @@
 
 ### Node
 
-1.  Install `nvm` (Node Version Manager)
+1.  Install `nvm` ([Node Version Manager])
 2.  `cd` to the project directory and execute the following:
     ```
     nvm install
@@ -70,5 +70,6 @@ npm run build
 
 [editorconfig]: https://editorconfig.org/
 [jasmine]: https://jasmine.github.io/
+[node version manager]: https://github.com/creationix/nvm
 [prettier]: https://prettier.io/
 [tslint]: https://palantir.github.io/tslint/
