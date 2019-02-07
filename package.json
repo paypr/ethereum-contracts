@@ -24,14 +24,13 @@
     "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json",
     "pretty": "pretty-quick --stage"
   },
-  "dependencies": {
-    "jasmine": "3.3.1",
-    "prettier": "1.16.4"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jasmine": "3.3.8",
     "@types/node": "10.12.21",
+    "jasmine": "3.3.1",
     "jasmine-spec-reporter": "4.2.1",
+    "prettier": "1.16.4",
     "pretty-quick": "1.10.0",
     "ts-node": "8.0.2",
     "tslint": "5.12.1",
