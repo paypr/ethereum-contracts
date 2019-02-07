@@ -36,6 +36,7 @@
     "tslint": "5.12.1",
     "tslint-config-airbnb": "5.11.1",
     "tslint-react": "3.6.0",
+    "tsutils": "3.8.0",
     "typescript": "3.3.1"
   },
   "optionalDependencies": {},
