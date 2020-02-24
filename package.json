@@ -18,31 +18,28 @@
     "build": "tsc",
     "rebuild": "npm run clean && npm run build",
     "pretest": "tsc && tsc -p spec/tsconfig.json",
-    "test": "jasmine",
-    "test:integration": "npm run pretest && jasmine --config=spec/support/jasmine-integration.json",
+    "test": "jest",
     "posttest": "npm run lint",
     "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json",
     "pretty": "pretty-quick --stage"
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/jasmine": "3.3.8",
-    "@types/node": "10.12.21",
-    "jasmine": "3.3.1",
-    "jasmine-spec-reporter": "4.2.1",
-    "prettier": "1.16.4",
-    "pretty-quick": "1.10.0",
-    "ts-node": "8.0.2",
-    "tslint": "5.12.1",
-    "tslint-config-airbnb": "5.11.1",
+    "@types/node": "13.7.4",
+    "jest": "25.1.0",
+    "prettier": "1.19.1",
+    "pretty-quick": "2.0.1",
+    "ts-node": "8.6.2",
+    "tslint": "5.20.1",
+    "tslint-config-airbnb": "5.11.2",
     "tslint-config-prettier": "1.18.0",
-    "tslint-react": "3.6.0",
-    "tsutils": "3.8.0",
-    "typescript": "3.3.1"
+    "tslint-react": "4.2.0",
+    "tsutils": "3.17.1",
+    "typescript": "3.8.2"
   },
   "optionalDependencies": {},
   "engines": {
-    "npm": ">=6.7",
-    "node": ">=10.15"
+    "npm": ">=6.13",
+    "node": ">=12.16"
   }
 }

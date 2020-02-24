@@ -1,5 +1,0 @@
-{
-  "spec_dir": "out/spec",
-  "spec_files": ["unit/**/*.spec.js"],
-  "helpers": ["helpers/**/*.js"]
-}
