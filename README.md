@@ -67,3 +67,27 @@ npm run test:integration
 ```
 npm run build
 ```
+
+## Contracts
+
+### Setting up Rinkby
+
+This isn't necessary for local deployment, but eventually you'll want to
+test on a semi-real test network.
+
+1. Create an account at [Infura](https://infura.io)
+2. Create a secrets file at `secrets.json` with the following structure:
+
+```json
+{
+  "mnemonic": "some great words ...",
+  "projectId": "12345abcde",
+  "projectSecret": "abcde12345"
+}
+```
+
+### Build and deploy
+
+```shell script
+npx oz create
+```

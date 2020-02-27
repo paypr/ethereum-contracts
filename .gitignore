@@ -149,3 +149,13 @@ node_modules
 ################################################################################
 
 .vagrant/
+
+################################################################################
+### OpenZeppelin.gitignore
+################################################################################
+
+.openzeppelin/.session
+/.openzeppelin/dev-*.json
+/.openzeppelin/rinkeby.json
+build/contracts
+secrets.json
