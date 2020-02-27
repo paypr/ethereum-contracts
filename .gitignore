@@ -154,6 +154,7 @@ node_modules
 ### OpenZeppelin.gitignore
 ################################################################################
 
+.openzeppelin/.lock
 .openzeppelin/.session
 /.openzeppelin/dev-*.json
 /.openzeppelin/rinkeby.json
