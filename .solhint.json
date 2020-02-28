@@ -1,0 +1,40 @@
+{
+  "extends": ["solhint:default"],
+  "plugins": ["prettier"],
+  "rules": {
+    "const-name-snakecase": "warn",
+    "contract-name-camelcase": "warn",
+    "event-name-camelcase": "warn",
+    "func-name-mixedcase": "warn",
+    "use-forbidden-name": "error",
+    "var-name-mixedcase": "warn",
+    "imports-on-top": "error",
+    "visibility-modifier-order": "error",
+
+    "no-empty-blocks": "warn",
+    "no-unused-vars": "warn",
+    "payable-fallback": "error",
+    "reason-string": ["warn", {"maxLength": 128}],
+    "constructor-syntax": "error",
+
+    "avoid-call-value": "error",
+    "avoid-low-level-calls": "error",
+    "avoid-sha3": "error",
+    "avoid-suicide": "error",
+    "avoid-throw": "error",
+    "avoid-tx-origin": "error",
+    "check-send-result": "error",
+    "compiler-version": ["error", "^0.5.0"],
+    "func-visibility": "error",
+    "mark-callable-contracts": "error",
+    "multiple-sends": "error",
+    "no-complex-fallback": "error",
+    "no-inline-assembly": "error",
+    "not-rely-on-block-hash": "error",
+    "not-rely-on-time": "error",
+    "reentrancy": "error",
+    "state-visibility": "error",
+
+    "prettier/prettier": "error"
+  }
+}
