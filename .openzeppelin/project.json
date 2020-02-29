@@ -1,7 +1,6 @@
 {
   "manifestVersion": "2.2",
-  "contracts": {
-  },
+  "contracts": {},
   "dependencies": {
     "@openzeppelin/contracts-ethereum-package": "^2.4.0"
   },

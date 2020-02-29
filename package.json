@@ -14,8 +14,8 @@
     "url": "https://github.com/mdnorman/CHANGEME/issues"
   },
   "scripts": {
-    "clean": "rm -rf dist && rm -rf out",
-    "build": "tsc",
+    "clean": "rm -rf build/contracts && rm -rf dist && rm -rf out",
+    "build": "oz compile && tsc",
     "rebuild": "npm run clean && npm run build",
     "test": "jest",
     "posttest": "npm run lint",
