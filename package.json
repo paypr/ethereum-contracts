@@ -23,6 +23,11 @@
     "pretty": "pretty-quick --stage",
     "network:development": "ganache-cli --deterministic"
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
+  },
   "dependencies": {
     "@openzeppelin/contract-loader": "0.6.1",
     "@openzeppelin/contracts-ethereum-package": "2.4.0",
