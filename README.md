@@ -76,15 +76,20 @@ This isn't necessary for local deployment, but eventually you'll want to
 test on a semi-real test network.
 
 1. Create an account at [Infura](https://infura.io)
-2. Create a secrets file at `secrets.json` with the following structure:
+2. Create a new mnemonic with the following command:
+    ```shell script
+    npx mnemonics
+    ```
 
-```json
-{
-  "mnemonic": "some great words ...",
-  "projectId": "12345abcde",
-  "projectSecret": "abcde12345"
-}
-```
+3. Create a secrets file at `secrets.json` with the following structure:
+
+    ```json
+    {
+      "mnemonic": "some great words ...",
+      "projectId": "12345abcde",
+      "projectSecret": "abcde12345"
+    }
+    ```
 
 ### Build and deploy
 
