@@ -86,6 +86,7 @@ test on a semi-real test network.
     ```json
     {
       "mnemonic": "some great words ...",
+      "mnemonicProd": "some better words ...",
       "projectId": "12345abcde",
       "projectSecret": "abcde12345"
     }
