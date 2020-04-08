@@ -15,7 +15,8 @@
   },
   "scripts": {
     "clean": "rm -rf build/contracts && rm -rf dist && rm -rf out",
-    "build": "oz compile && tsc",
+    "compile:contracts": "oz compile && npm run pretty && npm run lint",
+    "build": "npm run compile:contracts && tsc",
     "build:watch": "tsc --watch",
     "rebuild": "npm run clean && npm run build",
     "test": "jest",
@@ -26,6 +27,7 @@
   },
   "husky": {
     "hooks": {
+      "pre-commit": "npm run pretty",
       "pre-push": "npm run lint"
     }
   },
