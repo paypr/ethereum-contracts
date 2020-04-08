@@ -16,6 +16,7 @@
   "scripts": {
     "clean": "rm -rf build/contracts && rm -rf dist && rm -rf out",
     "build": "oz compile && tsc",
+    "build:watch": "tsc --watch",
     "rebuild": "npm run clean && npm run build",
     "test": "jest",
     "posttest": "npm run lint",
