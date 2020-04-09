@@ -15,7 +15,7 @@
   },
   "scripts": {
     "clean": "rm -rf build/contracts && rm -rf dist && rm -rf out",
-    "compile:contracts": "oz compile && npm run pretty && npm run lint",
+    "compile:contracts": "oz compile && npm run pretty",
     "build": "npm run compile:contracts && tsc",
     "build:watch": "tsc --watch",
     "rebuild": "npm run clean && npm run build",
