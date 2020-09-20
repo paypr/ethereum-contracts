@@ -1,4 +1,4 @@
-# CHANGEME
+# Paypr Ethereum Contracts
 
 ## Setup
 
