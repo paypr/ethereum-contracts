@@ -1,6 +1,6 @@
 {
   "author": "The Paypr Company",
-  "name": "@paypr/CHANGEME",
+  "name": "@paypr/ethereum-contracts",
   "description": "",
   "private": true,
   "license": "UNLICENSED",
@@ -8,10 +8,10 @@
   "homepage": "https://paypr.money/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paypr/CHANGEME"
+    "url": "https://github.com/paypr/ethereum-contracts"
   },
   "bugs": {
-    "url": "https://github.com/paypr/CHANGEME/issues"
+    "url": "https://github.com/paypr/ethereum-contracts/issues"
   },
   "files": [
     "build",

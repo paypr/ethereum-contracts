@@ -4,7 +4,7 @@
   "dependencies": {
     "@openzeppelin/contracts-ethereum-package": "^3.0.0"
   },
-  "name": "CHANGEME",
+  "name": "@paypr/ethereum-contracts",
   "version": "0.0.0",
   "compiler": {
     "compilerSettings": {
