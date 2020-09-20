@@ -2,7 +2,6 @@
   "author": "The Paypr Company",
   "name": "@paypr/ethereum-contracts",
   "description": "",
-  "private": true,
   "license": "UNLICENSED",
   "version": "0.0.0",
   "homepage": "https://paypr.money/",
