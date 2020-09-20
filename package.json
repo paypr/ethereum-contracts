@@ -13,8 +13,14 @@
   "bugs": {
     "url": "https://github.com/paypr/CHANGEME/issues"
   },
+  "files": [
+    "build",
+    "dist",
+    "types",
+    "README.md"
+  ],
   "scripts": {
-    "clean": "rm -rf build/contracts && rm -rf dist && rm -rf out",
+    "clean": "rm -rf build && rm -rf dist && rm -rf out && rm -rf types",
     "compile:contracts": "oz compile && npm run pretty",
     "build": "npm run compile:contracts && tsc",
     "build:watch": "tsc --watch",
@@ -23,8 +29,9 @@
     "posttest": "npm run lint",
     "lint": "solhint contracts/**/*.sol && tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json",
     "pretty": "pretty-quick",
+    "network:development": "ganache-cli --deterministic --db tmp/network",
     "release": "standard-version",
-    "network:development": "ganache-cli --deterministic"
+    "prepublishOnly": "npm run rebuild && npm run release"
   },
   "husky": {
     "hooks": {
