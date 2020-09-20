@@ -3,8 +3,10 @@ node_modules
 spec
 src
 .gitignore
+.openzeppelin
 .prettierrc
 npm-debug.log
+secrets.json
 tsconfig.json
 tslint.json
 

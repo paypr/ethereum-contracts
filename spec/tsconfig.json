@@ -5,6 +5,7 @@
     "target": "es5",
     "lib": ["es6"],
     "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noImplicitThis": true,
