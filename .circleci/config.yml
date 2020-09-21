@@ -12,7 +12,11 @@ jobs:
       - run:
           command: npm run build
       - run:
-          command: npm run test -- --ci --runInBand
+          command: npm run test -- --ci --runInBand --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
+      - store_test_results:
+          path: ./reports/junit/
 
 workflows:
   workflow:
