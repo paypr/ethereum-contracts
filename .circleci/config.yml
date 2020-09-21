@@ -1,0 +1,24 @@
+version: 2.1
+orbs:
+  node: circleci/node@4.0.0
+jobs:
+  test:
+    executor:
+      name: node/default
+      tag: '12.16'
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          command: npm run build
+      - run:
+          command: npm run test -- --ci --runInBand --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
+      - store_test_results:
+          path: ./reports/junit/
+
+workflows:
+  workflow:
+    jobs:
+      - test
