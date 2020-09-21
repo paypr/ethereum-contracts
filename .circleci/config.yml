@@ -12,7 +12,7 @@ jobs:
       - run:
           command: npm run build
       - run:
-          command: npm run test
+          command: npm run test -- --ci --runInBand
 
 workflows:
   workflow:
