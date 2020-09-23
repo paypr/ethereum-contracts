@@ -373,17 +373,9 @@ it('should receive all consumables from player and helpers', async () => {
 it('should not send any consumables to player if any requirements are not met', async () => {
   const exchange = await createConsumableExchange();
 
-  const consumable1 = await createConvertibleConsumable(
-    exchange.address,
-    { name: 'Consumable 1' },
-    '',
-    1,
-    1,
-    true,
-    undefined,
-  );
-  const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1);
-  const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1);
+  const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' });
+  const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' });
+  const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' });
 
   const activity = await createSkillConstrainedExchangingActivity(
     exchange.address,

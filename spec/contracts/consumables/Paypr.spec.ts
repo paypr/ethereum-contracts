@@ -26,7 +26,7 @@ import { shouldTransferItem, shouldTransferToken } from '../../helpers/Transferr
 describe('supportsInterface', () => {
   const create = async () => {
     const consumable = await createConsumable();
-    return createPaypr(consumable.address, 1, 1);
+    return createPaypr(consumable.address);
   };
 
   shouldSupportInterface('ERC165', create, ERC165_ID);

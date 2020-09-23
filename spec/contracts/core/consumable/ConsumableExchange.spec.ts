@@ -245,7 +245,7 @@ describe('registerToken', () => {
     });
   });
 
-  it('should revert if exchange token is 0', async () => {
+  it('should revert if exchange rate is 0', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
     await expectRevert(
