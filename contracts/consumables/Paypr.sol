@@ -13,7 +13,8 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
 
   function initializePaypr(
     IConsumableExchange baseToken,
-    uint256 baseExchangeRate,
+    uint256 basePurchasePriceExchangeRate,
+    uint256 baseIntrinsicValueExchangeRate,
     IRoleDelegate roleDelegate
   ) public initializer {
     ContractInfo memory info = ContractInfo({
@@ -24,7 +25,14 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
 
     string memory symbol = 'ℙ';
 
-    _initializeConvertibleConsumable(info, symbol, baseToken, baseExchangeRate, false);
+    _initializeConvertibleConsumable(
+      info,
+      symbol,
+      baseToken,
+      basePurchasePriceExchangeRate,
+      baseIntrinsicValueExchangeRate,
+      false
+    );
     _initializeConsumableExchange(info, symbol);
 
     _addRoleDelegate(roleDelegate);
@@ -55,8 +63,8 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
   }
 
   // TODO: remove onlyMinter when ready to exchange
-  function burnByExchange(uint256 amount) external override onlyEnabled onlyMinter {
-    _burnByExchange(_msgSender(), amount);
+  function burnByExchange(uint256 payprAmount) external override onlyEnabled onlyMinter {
+    _burnByExchange(_msgSender(), payprAmount);
   }
 
   function _transfer(

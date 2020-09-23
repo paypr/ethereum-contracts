@@ -18,7 +18,7 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
 
   // amount that 1 of this consumable will convert into the associated token
   // eg if exchange rate is 1000, then 1 this consumable == 1000 associated tokens
-  mapping(address => uint256) private _exchangeRates;
+  mapping(address => ExchangeRate) private _exchangeRates;
   EnumerableSet.AddressSet private _convertibles;
 
   function _initializeConsumableExchange(ContractInfo memory info, string memory symbol) internal initializer {
@@ -35,10 +35,10 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
   }
 
   function isConvertible(IConvertibleConsumable token) external override view returns (bool) {
-    return _exchangeRates[address(token)] > 0;
+    return _exchangeRates[address(token)].purchasePrice > 0;
   }
 
-  function exchangeRateOf(IConvertibleConsumable token) external override view returns (uint256) {
+  function exchangeRateOf(IConvertibleConsumable token) external override view returns (ExchangeRate memory) {
     return _exchangeRates[address(token)];
   }
 
@@ -51,11 +51,11 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
     IConvertibleConsumable consumable,
     uint256 amount
   ) internal onlyEnabled {
-    uint256 exchangeRate = _exchangeRates[address(consumable)];
+    ExchangeRate memory exchangeRate = _exchangeRates[address(consumable)];
 
-    require(exchangeRate > 0, 'ConsumableExchange: consumable is not convertible');
+    require(exchangeRate.purchasePrice != 0, 'ConsumableExchange: consumable is not convertible');
 
-    uint256 tokenAmount = amount.convertibleTokenProvided(exchangeRate);
+    uint256 tokenAmount = amount.convertibleTokenProvided(exchangeRate.purchasePrice);
 
     _transfer(account, address(this), amount);
     this.increaseAllowance(address(consumable), amount);
@@ -75,15 +75,15 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
     IConvertibleConsumable token,
     uint256 tokenAmount
   ) internal onlyEnabled {
-    uint256 exchangeRate = _exchangeRates[address(token)];
+    ExchangeRate memory exchangeRate = _exchangeRates[address(token)];
 
-    require(exchangeRate > 0, 'ConsumableExchange: token is not convertible');
+    require(exchangeRate.intrinsicValue != 0, 'ConsumableExchange: token is not convertible');
 
     token.transferFrom(account, address(this), tokenAmount);
 
     token.burnByExchange(tokenAmount);
 
-    uint256 myAmount = tokenAmount.exchangeTokenProvided(exchangeRate);
+    uint256 myAmount = tokenAmount.exchangeTokenProvided(exchangeRate.intrinsicValue);
     this.transferFrom(address(token), address(this), myAmount);
 
     _transfer(address(this), account, myAmount);
@@ -97,35 +97,42 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
     super._transfer(sender, recipient, amount);
 
     // check to ensure there is enough of this token left over to exchange if the sender is registered
-    uint256 senderExchangeRate = _exchangeRates[sender];
-    if (senderExchangeRate > 0) {
+    ExchangeRate memory senderExchangeRate = _exchangeRates[sender];
+    if (senderExchangeRate.purchasePrice != 0) {
       uint256 senderBalance = balanceOf(sender);
-      uint256 tokenAmountAllowed = senderBalance.convertibleTokenProvided(senderExchangeRate);
+      uint256 tokenAmountAllowed = senderBalance.convertibleTokenProvided(senderExchangeRate.purchasePrice);
 
       IERC20 token = IERC20(sender);
       require(token.totalSupply() <= tokenAmountAllowed, 'ConsumableExchange: not enough left to cover exchange');
     }
   }
 
-  function registerToken(uint256 exchangeRate) external override {
+  function registerToken(uint256 purchasePriceExchangeRate, uint256 intrinsicValueExchangeRate) external override {
     IConvertibleConsumable token = IConvertibleConsumable(_msgSender());
-    require(exchangeRate > 0, 'ConsumableExchange: must register with an exchange rate');
-    require(_exchangeRates[address(token)] == 0, 'ConsumableExchange: cannot register already registered token');
+    require(purchasePriceExchangeRate > 0, 'ConsumableExchange: must register with a purchase price exchange rate');
+    require(intrinsicValueExchangeRate > 0, 'ConsumableExchange: must register with an intrinsic value exchange rate');
+    require(
+      _exchangeRates[address(token)].purchasePrice == 0,
+      'ConsumableExchange: cannot register already registered token'
+    );
 
-    _updateExchangeRate(token, exchangeRate);
+    _updateExchangeRate(
+      token,
+      ExchangeRate({ purchasePrice: purchasePriceExchangeRate, intrinsicValue: intrinsicValueExchangeRate })
+    );
   }
 
-  function _updateExchangeRate(IConvertibleConsumable token, uint256 exchangeRate) internal onlyEnabled {
+  function _updateExchangeRate(IConvertibleConsumable token, ExchangeRate memory exchangeRate) internal onlyEnabled {
     require(token != IConvertibleConsumable(0), 'ConsumableExchange: updateExchangeRate for the zero address');
 
-    if (exchangeRate > 0) {
+    if (exchangeRate.purchasePrice != 0 && exchangeRate.intrinsicValue != 0) {
       _convertibles.add(address(token));
     } else {
       _convertibles.remove(address(token));
     }
 
     _exchangeRates[address(token)] = exchangeRate;
-    emit ExchangeRateChanged(token, exchangeRate);
+    emit ExchangeRateChanged(token, exchangeRate.purchasePrice, exchangeRate.intrinsicValue);
   }
 
   uint256[50] private ______gap;

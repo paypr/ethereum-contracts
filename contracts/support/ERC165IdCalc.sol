@@ -9,6 +9,8 @@ import '../core/consumable/IConsumable.sol';
 import '../core/consumable/IConsumableConsumer.sol';
 import '../core/consumable/IConsumableProvider.sol';
 import '../core/consumable/ILimitedConsumable.sol';
+import '../core/consumable/ConsumableExchangeInterfaceSupport.sol';
+import '../core/consumable/ConvertibleConsumableInterfaceSupport.sol';
 import '../core/IBaseContract.sol';
 import '../core/player/IPlayer.sol';
 import '../core/skill/ISkill.sol';
@@ -17,12 +19,12 @@ import '../core/consumable/IConsumableExchange.sol';
 import '../core/consumable/IConvertibleConsumable.sol';
 import '../core/transfer/ITransferring.sol';
 import '../core/access/IRoleDelegate.sol';
-import '../core/consumable/ConsumableExchangeInterfaceSupport.sol';
 
 /**
  * Idea comes from https://medium.com/coinmonks/ethereum-standard-erc165-explained-63b54ca0d273
  */
 contract ERC165IdCalc {
+  using ConvertibleConsumableInterfaceSupport for IConvertibleConsumable;
   using ConsumableExchangeInterfaceSupport for IConsumableExchange;
 
   function calcActivityInterfaceId() external pure returns (bytes4) {
@@ -80,15 +82,8 @@ contract ERC165IdCalc {
   }
 
   function calcConvertibleConsumableInterfaceId() external pure returns (bytes4) {
-    IConvertibleConsumable convertible;
-    return
-      convertible.exchangeToken.selector ^
-      convertible.exchangeRate.selector ^
-      convertible.amountExchangeTokenAvailable.selector ^
-      convertible.mintByExchange.selector ^
-      convertible.amountExchangeTokenNeeded.selector ^
-      convertible.burnByExchange.selector ^
-      convertible.amountExchangeTokenProvided.selector;
+    IConvertibleConsumable consumable;
+    return consumable.calcConvertibleConsumableInterfaceId();
   }
 
   function calcLimitedConsumableInterfaceId() external pure returns (bytes4) {

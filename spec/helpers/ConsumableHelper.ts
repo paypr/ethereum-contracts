@@ -1,8 +1,8 @@
-import { ConsumableAmount } from '../../src/contracts/core/consumables';
+import { ConsumableAmount, ExchangeRate } from '../../src/contracts/core/consumables';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
 import { getOrDefaultRoleDelegate } from './AccessHelper';
 import { CONSUMABLE_MINTER } from './Accounts';
-import { getContract, toNumberAsync } from './ContractHelper';
+import { getContract, toNumber, toNumberAsync } from './ContractHelper';
 
 export const ConsumableContract = getContract('ConfigurableConsumable');
 export const ConsumableConsumerContract = getContract('TestConsumableConsumer');
@@ -51,7 +51,8 @@ export const createConvertibleConsumable = async (
   exchangeToken: string,
   info: Partial<ContractInfo> = {},
   symbol: string = '',
-  exchangeRate: number = 1,
+  purchasePriceExchangeRate: number = 1,
+  intrinsicValueExchangeRate: number = purchasePriceExchangeRate,
   registerWithExchange: boolean = true,
   roleDelegate?: string,
 ) => {
@@ -60,7 +61,8 @@ export const createConvertibleConsumable = async (
     withDefaultContractInfo(info),
     symbol,
     exchangeToken,
-    exchangeRate,
+    purchasePriceExchangeRate,
+    intrinsicValueExchangeRate,
     registerWithExchange,
     await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
     { from: CONSUMABLE_MINTER },
@@ -83,11 +85,17 @@ export const createLimitedConsumable = async (
   return consumable;
 };
 
-export const createPaypr = async (baseToken: string, baseExchangeRate: number = 1, roleDelegate?: string) => {
+export const createPaypr = async (
+  baseToken: string,
+  basePurchasePriceExchangeRate: number = 1,
+  baseIntrinsicValueExchangeRate: number = basePurchasePriceExchangeRate,
+  roleDelegate?: string,
+) => {
   const consumable = await PayprContract.new();
   await consumable.initializePaypr(
     baseToken,
-    baseExchangeRate,
+    basePurchasePriceExchangeRate,
+    baseIntrinsicValueExchangeRate,
     await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
     {
       from: CONSUMABLE_MINTER,
@@ -120,3 +128,8 @@ export const increaseLimit = async (consumable: any, account: string, amount: nu
 
 export const decreaseLimit = async (consumable: any, account: string, amount: number) =>
   consumable.decreaseLimit(account, amount, { from: CONSUMABLE_MINTER });
+
+export const toExchangeRateAsync = async (exchangeRatePromise: Promise<ExchangeRate> | ExchangeRate) => {
+  const { purchasePrice, intrinsicValue } = await exchangeRatePromise;
+  return { purchasePrice: toNumber(purchasePrice), intrinsicValue: toNumber(intrinsicValue) };
+};

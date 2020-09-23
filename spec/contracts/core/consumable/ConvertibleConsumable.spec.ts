@@ -23,7 +23,7 @@ import { shouldSupportInterface } from '../../../helpers/ERC165';
 describe('supportsInterface', () => {
   const create = async () => {
     const consumable = await createConsumable();
-    return createConvertibleConsumable(consumable.address, {}, '', 1, false);
+    return createConvertibleConsumable(consumable.address, {}, '', 1, 1, false);
   };
 
   shouldSupportInterface('ERC165', create, ERC165_ID);
@@ -41,6 +41,7 @@ describe('exchangeToken', () => {
       { name: 'Convertible' },
       '',
       1,
+      1,
       false,
     );
 
@@ -49,17 +50,19 @@ describe('exchangeToken', () => {
 });
 
 describe('exchangeRate', () => {
-  it('should return the exchange rate', async () => {
+  it('should return the exchange rates', async () => {
     const consumable = await createConsumable({ name: 'Consumable' });
     const convertibleConsumable = await createConvertibleConsumable(
       consumable.address,
       { name: 'Convertible' },
       '',
       92,
+      132,
       false,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.exchangeRate())).toEqual(92);
+    expect<number>(await toNumberAsync(convertibleConsumable.purchasePriceExchangeRate())).toEqual(92);
+    expect<number>(await toNumberAsync(convertibleConsumable.intrinsicValueExchangeRate())).toEqual(132);
   });
 });
 
@@ -106,6 +109,35 @@ describe('amountExchangeTokenAvailable', () => {
 
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
   });
+
+  it('should return the amount available when exchange rates are asymmetrical', async () => {
+    const exchange = await createConsumableExchange({ name: 'Exchange' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+    );
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+
+    await mintConsumable(exchange, convertibleConsumable.address, 10);
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(10);
+
+    await mintConsumable(convertibleConsumable, PLAYER1, 50);
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(9);
+
+    await mintConsumable(convertibleConsumable, PLAYER1, 50);
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(9);
+
+    await mintConsumable(convertibleConsumable, PLAYER1, 900);
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+  });
 });
 
 describe('amountExchangeTokenNeeded', () => {
@@ -134,6 +166,25 @@ describe('amountExchangeTokenNeeded', () => {
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1001))).toEqual(2);
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(2000))).toEqual(2);
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(10000))).toEqual(10);
+  });
+
+  it('should return the amount needed when exchange rates are asymmetrical', async () => {
+    const exchange = await createConsumableExchange({ name: 'Exchange' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+    );
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(0))).toEqual(0);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1))).toEqual(1);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(9))).toEqual(1);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(10))).toEqual(1);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(11))).toEqual(2);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(20))).toEqual(2);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(100))).toEqual(10);
   });
 });
 
@@ -164,6 +215,25 @@ describe('amountExchangeTokenProvided', () => {
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(2000))).toEqual(2);
     expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(10000))).toEqual(10);
   });
+
+  it('should return the amount provided when exchange rates are asymmetrical', async () => {
+    const exchange = await createConsumableExchange({ name: 'Exchange' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+    );
+
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(0))).toEqual(0);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1))).toEqual(0);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(99))).toEqual(0);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(100))).toEqual(1);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(101))).toEqual(1);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(200))).toEqual(2);
+    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1000))).toEqual(10);
+  });
 });
 
 describe('mintByExchange', () => {
@@ -174,6 +244,7 @@ describe('mintByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -210,6 +281,7 @@ describe('mintByExchange', () => {
       { name: 'Convertible' },
       '',
       1000,
+      1000,
       false,
     );
 
@@ -237,6 +309,42 @@ describe('mintByExchange', () => {
     expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(150_000);
   });
 
+  it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      consumable1.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+      false,
+    );
+
+    await mintConsumable(consumable1, PLAYER1, 1000);
+    await mintConsumable(consumable2, PLAYER1, 1000);
+
+    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 100);
+
+    await convertibleConsumable.mintByExchange(1000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(1000);
+
+    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 50);
+
+    await convertibleConsumable.mintByExchange(500, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(1500);
+  });
+
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is 1', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -244,6 +352,7 @@ describe('mintByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -284,6 +393,7 @@ describe('mintByExchange', () => {
       { name: 'Convertible' },
       '',
       1000,
+      1000,
       false,
     );
 
@@ -315,6 +425,46 @@ describe('mintByExchange', () => {
     expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
   });
 
+  it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rates are asymmetrical', async () => {
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      consumable1.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+      false,
+    );
+
+    await mintConsumable(consumable1, PLAYER1, 1000);
+    await mintConsumable(consumable2, PLAYER1, 1000);
+
+    await expectRevert(
+      convertibleConsumable.mintByExchange(1000, { from: PLAYER1 }),
+      'transfer amount exceeds allowance',
+    );
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+
+    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 99);
+
+    await expectRevert(
+      convertibleConsumable.mintByExchange(1000, { from: PLAYER1 }),
+      'transfer amount exceeds allowance',
+    );
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(99);
+    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+  });
+
   it('should not exchange if disabled', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -322,6 +472,7 @@ describe('mintByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -345,6 +496,7 @@ describe('burnByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -384,6 +536,7 @@ describe('burnByExchange', () => {
       { name: 'Convertible' },
       '',
       1000,
+      1000,
       false,
     );
 
@@ -414,6 +567,45 @@ describe('burnByExchange', () => {
     expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(850_000);
   });
 
+  it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      consumable1.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+      false,
+    );
+
+    await mintConsumable(consumable1, convertibleConsumable.address, 1000);
+    await mintConsumable(consumable2, convertibleConsumable.address, 1000);
+    await mintConsumable(convertibleConsumable, PLAYER1, 100_000);
+
+    await convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(100);
+    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(90_000);
+
+    await consumable1.transferFrom(convertibleConsumable.address, PLAYER1, 100, { from: PLAYER1 });
+
+    await convertibleConsumable.burnByExchange(5_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(900);
+    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(50);
+    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(85_000);
+  });
+
   it('should revert if the sender does not have enough token to burn when the exchange rate is 1', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -421,6 +613,7 @@ describe('burnByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -459,6 +652,7 @@ describe('burnByExchange', () => {
       { name: 'Convertible' },
       '',
       1000,
+      1000,
       false,
     );
 
@@ -488,6 +682,45 @@ describe('burnByExchange', () => {
     expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(99_999);
   });
 
+  // tslint:disable-next-line:max-line-length
+  it('should revert if the sender does not have enough token to burn when the exchange rates are asymmetrical', async () => {
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const convertibleConsumable = await createConvertibleConsumable(
+      consumable1.address,
+      { name: 'Convertible' },
+      '',
+      10,
+      100,
+      false,
+    );
+
+    await mintConsumable(consumable1, convertibleConsumable.address, 100_000);
+    await mintConsumable(consumable2, convertibleConsumable.address, 100_000);
+
+    await expectRevert(convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(100_000);
+    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(100_000);
+    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+
+    await mintConsumable(convertibleConsumable, PLAYER1, 9_999);
+
+    await expectRevert(convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(100_000);
+    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(100_000);
+    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(9_999);
+  });
+
   it('should not exchange if disabled', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -495,6 +728,7 @@ describe('burnByExchange', () => {
       consumable1.address,
       { name: 'Convertible' },
       '',
+      1,
       1,
       false,
     );
@@ -516,6 +750,7 @@ describe('transfer', () => {
       consumable.address,
       { name: 'Convertible' },
       '',
+      1000,
       1000,
       false,
     );
@@ -555,6 +790,7 @@ describe('transfer', () => {
       { name: 'Convertible' },
       '',
       1000,
+      1000,
       false,
     );
 
@@ -586,6 +822,7 @@ describe('transfer', () => {
       consumable.address,
       { name: 'Convertible' },
       '',
+      1000,
       1000,
       false,
     );

@@ -8,7 +8,7 @@ import './IConsumableExchange.sol';
 library ConsumableExchangeInterfaceSupport {
   using ERC165Checker for address;
 
-  bytes4 internal constant CONSUMABLE_EXCHANGE_INTERFACE_ID = 0x03c613c0;
+  bytes4 internal constant CONSUMABLE_EXCHANGE_INTERFACE_ID = 0x1e34ecc8;
 
   function supportsConsumableExchangeInterface(IConsumableExchange exchange) internal view returns (bool) {
     return address(exchange).supportsInterface(CONSUMABLE_EXCHANGE_INTERFACE_ID);

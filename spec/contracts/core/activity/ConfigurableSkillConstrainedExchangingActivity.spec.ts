@@ -302,6 +302,52 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
       'Not enough exchange token consumed to be sustainable',
     );
   });
+
+  it('should revert if not sustainable with asymmetric exchange rates', async () => {
+    const roleDelegate = await getContractAddress(createRolesWithAllSameRole(INITIALIZER));
+
+    const exchange = await createConsumableExchange();
+
+    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 30, 300);
+    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 200);
+    const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 100, 200);
+
+    const activity = await SkillConstrainedExchangingActivity.new();
+
+    await expectRevert(
+      activity.initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({}),
+        [],
+        [],
+        [
+          { consumable: consumable1.address, amount: 100 },
+          { consumable: consumable2.address, amount: 200 },
+        ],
+        exchange.address,
+        roleDelegate,
+        { from: INITIALIZER },
+      ),
+      'Not enough exchange token consumed to be sustainable',
+    );
+
+    await expectRevert(
+      activity.initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({}),
+        [],
+        [
+          { consumable: consumable1.address, amount: 100 }, // 30_000
+        ],
+        [
+          { consumable: consumable2.address, amount: 100 }, // 20_000
+          { consumable: consumable3.address, amount: 200 }, // 20_000
+        ],
+        exchange.address,
+        roleDelegate,
+        { from: INITIALIZER },
+      ),
+      'Not enough exchange token consumed to be sustainable',
+    );
+  });
 });
 
 describe('Enable/Disable', () => {

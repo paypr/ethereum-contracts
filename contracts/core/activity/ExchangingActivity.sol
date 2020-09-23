@@ -64,11 +64,13 @@ abstract contract ExchangingActivity is Activity {
     for (uint256 consumableIndex = 0; consumableIndex < consumables.length; consumableIndex++) {
       IConvertibleConsumable consumable = IConvertibleConsumable(address(consumables[consumableIndex]));
 
-      uint256 exchangeRate = _exchange.exchangeRateOf(consumable);
+      IConsumableExchange.ExchangeRate memory exchangeRate = _exchange.exchangeRateOf(consumable);
 
       uint256 consumableBalance = consumable.myBalance();
 
-      uint256 amount = consumableBalance.exchangeTokenProvided(exchangeRate).convertibleTokenNeeded(exchangeRate);
+      uint256 amount = consumableBalance.exchangeTokenProvided(exchangeRate.intrinsicValue).convertibleTokenNeeded(
+        exchangeRate.intrinsicValue
+      );
       if (amount > 0) {
         ERC20UpgradeSafe token = ERC20UpgradeSafe(address(consumable));
         token.increaseAllowance(address(_exchange), amount);
@@ -85,9 +87,9 @@ abstract contract ExchangingActivity is Activity {
 
       uint256 amountToProvide = ConsumableProvider(this).amountProvided(consumable);
 
-      uint256 exchangeRate = _exchange.exchangeRateOf(consumable);
+      IConsumableExchange.ExchangeRate memory exchangeRate = _exchange.exchangeRateOf(consumable);
 
-      uint256 exchangeAmount = amountToProvide.exchangeTokenNeeded(exchangeRate);
+      uint256 exchangeAmount = amountToProvide.exchangeTokenNeeded(exchangeRate.purchasePrice);
 
       if (exchangeAmount > 0) {
         _exchange.exchangeTo(consumable, exchangeAmount);
@@ -95,7 +97,7 @@ abstract contract ExchangingActivity is Activity {
         bool success = consumable.transferFrom(
           address(_exchange),
           address(this),
-          exchangeAmount.convertibleTokenProvided(exchangeRate)
+          exchangeAmount.convertibleTokenProvided(exchangeRate.purchasePrice)
         );
         require(success, 'Provider: Consumable failed to transfer');
       }
