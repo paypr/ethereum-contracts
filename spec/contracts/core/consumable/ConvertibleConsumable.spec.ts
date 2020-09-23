@@ -49,6 +49,108 @@ describe('exchangeToken', () => {
   });
 });
 
+describe('asymmetricalExchangeRate', () => {
+  it('should return true when asymmetrical', async () => {
+    const consumable = await createConsumable({ name: 'Consumable' });
+
+    const convertibleConsumable1 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 1' },
+      '',
+      1,
+      2,
+      false,
+    );
+
+    const convertibleConsumable2 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 2' },
+      '',
+      92,
+      132,
+      false,
+    );
+
+    const convertibleConsumable3 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 3' },
+      '',
+      1000,
+      1001,
+      false,
+    );
+
+    const convertibleConsumable4 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 4' },
+      '',
+      1_000_000,
+      1_001_000,
+      false,
+    );
+
+    const convertibleConsumable5 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 5' },
+      '',
+      1,
+      1_000_000,
+      false,
+    );
+
+    expect<boolean>(await convertibleConsumable1.asymmetricalExchangeRate()).toEqual(true);
+    expect<boolean>(await convertibleConsumable2.asymmetricalExchangeRate()).toEqual(true);
+    expect<boolean>(await convertibleConsumable3.asymmetricalExchangeRate()).toEqual(true);
+    expect<boolean>(await convertibleConsumable4.asymmetricalExchangeRate()).toEqual(true);
+    expect<boolean>(await convertibleConsumable5.asymmetricalExchangeRate()).toEqual(true);
+  });
+
+  it('should return false when not asymmetrical', async () => {
+    const consumable = await createConsumable({ name: 'Consumable' });
+
+    const convertibleConsumable1 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 1' },
+      '',
+      1,
+      1,
+      false,
+    );
+
+    const convertibleConsumable2 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 2' },
+      '',
+      10,
+      10,
+      false,
+    );
+
+    const convertibleConsumable3 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 3' },
+      '',
+      1000,
+      1000,
+      false,
+    );
+
+    const convertibleConsumable4 = await createConvertibleConsumable(
+      consumable.address,
+      { name: 'Convertible 4' },
+      '',
+      1_000_000,
+      1_000_000,
+      false,
+    );
+
+    expect<boolean>(await convertibleConsumable1.asymmetricalExchangeRate()).toEqual(false);
+    expect<boolean>(await convertibleConsumable2.asymmetricalExchangeRate()).toEqual(false);
+    expect<boolean>(await convertibleConsumable3.asymmetricalExchangeRate()).toEqual(false);
+    expect<boolean>(await convertibleConsumable4.asymmetricalExchangeRate()).toEqual(false);
+  });
+});
+
 describe('exchangeRate', () => {
   it('should return the exchange rates', async () => {
     const consumable = await createConsumable({ name: 'Consumable' });
