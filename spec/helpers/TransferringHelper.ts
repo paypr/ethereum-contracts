@@ -62,7 +62,15 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
       const transferring = await create();
 
       const exchangeConsumable = await createConsumableExchange({ name: 'Exchange' });
-      const consumable = await createConvertibleConsumable(exchangeConsumable.address, { name: 'Consumable' }, '', 10);
+      const consumable = await createConvertibleConsumable(
+        exchangeConsumable.address,
+        { name: 'Consumable' },
+        '',
+        10,
+        10,
+        true,
+        undefined,
+      );
 
       await mintConsumable(exchangeConsumable, transferring.address, 1000);
 
@@ -102,7 +110,15 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
       const transferring = await create();
 
       const exchangeConsumable = await createConsumableExchange({ name: 'Exchange' });
-      const consumable = await createConvertibleConsumable(exchangeConsumable.address, { name: 'Consumable' }, '', 10);
+      const consumable = await createConvertibleConsumable(
+        exchangeConsumable.address,
+        { name: 'Consumable' },
+        '',
+        10,
+        10,
+        true,
+        undefined,
+      );
 
       await mintConsumable(exchangeConsumable, consumable.address, 10);
       await mintConsumable(consumable, transferring.address, 99);

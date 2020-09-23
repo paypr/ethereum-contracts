@@ -18,8 +18,8 @@ library ConsumableConversionMath {
       'ConsumableConversionMath: consumable not convertible'
     );
 
-    uint256 exchangeRate = consumable.exchangeRate();
-    return exchangeTokenNeeded(consumableAmount.amount, exchangeRate);
+    uint256 purchasePriceExchangeRate = consumable.purchasePriceExchangeRate();
+    return exchangeTokenNeeded(consumableAmount.amount, purchasePriceExchangeRate);
   }
 
   function exchangeTokenProvided(IConsumable.ConsumableAmount memory consumableAmount) internal view returns (uint256) {
@@ -29,40 +29,56 @@ library ConsumableConversionMath {
       'ConsumableConversionMath: consumable not convertible'
     );
 
-    uint256 exchangeRate = consumable.exchangeRate();
-    return exchangeTokenProvided(consumableAmount.amount, exchangeRate);
+    uint256 intrinsicValueExchangeRate = consumable.intrinsicValueExchangeRate();
+    return exchangeTokenProvided(consumableAmount.amount, intrinsicValueExchangeRate);
   }
 
-  function exchangeTokenNeeded(uint256 amount, uint256 exchangeRate) internal pure returns (uint256) {
-    return _toExchangeToken(amount, exchangeRate, true);
+  function exchangeTokenNeeded(uint256 consumableAmount, uint256 purchasePriceExchangeRate)
+    internal
+    pure
+    returns (uint256)
+  {
+    return _toExchangeToken(consumableAmount, purchasePriceExchangeRate, true);
   }
 
-  function exchangeTokenProvided(uint256 amount, uint256 exchangeRate) internal pure returns (uint256) {
-    return _toExchangeToken(amount, exchangeRate, false);
+  function exchangeTokenProvided(uint256 consumableAmount, uint256 intrinsicValueExchangeRate)
+    internal
+    pure
+    returns (uint256)
+  {
+    return _toExchangeToken(consumableAmount, intrinsicValueExchangeRate, false);
   }
 
   function _toExchangeToken(
-    uint256 amount,
+    uint256 consumableAmount,
     uint256 exchangeRate,
-    bool roundUp
+    bool purchasing
   ) private pure returns (uint256) {
-    uint256 amountExchangeToken = amount.div(exchangeRate);
-    if (roundUp && amount.mod(exchangeRate) != 0) {
+    uint256 amountExchangeToken = consumableAmount.div(exchangeRate);
+    if (purchasing && consumableAmount.mod(exchangeRate) != 0) {
       amountExchangeToken += 1;
     }
     return amountExchangeToken;
   }
 
-  function convertibleTokenNeeded(uint256 amount, uint256 exchangeRate) internal pure returns (uint256) {
-    return _fromExchangeToken(amount, exchangeRate);
+  function convertibleTokenNeeded(uint256 exchangeTokenAmount, uint256 intrinsicValueExchangeRate)
+    internal
+    pure
+    returns (uint256)
+  {
+    return _fromExchangeToken(exchangeTokenAmount, intrinsicValueExchangeRate);
   }
 
-  function convertibleTokenProvided(uint256 amount, uint256 exchangeRate) internal pure returns (uint256) {
-    return _fromExchangeToken(amount, exchangeRate);
+  function convertibleTokenProvided(uint256 exchangeTokenAmount, uint256 purchasePriceExchangeRate)
+    internal
+    pure
+    returns (uint256)
+  {
+    return _fromExchangeToken(exchangeTokenAmount, purchasePriceExchangeRate);
   }
 
-  function _fromExchangeToken(uint256 amount, uint256 exchangeRate) private pure returns (uint256) {
-    return amount.mul(exchangeRate);
+  function _fromExchangeToken(uint256 exchangeTokenAmount, uint256 exchangeRate) private pure returns (uint256) {
+    return exchangeTokenAmount.mul(exchangeRate);
   }
 
   function exchangeTokenNeeded(IConsumableExchange exchange, IConsumable.ConsumableAmount[] memory consumableAmounts)
@@ -84,7 +100,7 @@ library ConsumableConversionMath {
   function _toExchangeToken(
     IConsumableExchange exchange,
     IConsumable.ConsumableAmount[] memory consumableAmounts,
-    bool roundUp
+    bool purchasing
   ) private view returns (uint256) {
     uint256 totalAmount = 0;
 
@@ -99,8 +115,13 @@ library ConsumableConversionMath {
         'ConsumableConversionMath: Consumable must be convertible by exchange'
       );
 
-      uint256 exchangeRate = exchange.exchangeRateOf(convertibleConsumable);
-      uint256 exchangeAmount = _toExchangeToken(amount, exchangeRate, roundUp);
+      IConsumableExchange.ExchangeRate memory exchangeRate = exchange.exchangeRateOf(convertibleConsumable);
+      uint256 exchangeAmount;
+      if (purchasing) {
+        exchangeAmount = _toExchangeToken(amount, exchangeRate.purchasePrice, true);
+      } else {
+        exchangeAmount = _toExchangeToken(amount, exchangeRate.intrinsicValue, false);
+      }
 
       totalAmount = totalAmount.add(exchangeAmount);
     }

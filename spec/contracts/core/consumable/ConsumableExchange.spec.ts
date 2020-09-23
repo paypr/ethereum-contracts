@@ -1,4 +1,5 @@
 import { expectEvent, expectRevert } from '@openzeppelin/test-helpers';
+import { ExchangeRate } from '../../../../dist/consumables';
 import { CONSUMABLE_MINTER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import {
   createConsumable,
@@ -8,6 +9,7 @@ import {
   getBalance,
   increaseAllowance,
   mintConsumable,
+  toExchangeRateAsync,
 } from '../../../helpers/ConsumableHelper';
 import { toNumberAsync } from '../../../helpers/ContractHelper';
 import {
@@ -38,7 +40,7 @@ describe('totalConvertibles', () => {
     await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' });
     expect(await toNumberAsync(exchange.totalConvertibles())).toEqual(1);
 
-    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, false);
+    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, 1, false);
     expect(await toNumberAsync(exchange.totalConvertibles())).toEqual(1);
 
     await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' });
@@ -53,7 +55,7 @@ describe('convertibleAt', () => {
     const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' });
     expect(await exchange.convertibleAt(0)).toEqual(consumable1.address);
 
-    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, false);
+    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, 1, false);
     expect(await exchange.convertibleAt(0)).toEqual(consumable1.address);
 
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' });
@@ -65,7 +67,7 @@ describe('convertibleAt', () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
     await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' });
-    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, false);
+    await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1, 1, false);
     await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' });
 
     await expectRevert(exchange.convertibleAt(2), 'index out of bounds');
@@ -110,8 +112,14 @@ describe('exchangeRateOf', () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable2.address))).toEqual(0);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable2.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
   });
 
   it('should return the exchange rate of the token', async () => {
@@ -119,18 +127,42 @@ describe('exchangeRateOf', () => {
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(0);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
 
-    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1000);
+    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1000, 2000);
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable2.address))).toEqual(1000);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable2.address))).toEqual({
+      purchasePrice: 1000,
+      intrinsicValue: 2000,
+    });
 
-    const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1_000_000);
+    const consumable3 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 3' },
+      '',
+      1_000_000,
+      2_000_000,
+    );
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable2.address))).toEqual(1000);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable3.address))).toEqual(1_000_000);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable2.address))).toEqual({
+      purchasePrice: 1000,
+      intrinsicValue: 2000,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable3.address))).toEqual({
+      purchasePrice: 1_000_000,
+      intrinsicValue: 2_000_000,
+    });
   });
 });
 
@@ -138,59 +170,105 @@ describe('registerToken', () => {
   it('should set the exchange rate for a new token', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, false);
+    const consumable1 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 1' },
+      '',
+      1000,
+      2000,
+      false,
+    );
+
     const consumable2 = await createConvertibleConsumable(
       exchange.address,
       { name: 'Consumable 2' },
       '',
       1_000_000,
+      2_000_000,
       false,
     );
 
     await consumable1.registerWithExchange({ from: CONSUMABLE_MINTER });
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(1000);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable2.address))).toEqual(0);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 1000,
+      intrinsicValue: 2000,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable2.address))).toEqual({
+      purchasePrice: 0,
+      intrinsicValue: 0,
+    });
 
     await consumable2.registerWithExchange({ from: CONSUMABLE_MINTER });
 
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable1.address))).toEqual(1000);
-    expect<number>(await toNumberAsync(exchange.exchangeRateOf(consumable2.address))).toEqual(1_000_000);
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable1.address))).toEqual({
+      purchasePrice: 1000,
+      intrinsicValue: 2000,
+    });
+    expect<ExchangeRate>(await toExchangeRateAsync(exchange.exchangeRateOf(consumable2.address))).toEqual({
+      purchasePrice: 1_000_000,
+      intrinsicValue: 2_000_000,
+    });
   });
 
   it.skip('should emit ExchangeRateChanged event', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, false);
+    const consumable1 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 1' },
+      '',
+      1000,
+      2000,
+      false,
+    );
+
     const consumable2 = await createConvertibleConsumable(
       exchange.address,
       { name: 'Consumable 2' },
       '',
       1_000_000,
+      2_000_000,
       false,
     );
 
     // todo: skipped until events from nested calls can be checked
     expectEvent(await consumable1.registerWithExchange({ from: CONSUMABLE_MINTER }), 'ExchangeRateChanged', {
       token: consumable1.address,
-      exchangeRate: 1000,
+      purchasePriceExchangeRate: 1000,
+      intrinsicValueExchangeRate: 2000,
     });
     expectEvent(await consumable2.registerWithExchange({ from: CONSUMABLE_MINTER }), 'ExchangeRateChanged', {
       token: consumable1.address,
-      exchangeRate: 1_000_000,
+      purchasePriceExchangeRate: 1_000_000,
+      intrinsicValueExchangeRate: 2_000_000,
     });
   });
 
   it('should revert if exchange rate is 0', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    await expectRevert(exchange.registerToken(0, { from: PLAYER1 }), 'must register with an exchange rate');
+    await expectRevert(
+      exchange.registerToken(0, 1, { from: PLAYER1 }),
+      'must register with a purchase price exchange rate',
+    );
+    await expectRevert(
+      exchange.registerToken(1, 0, { from: PLAYER1 }),
+      'must register with an intrinsic value exchange rate',
+    );
   });
 
   it('should revert if the token is already registered', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, false);
+    const consumable1 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 1' },
+      '',
+      1000,
+      1000,
+      false,
+    );
 
     await consumable1.registerWithExchange({ from: CONSUMABLE_MINTER });
     await expectRevert(
@@ -202,7 +280,14 @@ describe('registerToken', () => {
   it('should not register if disabled', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable = await createConvertibleConsumable(exchange.address, { name: 'Consumable' }, '', 1000, false);
+    const consumable = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable' },
+      '',
+      1000,
+      1000,
+      false,
+    );
 
     await disableContract(exchange, CONSUMABLE_MINTER);
 
@@ -214,8 +299,14 @@ describe('exchangeTo', () => {
   it('should exchange the token at the exchange rate', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000);
-    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1_000_000);
+    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, 2000);
+    const consumable2 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 2' },
+      '',
+      1_000_000,
+      2_000_000,
+    );
 
     await mintConsumable(exchange, PLAYER1, 1000);
     await exchange.exchangeTo(consumable1.address, 2, { from: PLAYER1 });
@@ -260,8 +351,14 @@ describe('exchangeTo', () => {
   it('should revert if the caller does not have enough of the exchange token', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000);
-    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1_000_000);
+    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, 2000);
+    const consumable2 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 2' },
+      '',
+      1_000_000,
+      2_000_000,
+    );
 
     await expectRevert(
       exchange.exchangeTo(consumable1.address, 100, { from: PLAYER1 }),
@@ -328,13 +425,19 @@ describe('exchangeFrom', () => {
   it('should exchange the token at the exchange rate', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000);
-    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1_000_000);
+    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 100, 1000);
+    const consumable2 = await createConvertibleConsumable(
+      exchange.address,
+      { name: 'Consumable 2' },
+      '',
+      1000,
+      1_000_000,
+    );
 
-    await mintConsumable(exchange, consumable1.address, 1000);
+    await mintConsumable(exchange, consumable1.address, 10_000);
     await mintConsumable(consumable1, PLAYER1, 1_000_000);
 
-    await mintConsumable(exchange, consumable2.address, 1000);
+    await mintConsumable(exchange, consumable2.address, 1_000_000);
     await mintConsumable(consumable2, PLAYER1, 1_000_000_000);
 
     await increaseAllowance(consumable1, PLAYER1, exchange.address, 100_000);
@@ -346,8 +449,8 @@ describe('exchangeFrom', () => {
     expect<number>(await getAllowance(consumable1, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getAllowance(consumable2, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getBalance(exchange, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(900);
-    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(1000);
+    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(9900);
+    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(1_000_000);
 
     await increaseAllowance(consumable2, PLAYER1, exchange.address, 200_000_000);
 
@@ -358,8 +461,8 @@ describe('exchangeFrom', () => {
     expect<number>(await getAllowance(consumable1, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getAllowance(consumable2, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getBalance(exchange, PLAYER1)).toEqual(300);
-    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(900);
-    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(800);
+    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(9900);
+    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(999_800);
 
     await increaseAllowance(consumable1, PLAYER1, exchange.address, 1500);
 
@@ -370,21 +473,15 @@ describe('exchangeFrom', () => {
     expect<number>(await getAllowance(consumable1, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getAllowance(consumable2, PLAYER1, exchange.address)).toEqual(0);
     expect<number>(await getBalance(exchange, PLAYER1)).toEqual(301);
-    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(899);
-    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(800);
+    expect<number>(await getBalance(exchange, consumable1.address)).toEqual(9899);
+    expect<number>(await getBalance(exchange, consumable2.address)).toEqual(999_800);
   });
 
   it('should revert if the caller has not provided enough tokens', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
-    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000, true);
-    const consumable2 = await createConvertibleConsumable(
-      exchange.address,
-      { name: 'Consumable 2' },
-      '',
-      1_000_000,
-      true,
-    );
+    const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 1000);
+    const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1_000_000);
 
     await mintConsumable(exchange, consumable1.address, 1000);
     await mintConsumable(consumable1, PLAYER1, 1_000_000);

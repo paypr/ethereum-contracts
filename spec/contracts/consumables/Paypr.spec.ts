@@ -43,7 +43,7 @@ describe('initializePaypr', () => {
     const consumable = await createConsumable();
 
     const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 1, roleDelegate, { from: CONSUMABLE_MINTER });
+    await paypr.initializePaypr(consumable.address, 1, 1, roleDelegate, { from: CONSUMABLE_MINTER });
 
     expect<string>(await paypr.contractName()).toEqual('Paypr');
     expect<string>(await paypr.contractDescription()).toEqual('Paypr exchange token');
@@ -55,22 +55,23 @@ describe('initializePaypr', () => {
     const consumable = await createConsumable();
 
     const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 1, roleDelegate, { from: CONSUMABLE_MINTER });
+    await paypr.initializePaypr(consumable.address, 1, 1, roleDelegate, { from: CONSUMABLE_MINTER });
 
     expect<string>(await paypr.contractName()).toEqual('Paypr');
     expect<string>(await paypr.symbol()).toEqual('ℙ');
     expect<number>(await toNumberAsync(paypr.decimals())).toEqual(18);
   });
 
-  it('should set the base token and base exchange rate', async () => {
+  it('should set the base token and base exchange rates', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
     const consumable = await createConsumable();
 
     const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 100, roleDelegate, { from: CONSUMABLE_MINTER });
+    await paypr.initializePaypr(consumable.address, 100, 200, roleDelegate, { from: CONSUMABLE_MINTER });
 
     expect<string>(await paypr.exchangeToken()).toEqual(consumable.address);
-    expect<number>(await toNumberAsync(paypr.exchangeRate())).toEqual(100);
+    expect<number>(await toNumberAsync(paypr.purchasePriceExchangeRate())).toEqual(100);
+    expect<number>(await toNumberAsync(paypr.intrinsicValueExchangeRate())).toEqual(200);
   });
 
   it('should revert if the base exchange rate == 0', async () => {
@@ -78,9 +79,15 @@ describe('initializePaypr', () => {
     const consumable = await createConsumable();
 
     const paypr = await PayprContract.new();
+
     await expectRevert(
-      paypr.initializePaypr(consumable.address, 0, roleDelegate, { from: CONSUMABLE_MINTER }),
-      'exchange rate must be > 0',
+      paypr.initializePaypr(consumable.address, 0, 1, roleDelegate, { from: CONSUMABLE_MINTER }),
+      'purchase price exchange rate must be > 0',
+    );
+
+    await expectRevert(
+      paypr.initializePaypr(consumable.address, 1, 0, roleDelegate, { from: CONSUMABLE_MINTER }),
+      'intrinsic value exchange rate must be > 0',
     );
   });
 
@@ -91,15 +98,16 @@ describe('initializePaypr', () => {
     const consumable2 = await createConsumable();
 
     const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable1.address, 1, roleDelegate, { from: CONSUMABLE_MINTER });
+    await paypr.initializePaypr(consumable1.address, 1, 2, roleDelegate, { from: CONSUMABLE_MINTER });
 
     await expectRevert(
-      paypr.initializePaypr(consumable2.address, 100, roleDelegate, { from: CONSUMABLE_MINTER }),
+      paypr.initializePaypr(consumable2.address, 100, 200, roleDelegate, { from: CONSUMABLE_MINTER }),
       'Contract instance has already been initialized',
     );
 
     expect<string>(await paypr.exchangeToken()).toEqual(consumable1.address);
-    expect<number>(await toNumberAsync(paypr.exchangeRate())).toEqual(1);
+    expect<number>(await toNumberAsync(paypr.purchasePriceExchangeRate())).toEqual(1);
+    expect<number>(await toNumberAsync(paypr.intrinsicValueExchangeRate())).toEqual(2);
   });
 });
 
@@ -208,6 +216,35 @@ describe('mintByExchange', () => {
     expect<number>(await getBalance(paypr, PLAYER1)).toEqual(150_000);
   });
 
+  it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const paypr = await createPaypr(consumable1.address, 10, 100);
+
+    await mintConsumable(consumable1, PLAYER1, 1000);
+    await mintConsumable(consumable2, PLAYER1, 1000);
+
+    await increaseAllowance(consumable1, PLAYER1, paypr.address, 100);
+
+    await paypr.mintByExchange(1000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(1000);
+
+    await increaseAllowance(consumable1, PLAYER1, paypr.address, 50);
+
+    await paypr.mintByExchange(500, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
+    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(1500);
+  });
+
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is 1', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -264,6 +301,111 @@ describe('mintByExchange', () => {
 });
 
 describe('burnByExchange', () => {
+  it('should exchange proper amount when the exchange rate is 1', async () => {
+    const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
+    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const paypr = await createPaypr(consumable1.address, 1, 1, roleDelegate.address);
+
+    await mintConsumable(consumable1, paypr.address, 1000);
+    await mintConsumable(consumable2, paypr.address, 1000);
+    await mintConsumable(paypr, PLAYER1, 1000);
+
+    await paypr.burnByExchange(100, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(900);
+
+    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+
+    await paypr.burnByExchange(50, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(850);
+  });
+
+  it('should exchange proper amount when the exchange rate is large', async () => {
+    const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
+    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const paypr = await createPaypr(consumable1.address, 1000, 1000, roleDelegate.address);
+
+    await mintConsumable(consumable1, paypr.address, 1000);
+    await mintConsumable(consumable2, paypr.address, 1000);
+    await mintConsumable(paypr, PLAYER1, 1_000_000);
+
+    await paypr.burnByExchange(100_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(900_000);
+
+    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+
+    await paypr.burnByExchange(50_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(850_000);
+  });
+
+  it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
+    const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
+    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+
+    const consumable1 = await createConsumable({ name: 'Consumable 1' });
+    const consumable2 = await createConsumable({ name: 'Consumable 2' });
+    const paypr = await createPaypr(consumable1.address, 10, 100, roleDelegate.address);
+
+    await mintConsumable(consumable1, paypr.address, 1000);
+    await mintConsumable(consumable2, paypr.address, 1000);
+    await mintConsumable(paypr, PLAYER1, 100_000);
+
+    await paypr.burnByExchange(10_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(90_000);
+
+    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+
+    await paypr.burnByExchange(5_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
+    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
+    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
+    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
+    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(85_000);
+  });
+
   it('should revert if sender is not minter', async () => {
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -291,7 +433,7 @@ describe('burnByExchange', () => {
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
-    const paypr = await createPaypr(consumable1.address, 1, roleDelegate.address);
+    const paypr = await createPaypr(consumable1.address, 1, 1, roleDelegate.address);
 
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
@@ -326,7 +468,7 @@ describe('burnByExchange', () => {
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
-    const paypr = await createPaypr(consumable1.address, 1000, roleDelegate.address);
+    const paypr = await createPaypr(consumable1.address, 1000, 1000, roleDelegate.address);
 
     await mintConsumable(consumable1, paypr.address, 1_000_000);
     await mintConsumable(consumable2, paypr.address, 1_000_000);

@@ -17,25 +17,36 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
   IERC20 private _exchangeToken;
 
   // amount that 1 of exchangeToken will convert into this consumable
-  // eg if exchangeRate is 1000, then 1000 this == 1 exchangeToken
-  uint256 private _exchangeRate;
+  // eg if purchasePriceExchangeRate is 1000, then 1 exchangeToken will purchase 1000 of this token
+  uint256 private _purchasePriceExchangeRate;
+
+  // amount of this token needed to exchange for 1 exchangeToken
+  // eg if intrinsicValueExchangeRate is 1000, then 1000 of this is needed to exchange for 1 exchangeToken
+  uint256 private _intrinsicValueExchangeRate;
 
   function _initializeConvertibleConsumable(
     ContractInfo memory info,
     string memory symbol,
     IERC20 exchangeToken,
-    uint256 exchangeRate,
+    uint256 purchasePriceExchangeRate,
+    uint256 intrinsicValueExchangeRate,
     bool registerWithExchange
   ) internal initializer {
     _initializeConsumable(info, symbol);
     _registerInterface(ConvertibleConsumableInterfaceSupport.CONVERTIBLE_CONSUMABLE_INTERFACE_ID);
 
-    require(exchangeRate > 0, 'ConvertibleConsumable: exchange rate must be > 0');
+    require(purchasePriceExchangeRate > 0, 'ConvertibleConsumable: purchase price exchange rate must be > 0');
+    require(intrinsicValueExchangeRate > 0, 'ConvertibleConsumable: intrinsic value exchange rate must be > 0');
+    require(
+      purchasePriceExchangeRate <= intrinsicValueExchangeRate,
+      'ConvertibleConsumable: purchase price exchange must be <= intrinsic value exchange rate'
+    );
 
     // enhance: when ERC20 supports ERC165, check token here
 
     _exchangeToken = exchangeToken;
-    _exchangeRate = exchangeRate;
+    _purchasePriceExchangeRate = purchasePriceExchangeRate;
+    _intrinsicValueExchangeRate = intrinsicValueExchangeRate;
 
     if (registerWithExchange) {
       _registerWithExchange();
@@ -46,12 +57,20 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
     return _exchangeToken;
   }
 
-  function exchangeRate() external override view returns (uint256) {
-    return _exchangeRate;
+  function asymmetricalExchangeRate() external override view returns (bool) {
+    return _purchasePriceExchangeRate != _intrinsicValueExchangeRate;
+  }
+
+  function purchasePriceExchangeRate() external override view returns (uint256) {
+    return _purchasePriceExchangeRate;
+  }
+
+  function intrinsicValueExchangeRate() external override view returns (uint256) {
+    return _intrinsicValueExchangeRate;
   }
 
   function amountExchangeTokenAvailable() external override view returns (uint256) {
-    uint256 amountNeeded = this.amountExchangeTokenNeeded(totalSupply());
+    uint256 amountNeeded = totalSupply().exchangeTokenNeeded(_intrinsicValueExchangeRate);
     uint256 amountExchangeToken = _exchangeToken.balanceOf(address(this));
     if (amountNeeded >= amountExchangeToken) {
       return 0;
@@ -61,7 +80,7 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
 
   function _registerWithExchange() internal onlyEnabled {
     IConsumableExchange consumableExchange = IConsumableExchange(address(_exchangeToken));
-    consumableExchange.registerToken(_exchangeRate);
+    consumableExchange.registerToken(_purchasePriceExchangeRate, _intrinsicValueExchangeRate);
   }
 
   function _transfer(
@@ -74,62 +93,62 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
     super._transfer(sender, recipient, amount);
   }
 
-  function _exchangeIfNeeded(address sender, uint256 amount) internal onlyEnabled {
+  function _exchangeIfNeeded(address sender, uint256 consumableAmount) internal onlyEnabled {
     uint256 senderBalance = this.balanceOf(sender);
-    if (senderBalance < amount) {
+    if (senderBalance < consumableAmount) {
       // no need to use SafeMath since we know that the sender balance < amount
-      uint256 amountNeeded = amount - senderBalance;
+      uint256 consumableAmountNeeded = consumableAmount - senderBalance;
 
       // assume that they wanted to convert since they knew they didn't have enough to transfer
-      _mintByExchange(sender, amountNeeded);
+      _mintByExchange(sender, consumableAmountNeeded);
     }
   }
 
-  function mintByExchange(uint256 amount) external override {
-    _mintByExchange(_msgSender(), amount);
+  function mintByExchange(uint256 consumableAmount) external override {
+    _mintByExchange(_msgSender(), consumableAmount);
   }
 
   /**
-   * @dev Converts exchange token into `amount` of this consumable
+   * @dev Converts exchange token into `consumableAmount` of this consumable
    */
-  function _mintByExchange(address account, uint256 amount) internal onlyEnabled {
-    uint256 amountExchangeToken = this.amountExchangeTokenNeeded(amount);
+  function _mintByExchange(address account, uint256 consumableAmount) internal onlyEnabled {
+    uint256 amountExchangeToken = this.amountExchangeTokenNeeded(consumableAmount);
 
     _exchangeToken.transferFrom(account, address(this), amountExchangeToken);
 
-    _mint(account, amount);
+    _mint(account, consumableAmount);
   }
 
-  function amountExchangeTokenNeeded(uint256 amount) external override view returns (uint256) {
-    return amount.exchangeTokenNeeded(_exchangeRate);
+  function amountExchangeTokenNeeded(uint256 consumableAmount) external override view returns (uint256) {
+    return consumableAmount.exchangeTokenNeeded(_purchasePriceExchangeRate);
   }
 
   function _mint(address account, uint256 amount) internal virtual override {
     super._mint(account, amount);
 
-    uint256 amountNeeded = this.amountExchangeTokenNeeded(totalSupply());
+    uint256 amountNeeded = totalSupply().exchangeTokenNeeded(_intrinsicValueExchangeRate);
     uint256 amountExchangeToken = _exchangeToken.balanceOf(address(this));
     require(amountExchangeToken >= amountNeeded, 'ConvertibleConsumable: Not enough exchange token available to mint');
   }
 
-  function burnByExchange(uint256 amount) external virtual override {
-    _burnByExchange(_msgSender(), amount);
+  function burnByExchange(uint256 consumableAmount) external virtual override {
+    _burnByExchange(_msgSender(), consumableAmount);
   }
 
   /**
-   * @dev Converts `amount` of this consumable into exchange token
+   * @dev Converts `consumableAmount` of this consumable into exchange token
    */
-  function _burnByExchange(address receiver, uint256 amount) internal onlyEnabled {
-    _burn(receiver, amount);
+  function _burnByExchange(address receiver, uint256 consumableAmount) internal onlyEnabled {
+    _burn(receiver, consumableAmount);
 
     ERC20UpgradeSafe token = ERC20UpgradeSafe(address(_exchangeToken));
 
-    uint256 exchangeTokenAmount = this.amountExchangeTokenProvided(amount);
+    uint256 exchangeTokenAmount = this.amountExchangeTokenProvided(consumableAmount);
     token.increaseAllowance(receiver, exchangeTokenAmount);
   }
 
-  function amountExchangeTokenProvided(uint256 amount) external override view returns (uint256) {
-    return amount.exchangeTokenProvided(_exchangeRate);
+  function amountExchangeTokenProvided(uint256 consumableAmount) external override view returns (uint256) {
+    return consumableAmount.exchangeTokenProvided(_intrinsicValueExchangeRate);
   }
 
   uint256[50] private ______gap;

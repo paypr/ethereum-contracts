@@ -1,16 +1,27 @@
 // SPDX-License-Identifier: UNLICENSED
 
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import './IConsumable.sol';
 import './IConvertibleConsumable.sol';
 
 interface IConsumableExchange is IConsumable {
+  struct ExchangeRate {
+    uint256 purchasePrice;
+    uint256 intrinsicValue;
+  }
+
   /**
    * @dev Emitted when the exchange rate changes for `token`.
-   * `exchangeRate` is the new exchange rate
+   * `purchasePriceExchangeRate` is the new purchase price exchange rate
+   * `intrinsicValueExchangeRate` is the new intrinsic value exchange rate
    */
-  event ExchangeRateChanged(IConvertibleConsumable indexed token, uint256 exchangeRate);
+  event ExchangeRateChanged(
+    IConvertibleConsumable indexed token,
+    uint256 indexed purchasePriceExchangeRate,
+    uint256 indexed intrinsicValueExchangeRate
+  );
 
   /**
    * @dev Returns the total number of convertibles registered asn part of this exchange.
@@ -32,7 +43,7 @@ interface IConsumableExchange is IConsumable {
    *
    * eg if exchange rate is 1000, then 1 this consumable == 1000 associated tokens
    */
-  function exchangeRateOf(IConvertibleConsumable token) external view returns (uint256);
+  function exchangeRateOf(IConvertibleConsumable token) external view returns (ExchangeRate memory);
 
   /**
    * @dev Exchanges the given amount of this consumable to the given token for the sender
@@ -53,9 +64,9 @@ interface IConsumableExchange is IConsumable {
   function exchangeFrom(IConvertibleConsumable token, uint256 tokenAmount) external;
 
   /**
-   * @dev Registers a token with this exchange, using the given `exchangeRate`.
+   * @dev Registers a token with this exchange, using the given `purchasePriceExchangeRate` and `intrinsicValueExchangeRate`.
    *
-   * NOTE: Can only be called when the token has no current `exchangeRate`
+   * NOTE: Can only be called when the token has no current exchange rate
    */
-  function registerToken(uint256 exchangeRate) external;
+  function registerToken(uint256 purchasePriceExchangeRate, uint256 intrinsicValueExchangeRate) external;
 }

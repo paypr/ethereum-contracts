@@ -11,11 +11,19 @@ contract ConfigurableConvertibleConsumable is ConvertibleConsumable, DelegatingR
     ContractInfo memory info,
     string memory symbol,
     IERC20 exchangeToken,
-    uint256 exchangeRate,
+    uint256 purchasePriceExchangeRate,
+    uint256 intrinsicValueExchangeRate,
     bool registerWithExchange,
     IRoleDelegate roleDelegate
   ) public initializer {
-    _initializeConvertibleConsumable(info, symbol, exchangeToken, exchangeRate, registerWithExchange);
+    _initializeConvertibleConsumable(
+      info,
+      symbol,
+      exchangeToken,
+      purchasePriceExchangeRate,
+      intrinsicValueExchangeRate,
+      registerWithExchange
+    );
 
     _addRoleDelegate(roleDelegate);
   }

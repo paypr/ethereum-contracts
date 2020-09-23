@@ -174,6 +174,130 @@ it('should send and receive correct consumables from/to player', async () => {
   await transferFrom(consumable3, activity.address, PLAYER1, 75);
 });
 
+it('should send and receive correct consumables from/to player with asymmetrical exchange rates', async () => {
+  const exchange = await createConsumableExchange();
+
+  const consumable1 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 1' }, '', 10, 100);
+  const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 50);
+  const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 25, 250);
+
+  const activity = await createExchangingActivity(
+    exchange.address,
+    {},
+    [
+      { consumable: consumable1.address, amount: 100 }, // 1
+      { consumable: consumable2.address, amount: 200 }, // 4
+    ],
+    [
+      { consumable: consumable2.address, amount: 50 }, // 1
+      { consumable: consumable3.address, amount: 75 }, // 3
+    ],
+  );
+
+  await mintConsumable(exchange, consumable1.address, 1000);
+  await mintConsumable(exchange, consumable2.address, 1000);
+
+  await mintConsumable(consumable1, PLAYER1, 1000);
+  await mintConsumable(consumable2, PLAYER1, 1000);
+
+  await consumable1.increaseAllowance(activity.address, 100, { from: PLAYER1 });
+  await consumable2.increaseAllowance(activity.address, 200, { from: PLAYER1 });
+
+  await activity.execute([], { from: PLAYER1 });
+
+  expect<number>(await getBalance(consumable1, activity.address)).toEqual(0);
+  expect<number>(await getBalance(consumable2, activity.address)).toEqual(50);
+  expect<number>(await getBalance(consumable3, activity.address)).toEqual(75);
+  expect<number>(await getBalance(exchange, activity.address)).toEqual(1);
+
+  expect<number>(await getBalance(exchange, consumable1.address)).toEqual(999);
+  expect<number>(await getBalance(exchange, consumable2.address)).toEqual(997);
+  expect<number>(await getBalance(exchange, consumable3.address)).toEqual(3);
+
+  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
+  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(800);
+  expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable1, PLAYER1, activity.address)).toEqual(0);
+  expect<number>(await getAllowance(consumable2, PLAYER1, activity.address)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable2, activity.address, PLAYER1)).toEqual(50);
+  expect<number>(await getAllowance(consumable3, activity.address, PLAYER1)).toEqual(75);
+
+  await transferFrom(consumable2, activity.address, PLAYER1, 50);
+  await transferFrom(consumable3, activity.address, PLAYER1, 75);
+
+  await mintConsumable(consumable1, PLAYER2, 1000);
+  await mintConsumable(consumable2, PLAYER2, 1000);
+
+  await consumable1.increaseAllowance(activity.address, 100, { from: PLAYER2 });
+  await consumable2.increaseAllowance(activity.address, 200, { from: PLAYER2 });
+
+  await activity.execute([], { from: PLAYER2 });
+
+  expect<number>(await getBalance(consumable1, activity.address)).toEqual(0);
+  expect<number>(await getBalance(consumable2, activity.address)).toEqual(50);
+  expect<number>(await getBalance(consumable3, activity.address)).toEqual(75);
+  expect<number>(await getBalance(exchange, activity.address)).toEqual(2);
+
+  expect<number>(await getBalance(exchange, consumable1.address)).toEqual(998);
+  expect<number>(await getBalance(exchange, consumable2.address)).toEqual(994);
+  expect<number>(await getBalance(exchange, consumable3.address)).toEqual(6);
+
+  expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(900);
+  expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(800);
+  expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable1, PLAYER2, activity.address)).toEqual(0);
+  expect<number>(await getAllowance(consumable2, PLAYER2, activity.address)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable2, activity.address, PLAYER2)).toEqual(50);
+  expect<number>(await getAllowance(consumable3, activity.address, PLAYER2)).toEqual(75);
+
+  await transferFrom(consumable2, activity.address, PLAYER2, 50);
+  await transferFrom(consumable3, activity.address, PLAYER2, 75);
+
+  await consumable1.increaseAllowance(activity.address, 60, { from: PLAYER1 });
+  await consumable2.increaseAllowance(activity.address, 110, { from: PLAYER1 });
+
+  await consumable1.increaseAllowance(activity.address, 40, { from: PLAYER2 });
+  await consumable2.increaseAllowance(activity.address, 90, { from: PLAYER2 });
+
+  await activity.execute([PLAYER2], { from: PLAYER1 });
+
+  expect<number>(await getBalance(consumable1, activity.address)).toEqual(0);
+  expect<number>(await getBalance(consumable2, activity.address)).toEqual(50);
+  expect<number>(await getBalance(consumable3, activity.address)).toEqual(75);
+  expect<number>(await getBalance(exchange, activity.address)).toEqual(3);
+
+  expect<number>(await getBalance(exchange, consumable1.address)).toEqual(997);
+  expect<number>(await getBalance(exchange, consumable2.address)).toEqual(991);
+  expect<number>(await getBalance(exchange, consumable3.address)).toEqual(9);
+
+  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(840);
+  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(740);
+  expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(75);
+
+  expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(860);
+  expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(760);
+  expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(75);
+
+  expect<number>(await getAllowance(consumable1, PLAYER1, activity.address)).toEqual(0);
+  expect<number>(await getAllowance(consumable2, PLAYER1, activity.address)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable1, PLAYER2, activity.address)).toEqual(0);
+  expect<number>(await getAllowance(consumable2, PLAYER2, activity.address)).toEqual(0);
+
+  expect<number>(await getAllowance(consumable2, activity.address, PLAYER1)).toEqual(50);
+  expect<number>(await getAllowance(consumable3, activity.address, PLAYER1)).toEqual(75);
+
+  expect<number>(await getAllowance(consumable2, activity.address, PLAYER2)).toEqual(0);
+  expect<number>(await getAllowance(consumable3, activity.address, PLAYER2)).toEqual(0);
+
+  await transferFrom(consumable2, activity.address, PLAYER1, 50);
+  await transferFrom(consumable3, activity.address, PLAYER1, 75);
+});
+
 it('should receive all consumables from player and helpers', async () => {
   const exchange = await createConsumableExchange();
 

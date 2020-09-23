@@ -4,4 +4,4 @@ export const getContract = (contractName: string) => contract.fromArtifact(contr
 
 export const toNumber = (bigNumber: any) => Number(bigNumber.toString());
 
-export const toNumberAsync = async (bigNumberPromise: Promise<any>) => toNumber(await bigNumberPromise);
+export const toNumberAsync = async (bigNumberPromise: Promise<any> | any) => toNumber(await bigNumberPromise);
