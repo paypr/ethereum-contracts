@@ -9,6 +9,9 @@ jobs:
       tag: '12.16'
     steps:
       - checkout
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - node/install-packages
       - run:
           command: npm run build
@@ -24,4 +27,6 @@ jobs:
 workflows:
   workflow:
     jobs:
-      - test
+      - test:
+          context:
+            - test
