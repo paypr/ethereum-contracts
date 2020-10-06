@@ -1,5 +1,6 @@
 import { accounts } from '@openzeppelin/test-environment';
 import { constants } from '@openzeppelin/test-helpers';
+import ContractAddress from '../../src/contracts/ContractAddress';
 
 export const [
   INITIALIZER,
@@ -15,4 +16,5 @@ export const [
 
 export const ZERO_ADDRESS = constants.ZERO_ADDRESS;
 
-export const getContractAddress = async (contract: any | Promise<any>): Promise<string> => (await contract).address;
+export const getContractAddress = async (contract: any | Promise<any>): Promise<ContractAddress> =>
+  (await contract).address;

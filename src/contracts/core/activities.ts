@@ -1,4 +1,6 @@
+import ContractAddress from '../ContractAddress';
+
 export interface Item {
-  artifact: string;
+  artifact: ContractAddress;
   itemId: string;
 }

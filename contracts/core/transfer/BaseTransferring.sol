@@ -30,7 +30,7 @@ abstract contract BaseTransferring is ITransferring, IERC721Receiver {
       // increase allowance as needed, but only if it's a convertible consumable
       IConvertibleConsumable convertibleConsumable = IConvertibleConsumable(address(token));
 
-      uint256 amountConsumableNeeded = myBalance - amount; // safe since we checked < above
+      uint256 amountConsumableNeeded = amount - myBalance; // safe since we checked < above
       uint256 amountExchangeToken = convertibleConsumable.amountExchangeTokenNeeded(amountConsumableNeeded);
 
       ERC20UpgradeSafe exchange = ERC20UpgradeSafe(address(convertibleConsumable.exchangeToken()));

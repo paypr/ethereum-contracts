@@ -1,5 +1,5 @@
 import { expectEvent, expectRevert } from '@openzeppelin/test-helpers';
-import { ExchangeRate } from '../../../../dist/consumables';
+import { ExchangeRate } from '../../../../src/contracts/core/consumables';
 import { CONSUMABLE_MINTER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import {
   createConsumable,
