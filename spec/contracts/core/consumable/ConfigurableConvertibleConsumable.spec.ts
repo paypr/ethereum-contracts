@@ -1,5 +1,5 @@
 import { expectRevert } from '@openzeppelin/test-helpers';
-import { ExchangeRate } from '../../../../dist/consumables';
+import { ExchangeRate } from '../../../../src/contracts/core/consumables';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
 import { CONSUMABLE_MINTER, getContractAddress, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';

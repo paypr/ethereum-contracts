@@ -1,4 +1,6 @@
+import ContractAddress from '../ContractAddress';
+
 export interface SkillLevel {
-  skill: string;
+  skill: ContractAddress;
   level: number;
 }

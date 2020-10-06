@@ -1,5 +1,7 @@
+import ContractAddress from '../ContractAddress';
+
 export interface ConsumableAmount {
-  consumable: string;
+  consumable: ContractAddress;
   amount: number;
 }
 
