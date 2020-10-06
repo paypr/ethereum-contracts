@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/paypr/ethereum-contracts/compare/v0.1.0...v0.1.1) (2020-10-06)
+
+### Bug Fixes
+
+- [[#7](https://github.com/paypr/CHANGEME/issues/7)] fixed stupid logic error, and added a test to cover it ([d9d9839](https://github.com/paypr/ethereum-contracts/commit/d9d983947d3875b472bd87a28cc7ba4ee0938e06))
+
 ## [0.1.0](https://github.com/paypr/ethereum-contracts/compare/v0.0.3...v0.1.0) (2020-09-23)
 
 ### ⚠ BREAKING CHANGES
