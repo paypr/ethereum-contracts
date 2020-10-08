@@ -63,7 +63,7 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
       const transferring = await create();
 
       const exchangeConsumable = await createConsumableExchange({ name: 'Exchange' });
-      const consumable = await createConvertibleConsumable(
+      const consumable1 = await createConvertibleConsumable(
         exchangeConsumable.address,
         { name: 'Consumable' },
         '',
@@ -73,25 +73,25 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
         undefined,
       );
 
-      await mintConsumable(exchangeConsumable, transferring.address, 1000);
+      await mintConsumable(exchangeConsumable, transferring.address, 100);
 
-      await transferring.transferToken(consumable.address, 100, PLAYER3, { from: transferAgent });
+      await transferring.transferToken(consumable1.address, 100, PLAYER3, { from: transferAgent });
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(990);
+      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(90);
       expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable, PLAYER3)).toEqual(100);
-      expect(await getAllowance(consumable, transferring.address, PLAYER3)).toEqual(0);
+      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
+      expect(await getBalance(consumable1, transferring.address)).toEqual(0);
+      expect(await getBalance(consumable1, PLAYER3)).toEqual(100);
+      expect(await getAllowance(consumable1, consumable1.address, PLAYER3)).toEqual(0);
 
-      await transferring.transferToken(consumable.address, 101, PLAYER3, { from: transferAgent });
+      await transferring.transferToken(consumable1.address, 101, PLAYER3, { from: transferAgent });
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(979);
+      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(79);
       expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable, PLAYER3)).toEqual(201);
-      expect(await getAllowance(consumable, transferring.address, PLAYER3)).toEqual(0);
+      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
+      expect(await getBalance(consumable1, transferring.address)).toEqual(0);
+      expect(await getBalance(consumable1, PLAYER3)).toEqual(201);
+      expect(await getAllowance(consumable1, consumable1.address, PLAYER3)).toEqual(0);
 
       const consumable2 = await createConvertibleConsumable(
         exchangeConsumable.address,
@@ -103,23 +103,23 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
         undefined,
       );
 
-      await transferring.transferToken(consumable2.address, 100, PLAYER3, { from: transferAgent });
+      await transferring.transferToken(consumable2.address, 10, PLAYER3, { from: transferAgent });
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(879);
+      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(69);
       expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, transferring.address)).toEqual(0);
+      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
       expect(await getBalance(consumable2, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable2, PLAYER3)).toEqual(100);
-      expect(await getAllowance(consumable2, transferring.address, PLAYER3)).toEqual(0);
+      expect(await getBalance(consumable2, PLAYER3)).toEqual(10);
+      expect(await getAllowance(consumable2, consumable1.address, PLAYER3)).toEqual(0);
 
-      await transferring.transferToken(consumable2.address, 101, PLAYER3, { from: transferAgent });
+      await transferring.transferToken(consumable2.address, 11, PLAYER3, { from: transferAgent });
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(778);
+      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(58);
       expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, transferring.address)).toEqual(0);
+      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
       expect(await getBalance(consumable2, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable2, PLAYER3)).toEqual(201);
-      expect(await getAllowance(consumable2, transferring.address, PLAYER3)).toEqual(0);
+      expect(await getBalance(consumable2, PLAYER3)).toEqual(21);
+      expect(await getAllowance(consumable2, consumable1.address, PLAYER3)).toEqual(0);
     });
   }
 

@@ -98,9 +98,9 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
 
     // check to ensure there is enough of this token left over to exchange if the sender is registered
     ExchangeRate memory senderExchangeRate = _exchangeRates[sender];
-    if (senderExchangeRate.purchasePrice != 0) {
+    if (senderExchangeRate.intrinsicValue != 0) {
       uint256 senderBalance = balanceOf(sender);
-      uint256 tokenAmountAllowed = senderBalance.convertibleTokenProvided(senderExchangeRate.purchasePrice);
+      uint256 tokenAmountAllowed = senderBalance.convertibleTokenProvided(senderExchangeRate.intrinsicValue);
 
       IERC20 token = IERC20(sender);
       require(token.totalSupply() <= tokenAmountAllowed, 'ConsumableExchange: not enough left to cover exchange');
