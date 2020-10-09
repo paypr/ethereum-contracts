@@ -603,6 +603,53 @@ describe('transferToken', () => {
     expect<number>(await getBalance(exchange, consumable.address)).toEqual(102);
   });
 
+  // tslint:disable-next-line:max-line-length
+  it('should transfer from consumable with asymmetrical exchange rates if there would be enough to exchangeFrom', async () => {
+    const exchange = await createConsumableExchange({ name: 'Exchange' });
+
+    const consumable = await createConvertibleConsumable(exchange.address, { name: 'Consumable' }, '', 1000, 1_000_000);
+
+    await mintConsumable(exchange, PLAYER1, 1000);
+
+    await exchange.exchangeTo(consumable.address, 2, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(0);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(2000);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(998);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(2);
+
+    await consumable.transferFrom(exchange.address, PLAYER1, 2000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(2000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(998);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(2);
+
+    await consumable.transferToken(exchange.address, 1, PLAYER1, { from: CONSUMABLE_MINTER });
+
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(999);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(1);
+
+    await exchange.exchangeTo(consumable.address, 100, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(2000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(100_000);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(899);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(101);
+
+    await consumable.transferFrom(exchange.address, PLAYER1, 100_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(102_000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(899);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(101);
+
+    await consumable.transferToken(exchange.address, 100, PLAYER1, { from: CONSUMABLE_MINTER });
+
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(999);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(1);
+  });
+
   it('should not transfer from consumable if there would not be enough to exchangeFrom', async () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
 
@@ -648,6 +695,59 @@ describe('transferToken', () => {
 
     await expectRevert(
       consumable.transferToken(exchange.address, 10, PLAYER1, { from: CONSUMABLE_MINTER }),
+      'not enough left to cover exchange',
+    );
+
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(898);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(102);
+  });
+
+  // tslint:disable-next-line:max-line-length
+  it('should not transfer from consumable with asymmetrical exchange rates if there would not be enough to exchangeFrom', async () => {
+    const exchange = await createConsumableExchange({ name: 'Exchange' });
+
+    const consumable = await createConvertibleConsumable(exchange.address, { name: 'Consumable' }, '', 1000, 1_000_000);
+
+    await mintConsumable(exchange, PLAYER1, 1000);
+
+    await exchange.exchangeTo(consumable.address, 2, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(0);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(2000);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(998);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(2);
+
+    await consumable.transferFrom(exchange.address, PLAYER1, 2000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(2000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(998);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(2);
+
+    await expectRevert(
+      consumable.transferToken(exchange.address, 2, PLAYER1, { from: CONSUMABLE_MINTER }),
+      'not enough left to cover exchange',
+    );
+
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(998);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(2);
+
+    await exchange.exchangeTo(consumable.address, 100, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(2000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(100_000);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(898);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(102);
+
+    await consumable.transferFrom(exchange.address, PLAYER1, 100_000, { from: PLAYER1 });
+
+    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(102_000);
+    expect<number>(await getAllowance(consumable, exchange.address, PLAYER1)).toEqual(0);
+    expect<number>(await getBalance(exchange, PLAYER1)).toEqual(898);
+    expect<number>(await getBalance(exchange, consumable.address)).toEqual(102);
+
+    await expectRevert(
+      consumable.transferToken(exchange.address, 102, PLAYER1, { from: CONSUMABLE_MINTER }),
       'not enough left to cover exchange',
     );
 
