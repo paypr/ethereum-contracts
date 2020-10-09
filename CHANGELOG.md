@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/paypr/ethereum-contracts/compare/v0.1.1...v0.1.2) (2020-10-09)
+
+### Bug Fixes
+
+- [[#9](https://github.com/paypr/CHANGEME/issues/9)] fixed exchange transfer token logic for consumables with asymmetrical exchange rates ([1d8e239](https://github.com/paypr/ethereum-contracts/commit/1d8e2397fb12b37346536969d68ba49130350576))
+
 ### [0.1.1](https://github.com/paypr/ethereum-contracts/compare/v0.1.0...v0.1.1) (2020-10-06)
 
 ### Bug Fixes
