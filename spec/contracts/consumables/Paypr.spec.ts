@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020 The Paypr Company
+ *
+ * This file is NOT part of Paypr Ethereum Contracts and CANNOT be redistributed.
+ */
+
 import { expectRevert } from '@openzeppelin/test-helpers';
 import { createRolesWithAllSameRole } from '../../helpers/AccessHelper';
 import { CONSUMABLE_MINTER, getContractAddress, PLAYER1, PLAYER2, PLAYER3 } from '../../helpers/Accounts';
