@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020 The Paypr Company
+ *
+ * This file is NOT part of Paypr Ethereum Contracts and CANNOT be redistributed.
+ */
+
 // SPDX-License-Identifier: UNLICENSED
 
 pragma solidity ^0.6.0;

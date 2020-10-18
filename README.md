@@ -100,3 +100,10 @@ test on a semi-real test network.
 ```shell script
 npx oz create
 ```
+
+## License Information
+
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+
+Paypr Ethereum Contracts may be used in commercial projects and applications
+with the purchase of a commercial license. See https://paypr.money/ to contact us.
