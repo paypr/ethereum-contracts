@@ -26,13 +26,7 @@ import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.
 import './IBaseContract.sol';
 import './BaseContractInterfaceSupport.sol';
 
-contract BaseContract is IBaseContract, ERC165UpgradeSafe {
-  struct ContractInfo {
-    string name;
-    string description;
-    string uri;
-  }
-
+contract BaseContract is Initializable, IBaseContract, ERC165UpgradeSafe {
   ContractInfo private _info;
 
   function _initializeBaseContract(ContractInfo memory info) internal initializer {

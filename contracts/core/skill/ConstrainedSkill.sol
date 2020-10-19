@@ -27,7 +27,14 @@ import './Skill.sol';
 import '../consumable/ConsumableConsumer.sol';
 import '../consumable/ConsumableConsumerInterfaceSupport.sol';
 
-abstract contract ConstrainedSkill is Skill, SkillConstrained, ConsumableConsumer {
+abstract contract ConstrainedSkill is
+  Initializable,
+  ContextUpgradeSafe,
+  ERC165UpgradeSafe,
+  Skill,
+  SkillConstrained,
+  ConsumableConsumer
+{
   using ConsumableInterfaceSupport for IConsumable;
 
   function _initializeConstrainedSkill(ContractInfo memory info, IConsumable.ConsumableAmount[] memory amountsToConsume)

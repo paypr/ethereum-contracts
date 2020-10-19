@@ -24,8 +24,17 @@ pragma experimental ABIEncoderV2;
 
 import './ConstrainedSkill.sol';
 import '../access/DelegatingRoles.sol';
+import '../Disableable.sol';
 
-contract ConfigurableConstrainedSkill is ConstrainedSkill, DelegatingRoles {
+contract ConfigurableConstrainedSkill is
+  Initializable,
+  ContextUpgradeSafe,
+  ConstrainedSkill,
+  Disableable,
+  DelegatingRoles
+{
+  using TransferLogic for address;
+
   function initializeConstrainedSkill(
     ContractInfo memory info,
     IConsumable.ConsumableAmount[] memory amountsToConsume,
@@ -43,7 +52,7 @@ contract ConfigurableConstrainedSkill is ConstrainedSkill, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -51,7 +60,7 @@ contract ConfigurableConstrainedSkill is ConstrainedSkill, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {

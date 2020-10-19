@@ -25,7 +25,9 @@ pragma experimental ABIEncoderV2;
 import './ConsumableExchange.sol';
 import '../access/Roles.sol';
 
-contract TestConsumableExchange is ConsumableExchange, Roles {
+contract TestConsumableExchange is ConsumableExchange, Disableable, Roles {
+  using TransferLogic for address;
+
   function initializeConsumableExchange(ContractInfo memory info, string memory symbol) public initializer {
     _initializeConsumableExchange(info, symbol);
 
@@ -40,7 +42,7 @@ contract TestConsumableExchange is ConsumableExchange, Roles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -48,7 +50,7 @@ contract TestConsumableExchange is ConsumableExchange, Roles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   /**

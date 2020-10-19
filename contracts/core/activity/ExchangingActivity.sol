@@ -27,7 +27,6 @@ import './Activity.sol';
 import '../consumable/ConsumableExchangeInterfaceSupport.sol';
 import '../consumable/IConsumableExchange.sol';
 import '../consumable/IConvertibleConsumable.sol';
-import '../consumable/ConsumableExchange.sol';
 import '../consumable/ConsumableConversionMath.sol';
 
 abstract contract ExchangingActivity is Activity {

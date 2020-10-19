@@ -27,18 +27,24 @@ import './ArtifactInterfaceSupport.sol';
 import './IArtifact.sol';
 import '../consumable/ConsumableProvider.sol';
 import '../consumable/ConsumableProviderInterfaceSupport.sol';
-import '../Disableable.sol';
-import '../transfer/BaseTransferring.sol';
+import '../IDisableable.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
+import '../transfer/TransferLogic.sol';
+import '../transfer/ITransferring.sol';
 
 abstract contract Artifact is
+  IDisableable,
+  Initializable,
+  ContextUpgradeSafe,
+  ITransferring,
+  ERC165UpgradeSafe,
   IArtifact,
   BaseContract,
-  BaseTransferring,
   ConsumableProvider,
-  ERC721UpgradeSafe,
-  Disableable
+  ERC721UpgradeSafe
 {
+  using TransferLogic for address;
+
   uint256 private _initialUses;
 
   mapping(uint256 => uint256) private _usesLeft;
@@ -100,6 +106,15 @@ abstract contract Artifact is
 
   function _checkEnoughConsumable() internal {
     require(_canProvideMultiple(_totalUsesLeft), 'Artifact: not enough consumable for items');
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   uint256[50] private ______gap;

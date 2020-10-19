@@ -20,22 +20,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
 
 import './IArtifact.sol';
 import './ArtifactInterfaceSupport.sol';
 
-abstract contract ItemUser {
+library ItemUserLogic {
   using ArtifactInterfaceSupport for IArtifact;
 
-  function _useItems(IArtifact.Item[] memory useItems, address action) internal {
-    for (uint256 itemIndex = 0; itemIndex < useItems.length; itemIndex++) {
-      IArtifact.Item memory item = useItems[itemIndex];
+  function useItems(address action, IArtifact.Item[] memory itemsToUse) internal {
+    for (uint256 itemIndex = 0; itemIndex < itemsToUse.length; itemIndex++) {
+      IArtifact.Item memory item = itemsToUse[itemIndex];
       IArtifact artifact = item.artifact;
       require(artifact.supportsArtifactInterface(), 'ItemUser: item address must support IArtifact');
       artifact.useItem(item.itemId, action);
     }
   }
-
-  uint256[50] private ______gap;
 }

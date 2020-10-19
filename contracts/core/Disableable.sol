@@ -21,32 +21,18 @@
 
 pragma solidity ^0.6.0;
 
-abstract contract Disableable {
+import './IDisableable.sol';
+
+abstract contract Disableable is IDisableable {
   bool private _disabled;
 
-  /**
-   * @dev Returns whether or not the contract is disabled
-   */
-  function disabled() external view returns (bool) {
+  function disabled() external override view returns (bool) {
     return _disabled;
   }
 
-  /**
-   * @dev Returns whether or not the contract is enabled
-   */
-  function enabled() external view returns (bool) {
+  function enabled() external override view returns (bool) {
     return !_disabled;
   }
-
-  modifier onlyEnabled() {
-    require(!_disabled, 'Contract is disabled');
-    _;
-  }
-
-  /**
-   * @dev Disables the contract
-   */
-  function disable() external virtual;
 
   /**
    * @dev Disables the contract
@@ -63,11 +49,6 @@ abstract contract Disableable {
   /**
    * @dev Enables the contract
    */
-  function enable() external virtual;
-
-  /**
-   * @dev Enables the contract
-   */
   function _enable() internal {
     if (!_disabled) {
       return;
@@ -76,16 +57,6 @@ abstract contract Disableable {
     _disabled = false;
     emit Enabled();
   }
-
-  /**
-   * Emitted when the contract is disabled
-   */
-  event Disabled();
-
-  /**
-   * Emitted when the contract is enabled
-   */
-  event Enabled();
 
   uint256[50] private ______gap;
 }

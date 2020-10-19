@@ -24,14 +24,14 @@ pragma solidity ^0.6.0;
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Receiver.sol';
-import './ITransferring.sol';
 import '../consumable/IConvertibleConsumable.sol';
 import '../consumable/ConvertibleConsumableInterfaceSupport.sol';
 
-abstract contract BaseTransferring is ITransferring, IERC721Receiver {
+library TransferLogic {
   using ConvertibleConsumableInterfaceSupport for IConvertibleConsumable;
 
-  function _transferToken(
+  function transferToken(
+    address, /*account*/
     IERC20 token,
     uint256 amount,
     address recipient
@@ -39,12 +39,13 @@ abstract contract BaseTransferring is ITransferring, IERC721Receiver {
     token.transfer(recipient, amount);
   }
 
-  function _transferTokenWithExchange(
+  function transferTokenWithExchange(
+    address account,
     IERC20 token,
     uint256 amount,
     address recipient
   ) internal {
-    uint256 myBalance = token.balanceOf(address(this));
+    uint256 myBalance = token.balanceOf(account);
     if (myBalance < amount && IConvertibleConsumable(address(token)).supportsConvertibleConsumableInterface()) {
       // increase allowance as needed, but only if it's a convertible consumable
       IConvertibleConsumable convertibleConsumable = IConvertibleConsumable(address(token));
@@ -59,20 +60,21 @@ abstract contract BaseTransferring is ITransferring, IERC721Receiver {
     token.transfer(recipient, amount);
   }
 
-  function _transferItem(
+  function transferItem(
+    address account,
     IERC721 artifact,
     uint256 itemId,
     address recipient
   ) internal {
-    artifact.safeTransferFrom(address(this), recipient, itemId);
+    artifact.safeTransferFrom(account, recipient, itemId);
   }
 
   function onERC721Received(
     address, /*operator*/
     address, /*from*/
     uint256, /*tokenId*/
-    bytes calldata /*data*/
-  ) external virtual override returns (bytes4) {
-    return this.onERC721Received.selector;
+    bytes memory /*data*/
+  ) internal pure returns (bytes4) {
+    return IERC721Receiver.onERC721Received.selector;
   }
 }

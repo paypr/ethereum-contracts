@@ -26,11 +26,22 @@ import '@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol';
 import '../BaseContract.sol';
 import './ISkill.sol';
 import './SkillInterfaceSupport.sol';
-import '../Disableable.sol';
-import '../transfer/BaseTransferring.sol';
+import '../IDisableable.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
+import '../transfer/ITransferring.sol';
+import '../transfer/TransferLogic.sol';
 
-abstract contract Skill is ISkill, ContextUpgradeSafe, BaseContract, BaseTransferring, Disableable {
+abstract contract Skill is
+  IDisableable,
+  Initializable,
+  ITransferring,
+  ISkill,
+  ContextUpgradeSafe,
+  ERC165UpgradeSafe,
+  BaseContract
+{
+  using TransferLogic for address;
+
   mapping(address => uint256) private _levels;
 
   function _initializeSkill(ContractInfo memory info) internal initializer {
@@ -84,6 +95,15 @@ abstract contract Skill is ISkill, ContextUpgradeSafe, BaseContract, BaseTransfe
 
   function _checkPreviousLevel(address player, uint256 level) internal view {
     require(level == _levels[player] + 1, 'Skill: acquire invalid level');
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   uint256[50] private ______gap;

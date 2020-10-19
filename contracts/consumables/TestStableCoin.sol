@@ -24,7 +24,7 @@ pragma solidity ^0.6.0;
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
 import '../core/access/Roles.sol';
 
-contract TestStableCoin is ERC20UpgradeSafe, Roles {
+contract TestStableCoin is Initializable, ContextUpgradeSafe, ERC20UpgradeSafe, AccessControlUpgradeSafe, Roles {
   function initialize() external initializer {
     __ERC20_init('MyStableCoin', 'MSC');
 

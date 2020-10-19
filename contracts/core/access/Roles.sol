@@ -26,7 +26,7 @@ import './DelegatingRoles.sol';
 import './IRoleDelegate.sol';
 import './RoleSupport.sol';
 
-contract Roles is IRoleDelegate, DelegatingRoles, AccessControlUpgradeSafe {
+contract Roles is IRoleDelegate, Initializable, ContextUpgradeSafe, AccessControlUpgradeSafe, DelegatingRoles {
   function _initializeRoles(IRoleDelegate roleDelegate) public initializer {
     if (address(roleDelegate) != address(0)) {
       _addRoleDelegate(roleDelegate);

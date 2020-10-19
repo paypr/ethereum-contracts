@@ -27,7 +27,7 @@ import './IRoleDelegate.sol';
 import './RoleDelegateInterfaceSupport.sol';
 import './RoleSupport.sol';
 
-contract DelegatingRoles is ContextUpgradeSafe {
+contract DelegatingRoles is Initializable, ContextUpgradeSafe {
   using EnumerableSet for EnumerableSet.AddressSet;
   using RoleDelegateInterfaceSupport for IRoleDelegate;
 

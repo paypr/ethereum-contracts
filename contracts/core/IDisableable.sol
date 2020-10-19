@@ -21,27 +21,39 @@
 
 pragma solidity ^0.6.0;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Receiver.sol';
-
-interface ITransferring is IERC165, IERC721Receiver {
+interface IDisableable {
   /**
-   * @dev Transfer the given amount of an ERC20 token to the given recipient address.
+   * Emitted when the contract is disabled
    */
-  function transferToken(
-    IERC20 token,
-    uint256 amount,
-    address recipient
-  ) external;
+  event Disabled();
 
   /**
-   * @dev Transfer the given item of an ERC721 token to the given recipient address.
+   * Emitted when the contract is enabled
    */
-  function transferItem(
-    IERC721 artifact,
-    uint256 itemId,
-    address recipient
-  ) external;
+  event Enabled();
+
+  /**
+   * @dev Returns whether or not the contract is disabled
+   */
+  function disabled() external view returns (bool);
+
+  /**
+   * @dev Returns whether or not the contract is enabled
+   */
+  function enabled() external view returns (bool);
+
+  modifier onlyEnabled() virtual {
+    require(!this.disabled(), 'Contract is disabled');
+    _;
+  }
+
+  /**
+   * @dev Disables the contract
+   */
+  function disable() external;
+
+  /**
+   * @dev Enables the contract
+   */
+  function enable() external;
 }

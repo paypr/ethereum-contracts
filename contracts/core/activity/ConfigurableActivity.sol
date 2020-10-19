@@ -24,8 +24,11 @@ pragma experimental ABIEncoderV2;
 
 import './Activity.sol';
 import '../access/DelegatingRoles.sol';
+import '../Disableable.sol';
 
-contract ConfigurableActivity is Activity, DelegatingRoles {
+contract ConfigurableActivity is Initializable, ContextUpgradeSafe, Activity, Disableable, DelegatingRoles {
+  using TransferLogic for address;
+
   function initializeActivity(
     ContractInfo memory info,
     IConsumable.ConsumableAmount[] memory amountsToConsume,
@@ -42,7 +45,7 @@ contract ConfigurableActivity is Activity, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -50,7 +53,7 @@ contract ConfigurableActivity is Activity, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {

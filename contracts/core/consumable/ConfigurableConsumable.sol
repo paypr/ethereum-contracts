@@ -25,7 +25,9 @@ pragma experimental ABIEncoderV2;
 import './Consumable.sol';
 import '../access/DelegatingRoles.sol';
 
-contract ConfigurableConsumable is Consumable, DelegatingRoles {
+contract ConfigurableConsumable is Initializable, ContextUpgradeSafe, Consumable, Disableable, DelegatingRoles {
+  using TransferLogic for address;
+
   function initializeConsumable(
     ContractInfo memory info,
     string memory symbol,
@@ -61,7 +63,7 @@ contract ConfigurableConsumable is Consumable, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -69,7 +71,7 @@ contract ConfigurableConsumable is Consumable, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {
