@@ -27,6 +27,12 @@ import './IBaseContract.sol';
 import './BaseContractInterfaceSupport.sol';
 
 contract BaseContract is Initializable, IBaseContract, ERC165UpgradeSafe {
+  struct ContractInfo {
+    string name;
+    string description;
+    string uri;
+  }
+
   ContractInfo private _info;
 
   function _initializeBaseContract(ContractInfo memory info) internal initializer {
