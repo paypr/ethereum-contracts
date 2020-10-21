@@ -22,15 +22,28 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
+import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
-import '../BaseContract.sol';
-import '../Disableable.sol';
 import './ConsumableInterfaceSupport.sol';
 import './IConsumable.sol';
-import '../transfer/BaseTransferring.sol';
+import '../BaseContract.sol';
+import '../Disableable.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
+import '../transfer/ITransferring.sol';
+import '../transfer/TransferLogic.sol';
 
-abstract contract Consumable is IConsumable, BaseContract, BaseTransferring, ERC20UpgradeSafe, Disableable {
+abstract contract Consumable is
+  IDisableable,
+  Initializable,
+  ITransferring,
+  ContextUpgradeSafe,
+  IConsumable,
+  ERC165UpgradeSafe,
+  BaseContract,
+  ERC20UpgradeSafe
+{
+  using TransferLogic for address;
+
   function _initializeConsumable(ContractInfo memory info, string memory symbol) internal initializer {
     _initializeBaseContract(info);
     _registerInterface(ConsumableInterfaceSupport.CONSUMABLE_INTERFACE_ID);
@@ -53,6 +66,15 @@ abstract contract Consumable is IConsumable, BaseContract, BaseTransferring, ERC
     uint256 amount
   ) internal virtual override onlyEnabled {
     super._transfer(sender, recipient, amount);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   uint256[50] private ______gap;

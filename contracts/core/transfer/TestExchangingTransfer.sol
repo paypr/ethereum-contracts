@@ -22,12 +22,15 @@
 pragma solidity ^0.6.0;
 
 import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
-import './BaseTransferring.sol';
 import './TransferringInterfaceSupport.sol';
 import '../access/Roles.sol';
 import '../Disableable.sol';
+import './ITransferring.sol';
+import './TransferLogic.sol';
 
-contract TestExchangingTransfer is BaseTransferring, ERC165UpgradeSafe, Disableable, Roles {
+contract TestExchangingTransfer is ITransferring, ERC165UpgradeSafe, Disableable, Roles {
+  using TransferLogic for address;
+
   function initializeExchangingTestTransfer() external initializer {
     _registerInterface(TransferringInterfaceSupport.TRANSFERRING_INTERFACE_ID);
     _addSuperAdmin(_msgSender());
@@ -40,7 +43,7 @@ contract TestExchangingTransfer is BaseTransferring, ERC165UpgradeSafe, Disablea
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferTokenWithExchange(token, amount, recipient);
+    address(this).transferTokenWithExchange(token, amount, recipient);
   }
 
   function transferItem(
@@ -48,7 +51,16 @@ contract TestExchangingTransfer is BaseTransferring, ERC165UpgradeSafe, Disablea
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   function disable() external override onlyAdmin {

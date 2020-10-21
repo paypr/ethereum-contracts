@@ -14,8 +14,19 @@ import '../core/consumable/ConsumableExchange.sol';
 import '../core/consumable/ConvertibleConsumable.sol';
 import '../core/access/DelegatingRoles.sol';
 
-contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
+contract Paypr is
+  Initializable,
+  ContextUpgradeSafe,
+  ERC165UpgradeSafe,
+  BaseContract,
+  Consumable,
+  ConvertibleConsumable,
+  ConsumableExchange,
+  Disableable,
+  DelegatingRoles
+{
   using SafeMath for uint256;
+  using TransferLogic for address;
 
   function initializePaypr(
     IConsumableExchange baseToken,
@@ -77,8 +88,8 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
     address sender,
     address recipient,
     uint256 amount
-  ) internal override(ConsumableExchange, ConvertibleConsumable) onlyEnabled {
-    ConsumableExchange._transfer(sender, recipient, amount);
+  ) internal override(Consumable, ConsumableExchange, ConvertibleConsumable) onlyEnabled {
+    ConvertibleConsumable._transfer(sender, recipient, amount);
   }
 
   function transferToken(
@@ -86,7 +97,7 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -94,7 +105,7 @@ contract Paypr is ConvertibleConsumable, ConsumableExchange, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {

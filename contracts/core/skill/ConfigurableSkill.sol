@@ -24,8 +24,11 @@ pragma experimental ABIEncoderV2;
 
 import './Skill.sol';
 import '../access/DelegatingRoles.sol';
+import '../Disableable.sol';
 
-contract ConfigurableSkill is Skill, DelegatingRoles {
+contract ConfigurableSkill is Initializable, ContextUpgradeSafe, Skill, Disableable, DelegatingRoles {
+  using TransferLogic for address;
+
   function initializeSkill(ContractInfo memory info, IRoleDelegate roleDelegate) public initializer {
     _initializeSkill(info);
 
@@ -37,7 +40,7 @@ contract ConfigurableSkill is Skill, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -45,7 +48,7 @@ contract ConfigurableSkill is Skill, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {

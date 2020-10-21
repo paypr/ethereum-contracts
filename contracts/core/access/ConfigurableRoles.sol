@@ -27,7 +27,7 @@ import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.
 import './Roles.sol';
 import './RoleDelegateInterfaceSupport.sol';
 
-contract ConfigurableRoles is Roles, ERC165UpgradeSafe {
+contract ConfigurableRoles is Initializable, ContextUpgradeSafe, ERC165UpgradeSafe, Roles {
   function initializeRoles(IRoleDelegate roleDelegate) public initializer {
     __ERC165_init();
     _registerInterface(RoleDelegateInterfaceSupport.ROLE_DELEGATE_INTERFACE_ID);

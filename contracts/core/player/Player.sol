@@ -30,22 +30,25 @@ import '../activity/IActivity.sol';
 import '../consumable/ConsumableInterfaceSupport.sol';
 import '../consumable/ConvertibleConsumableInterfaceSupport.sol';
 import '../consumable/IConvertibleConsumable.sol';
-import '../item/ItemUser.sol';
 import '../access/Roles.sol';
 import '../skill/ISkill.sol';
 import '../skill/SkillInterfaceSupport.sol';
 import './IPlayer.sol';
 import './PlayerInterfaceSupport.sol';
 import '../Disableable.sol';
-import '../transfer/BaseTransferring.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
+import '../transfer/ITransferring.sol';
+import '../transfer/TransferLogic.sol';
+import '../item/ItemUserLogic.sol';
 
-contract Player is IPlayer, BaseTransferring, Roles, ERC165UpgradeSafe, Disableable, ItemUser {
+contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ERC165UpgradeSafe, Disableable, Roles {
   using ActivityInterfaceSupport for IActivity;
   using ConsumableInterfaceSupport for IConsumable;
   using ConvertibleConsumableInterfaceSupport for IConvertibleConsumable;
   using PlayerInterfaceSupport for IPlayer;
   using SkillInterfaceSupport for ISkill;
+  using TransferLogic for address;
+  using ItemUserLogic for address;
 
   function initializePlayer(IRoleDelegate roleDelegate) public initializer {
     __ERC165_init();
@@ -70,7 +73,7 @@ contract Player is IPlayer, BaseTransferring, Roles, ERC165UpgradeSafe, Disablea
   ) external override onlyEnabled onlyAdmin {
     require(activity.supportsActivityInterface(), 'Player: activity address must support IActivity');
 
-    _useItems(useItems, address(activity));
+    address(activity).useItems(useItems);
 
     _provideConsumables(address(activity), amountsToProvide);
 
@@ -91,7 +94,7 @@ contract Player is IPlayer, BaseTransferring, Roles, ERC165UpgradeSafe, Disablea
   ) external override onlyEnabled onlyAdmin {
     require(skill.supportsSkillInterface(), 'Player: skill address must support ISkill');
 
-    _useItems(useItems, address(skill));
+    address(skill).useItems(useItems);
 
     _provideConsumables(address(skill), amountsToProvide);
 
@@ -133,7 +136,7 @@ contract Player is IPlayer, BaseTransferring, Roles, ERC165UpgradeSafe, Disablea
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferTokenWithExchange(token, amount, recipient);
+    address(this).transferTokenWithExchange(token, amount, recipient);
   }
 
   function transferItem(
@@ -141,7 +144,16 @@ contract Player is IPlayer, BaseTransferring, Roles, ERC165UpgradeSafe, Disablea
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   function disable() external override onlyAdmin {

@@ -25,8 +25,19 @@ pragma experimental ABIEncoderV2;
 import './ExchangingActivity.sol';
 import '../skill/SkillConstrained.sol';
 import '../access/DelegatingRoles.sol';
+import '../Disableable.sol';
 
-contract ConfigurableSkillConstrainedExchangingActivity is SkillConstrained, ExchangingActivity, DelegatingRoles {
+contract ConfigurableSkillConstrainedExchangingActivity is
+  Initializable,
+  ContextUpgradeSafe,
+  ERC165UpgradeSafe,
+  ExchangingActivity,
+  SkillConstrained,
+  Disableable,
+  DelegatingRoles
+{
+  using TransferLogic for address;
+
   function initializeSkillConstrainedExchangingActivity(
     ContractInfo memory info,
     SkillLevel[] memory requiredSkillLevels,
@@ -47,7 +58,7 @@ contract ConfigurableSkillConstrainedExchangingActivity is SkillConstrained, Exc
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
   }
 
   function transferItem(
@@ -55,7 +66,7 @@ contract ConfigurableSkillConstrainedExchangingActivity is SkillConstrained, Exc
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function _checkRequirements(address player) internal override view {

@@ -25,8 +25,11 @@ pragma experimental ABIEncoderV2;
 import '@openzeppelin/contracts-ethereum-package/contracts/utils/Counters.sol';
 import './Artifact.sol';
 import '../access/DelegatingRoles.sol';
+import '../Disableable.sol';
 
-contract ConfigurableArtifact is Artifact, DelegatingRoles {
+contract ConfigurableArtifact is Initializable, ContextUpgradeSafe, Artifact, Disableable, DelegatingRoles {
+  using TransferLogic for address;
+
   using Counters for Counters.Counter;
 
   Counters.Counter private _lastItemId;
@@ -58,7 +61,7 @@ contract ConfigurableArtifact is Artifact, DelegatingRoles {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferToken(token, amount, recipient);
+    address(this).transferToken(token, amount, recipient);
     _checkEnoughConsumable();
   }
 
@@ -67,7 +70,7 @@ contract ConfigurableArtifact is Artifact, DelegatingRoles {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
   }
 
   function disable() external override onlyAdmin {

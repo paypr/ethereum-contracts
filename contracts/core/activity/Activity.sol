@@ -31,22 +31,24 @@ import '../consumable/ConsumableConsumerInterfaceSupport.sol';
 import '../consumable/ConsumableProvider.sol';
 import '../consumable/ConsumableProviderInterfaceSupport.sol';
 import '../BaseContract.sol';
-import '../item/ItemUser.sol';
-import '../Disableable.sol';
-import '../transfer/BaseTransferring.sol';
+import '../IDisableable.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
+import '../transfer/ITransferring.sol';
+import '../transfer/TransferLogic.sol';
 
 abstract contract Activity is
+  IDisableable,
+  Initializable,
+  ITransferring,
   IActivity,
   ContextUpgradeSafe,
+  ERC165UpgradeSafe,
   BaseContract,
-  BaseTransferring,
-  Disableable,
   ConsumableConsumer,
-  ConsumableProvider,
-  ItemUser
+  ConsumableProvider
 {
   using Counters for Counters.Counter;
+  using TransferLogic for address;
 
   mapping(address => Counters.Counter) private _executed;
   Counters.Counter private _totalExecuted;
@@ -99,6 +101,15 @@ abstract contract Activity is
 
   function _checkRequirements(address player) internal virtual view {
     // does nothing by default
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   uint256[50] private ______gap;

@@ -27,7 +27,7 @@ import './ISkillConstrained.sol';
 import './SkillConstrainedInterfaceSupport.sol';
 import './SkillInterfaceSupport.sol';
 
-contract SkillConstrained is ISkillConstrained, ERC165UpgradeSafe {
+contract SkillConstrained is Initializable, ISkillConstrained, ERC165UpgradeSafe {
   using SkillInterfaceSupport for ISkill;
 
   struct SkillLevel {

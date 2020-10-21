@@ -26,13 +26,16 @@ import '@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
-import '../transfer/BaseTransferring.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
 import '../Disableable.sol';
 import '../access/Roles.sol';
 import '../access/RoleDelegateInterfaceSupport.sol';
+import '../transfer/ITransferring.sol';
+import '../transfer/TransferLogic.sol';
 
-contract Account is BaseTransferring, Roles, ERC165UpgradeSafe, Disableable {
+contract Account is Initializable, ITransferring, ContextUpgradeSafe, ERC165UpgradeSafe, Disableable, Roles {
+  using TransferLogic for address;
+
   function initializeAccount(IRoleDelegate roleDelegate) public initializer {
     __ERC165_init();
     _registerInterface(RoleDelegateInterfaceSupport.ROLE_DELEGATE_INTERFACE_ID);
@@ -52,7 +55,7 @@ contract Account is BaseTransferring, Roles, ERC165UpgradeSafe, Disableable {
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferTokenWithExchange(token, amount, recipient);
+    address(this).transferTokenWithExchange(token, amount, recipient);
   }
 
   function transferItem(
@@ -60,7 +63,16 @@ contract Account is BaseTransferring, Roles, ERC165UpgradeSafe, Disableable {
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
-    _transferItem(artifact, itemId, recipient);
+    address(this).transferItem(artifact, itemId, recipient);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external virtual override returns (bytes4) {
+    return TransferLogic.onERC721Received(operator, from, tokenId, data);
   }
 
   function disable() external override onlyAdmin {
