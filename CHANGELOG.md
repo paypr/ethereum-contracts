@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/paypr/ethereum-contracts/compare/v0.1.2...v0.2.0) (2020-10-22)
+
+### ⚠ BREAKING CHANGES
+
+- storage locations could have changed for any of these contracts, which means old contracts cannot be safely upgraded.
+
+- [[#13](https://github.com/paypr/CHANGEME/issues/13)] extract logic into libraries and include base contracts to ensure order for upgrades ([0d08e6b](https://github.com/paypr/ethereum-contracts/commit/0d08e6b1fb21c4972435fdf7f6fbda6fa2b3d060))
+
 ### [0.1.2](https://github.com/paypr/ethereum-contracts/compare/v0.1.1...v0.1.2) (2020-10-09)
 
 ### Bug Fixes
