@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company
+ * Copyright (c) 2020 The Paypr Company, LLC
  *
  * This file is NOT part of Paypr Ethereum Contracts and CANNOT be redistributed.
  */
