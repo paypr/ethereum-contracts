@@ -50,16 +50,8 @@ Many IDEs and editors support TSLint.
 
 This project uses [Jest](https://jestjs.io/) for testing. Run tests before checking in.
 
-### Unit Tests
-
 ```
 npm test
-```
-
-### Integration Tests
-
-```
-npm run test:integration
 ```
 
 ## Building
