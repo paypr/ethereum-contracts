@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,16 +17,23 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { accounts } from '@openzeppelin/test-environment';
-import { expectRevert } from '@openzeppelin/test-helpers';
-import { ZERO_ADDRESS } from './Accounts';
-import { getContract } from './ContractHelper';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ContractTransaction, Signer } from 'ethers';
+import { DelegatingRoles, Roles, TestDelegatingRoles__factory, TestRoles__factory } from '../../types/contracts';
+import { INITIALIZER, onInitAccounts, ZERO_ADDRESS } from './Accounts';
 
-export const [SUPER_ADMIN, ADMIN, MINTER, TRANSFER_AGENT, OTHER1, OTHER2] = accounts;
+export let SUPER_ADMIN: SignerWithAddress;
+export let ADMIN: SignerWithAddress;
+export let MINTER: SignerWithAddress;
+export let TRANSFER_AGENT: SignerWithAddress;
+export let OTHER1: SignerWithAddress;
+export let OTHER2: SignerWithAddress;
 
-const RolesContract = getContract('TestRoles');
+onInitAccounts((accounts) => {
+  [SUPER_ADMIN, ADMIN, MINTER, TRANSFER_AGENT, OTHER1, OTHER2] = accounts;
+});
 
-export const getOrDefaultRoleDelegate = async (roleDelegate: string | undefined, role: string) => {
+export const getOrDefaultRoleDelegate = async (roleDelegate: string | undefined, role: SignerWithAddress) => {
   if (roleDelegate && roleDelegate !== ZERO_ADDRESS) {
     return roleDelegate;
   }
@@ -34,54 +41,57 @@ export const getOrDefaultRoleDelegate = async (roleDelegate: string | undefined,
   return roles.address;
 };
 
-export const createRolesWithAllSameRole = async (role: string) => {
+export const createRolesWithAllSameRole = async (role: SignerWithAddress = SUPER_ADMIN) => {
   const roles = await createRoles(ZERO_ADDRESS, role);
-  await roles.addAdmin(role, { from: role });
-  await roles.addMinter(role, { from: role });
-  await roles.addTransferAgent(role, { from: role });
+  const mutableRoles = roles.connect(role);
+  await mutableRoles.addAdmin(role.address);
+  await mutableRoles.addMinter(role.address);
+  await mutableRoles.addTransferAgent(role.address);
   return roles;
 };
 
-export const createRoles = async (roleDelegateAddress: string = ZERO_ADDRESS, superAdminRole: string = SUPER_ADMIN) => {
-  const roles = await RolesContract.new();
-  await roles.initializeTestRoles(roleDelegateAddress, { from: superAdminRole });
+export const createRoles = async (roleDelegateAddress: string = ZERO_ADDRESS, superAdminRole: Signer = SUPER_ADMIN) => {
+  const roles = await deployRoles();
+  await roles.connect(superAdminRole).initializeTestRoles(roleDelegateAddress);
   return roles;
 };
 
-const DelegatingRolesContract = getContract('TestDelegatingRoles');
+export const deployRoles = (deployer: SignerWithAddress = INITIALIZER) => new TestRoles__factory(deployer).deploy();
 
-export const createDelegatingRoles = async (roleDelegateAddress: string, superAdminRole: string = SUPER_ADMIN) => {
-  const delegatingRoles = await DelegatingRolesContract.new();
-  await delegatingRoles.initializeTestDelegatingRoles(roleDelegateAddress, { from: superAdminRole });
+const deployDelegatingRolesContract = () => new TestDelegatingRoles__factory(INITIALIZER).deploy();
+
+export const createDelegatingRoles = async (roleDelegateAddress: string, superAdminRole: Signer = SUPER_ADMIN) => {
+  const delegatingRoles = await deployDelegatingRolesContract();
+  await delegatingRoles.connect(superAdminRole).initializeTestDelegatingRoles(roleDelegateAddress);
   return delegatingRoles;
 };
 
-export const checkSuperAdminDelegation = (
-  createDelegateRoles: (address: string) => Promise<any>,
-  forRole: (roles: any, options: any) => Promise<void>,
+export const checkSuperAdminDelegation = <R extends Roles>(
+  createDelegateRoles: (address: string) => Promise<R>,
+  forRole: (roles: R) => Promise<ContractTransaction | void>,
 ) => {
   describe('isSuperAdmin', () => {
     it('should return true for the super admin', async () => {
       const roles = await createRoles();
       const delegateRoles = await createDelegateRoles(roles.address);
 
-      expect<boolean>(await delegateRoles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      expect<boolean>(await delegateRoles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
     });
 
     it('should return false for someone else', async () => {
       const roles = await createRoles();
       const delegateRoles = await createDelegateRoles(roles.address);
 
-      expect<boolean>(await delegateRoles.isSuperAdmin(OTHER1)).toEqual(false);
+      expect<boolean>(await delegateRoles.isSuperAdmin(OTHER1.address)).toEqual(false);
     });
 
     it('should return false for the minter', async () => {
       const roles = await createRoles();
       const delegateRoles = await createDelegateRoles(roles.address);
 
-      delegateRoles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await delegateRoles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      expect<boolean>(await delegateRoles.isSuperAdmin(MINTER)).toEqual(false);
+      expect<boolean>(await delegateRoles.isSuperAdmin(MINTER.address)).toEqual(false);
     });
   });
 
@@ -90,60 +100,66 @@ export const checkSuperAdminDelegation = (
       const roles = await createRoles();
       const delegateRoles = await createDelegateRoles(roles.address);
 
-      await forRole(delegateRoles, { from: SUPER_ADMIN });
+      await forRole(delegateRoles.connect(SUPER_ADMIN));
     });
 
     it('should not be callable by someone else', async () => {
       const roles = await createRoles();
       const delegateRoles = await createDelegateRoles(roles.address);
 
-      await expectRevert(forRole(delegateRoles, { from: OTHER1 }), 'Caller does not have the SuperAdmin role');
+      await expect<Promise<ContractTransaction | void>>(forRole(delegateRoles.connect(OTHER1))).toBeRevertedWith(
+        'Caller does not have the SuperAdmin role',
+      );
     });
   });
 };
 
-export interface CheckDelegatingRolesConfig {
-  createDelegatingRoles: (roleDelegateAddress: string) => Promise<any>;
-  isInRole: (roles: any, role: string) => Promise<boolean>;
-  forRole?: (roles: any, options: any) => Promise<void>;
-  addToRole: (roles: any, role: string, options: any) => Promise<void>;
+export interface CheckDelegatingRolesConfig<R extends Roles | DelegatingRoles> {
+  createDelegatingRoles: (roleDelegateAddress: string) => Promise<R>;
+  isInRole: (roles: R, role: string) => Promise<boolean>;
+  forRole?: (roles: R) => Promise<ContractTransaction | void>;
+  addToRole: (roles: Roles, role: string) => Promise<ContractTransaction | void>;
 }
-export const checkDelegatingRoles = (roleName: string, roleUnderTest: string, config: CheckDelegatingRolesConfig) => {
+export const checkDelegatingRoles = <R extends DelegatingRoles>(
+  roleName: string,
+  getRoleUnderTest: () => SignerWithAddress,
+  config: CheckDelegatingRolesConfig<R>,
+) => {
   const { createDelegatingRoles, isInRole, forRole, addToRole } = config;
 
   describe(`is${roleName}`, () => {
     it(`should return true for the ${roleName}`, async () => {
       const roles = await createRoles();
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
       const delegatingRoles = await createDelegatingRoles(roles.address);
 
-      expect<boolean>(await isInRole(delegatingRoles, roleUnderTest)).toEqual(true);
+      expect<boolean>(await isInRole(delegatingRoles, getRoleUnderTest().address)).toEqual(true);
     });
 
     it('should return false for someone else', async () => {
       const roles = await createRoles();
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
       const delegatingRoles = await createDelegatingRoles(roles.address);
 
-      expect<boolean>(await isInRole(delegatingRoles, OTHER1)).toEqual(false);
+      expect<boolean>(await isInRole(delegatingRoles, OTHER1.address)).toEqual(false);
     });
 
     it('should return false for all when not set', async () => {
       const roles = await createRoles();
       const delegatingRoles = await createDelegatingRoles(roles.address);
 
-      expect<boolean>(await isInRole(delegatingRoles, roleUnderTest)).toEqual(false);
+      expect<boolean>(await isInRole(delegatingRoles, getRoleUnderTest().address)).toEqual(false);
     });
 
     it('should return false for the super admin', async () => {
       const roles = await createRoles();
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
       const delegatingRoles = await createDelegatingRoles(roles.address);
 
-      expect<boolean>(await isInRole(delegatingRoles, SUPER_ADMIN)).toEqual(false);
+      expect<boolean>(await isInRole(delegatingRoles, SUPER_ADMIN.address)).toEqual(false);
     });
   });
 
@@ -151,46 +167,48 @@ export const checkDelegatingRoles = (roleName: string, roleUnderTest: string, co
     describe(`only${roleName}`, () => {
       it(`should be callable by ${roleName}`, async () => {
         const roles = await createRoles();
-        await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+        await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
         const delegatingRoles = await createDelegatingRoles(roles.address);
 
-        await forRole(delegatingRoles, { from: roleUnderTest });
+        await forRole(delegatingRoles.connect(getRoleUnderTest()));
       });
 
       it('should not be callable by someone else', async () => {
         const roles = await createRoles();
         const delegatingRoles = await createDelegatingRoles(roles.address);
 
-        await expectRevert(forRole(delegatingRoles, { from: OTHER1 }), `Caller does not have the ${roleName} role`);
+        await expect<Promise<ContractTransaction | void>>(forRole(delegatingRoles.connect(OTHER1))).toBeRevertedWith(
+          `Caller does not have the ${roleName} role`,
+        );
       });
     });
   }
 };
 
 export const checkSuperAdmin = (
-  createRoles: () => Promise<any>,
-  forRole: (roles: any, options: any) => Promise<void>,
+  createRoles: () => Promise<Roles>,
+  forRole: (roles: Roles) => Promise<ContractTransaction>,
 ) => {
   describe('isSuperAdmin', () => {
     it('should return true for the super admin', async () => {
       const roles = await createRoles();
 
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
     });
 
     it('should return false for someone else', async () => {
       const roles = await createRoles();
 
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(false);
     });
 
     it('should return false for the minter', async () => {
       const roles = await createRoles();
 
-      roles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
     });
   });
 
@@ -198,13 +216,15 @@ export const checkSuperAdmin = (
     it('should be callable by super admin', async () => {
       const roles = await createRoles();
 
-      await forRole(roles, { from: SUPER_ADMIN });
+      await forRole(roles.connect(SUPER_ADMIN));
     });
 
     it('should not be callable by someone else', async () => {
       const roles = await createRoles();
 
-      await expectRevert(forRole(roles, { from: OTHER1 }), 'Caller does not have the SuperAdmin role');
+      await expect<Promise<ContractTransaction>>(forRole(roles.connect(OTHER1))).toBeRevertedWith(
+        'Caller does not have the SuperAdmin role',
+      );
     });
   });
 
@@ -212,23 +232,27 @@ export const checkSuperAdmin = (
     it('should add if called by a current super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(OTHER1, { from: SUPER_ADMIN });
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(OTHER1.address);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
 
-      await roles.addSuperAdmin(OTHER2, { from: OTHER1 });
-      expect<boolean>(await roles.isSuperAdmin(OTHER2)).toEqual(true);
+      await roles.connect(OTHER1).addSuperAdmin(OTHER2.address);
+      expect<boolean>(await roles.isSuperAdmin(OTHER2.address)).toEqual(true);
     });
 
     it('should fail if called by someone other than a super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      await expectRevert(roles.addSuperAdmin(MINTER, { from: MINTER }), 'Caller does not have the SuperAdmin role');
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
+      await expect<Promise<ContractTransaction>>(roles.connect(MINTER).addSuperAdmin(MINTER.address)).toBeRevertedWith(
+        'Caller does not have the SuperAdmin role',
+      );
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
 
-      await expectRevert(roles.addSuperAdmin(OTHER2, { from: MINTER }), 'Caller does not have the SuperAdmin role');
-      expect<boolean>(await roles.isSuperAdmin(OTHER2)).toEqual(false);
+      await expect<Promise<ContractTransaction>>(roles.connect(MINTER).addSuperAdmin(OTHER2.address)).toBeRevertedWith(
+        'Caller does not have the SuperAdmin role',
+      );
+      expect<boolean>(await roles.isSuperAdmin(OTHER2.address)).toEqual(false);
     });
   });
 
@@ -236,32 +260,32 @@ export const checkSuperAdmin = (
     it('should renounce if called by a current super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(MINTER, { from: SUPER_ADMIN });
-      await roles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(MINTER.address);
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      await roles.renounceSuperAdmin({ from: SUPER_ADMIN });
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(true);
-      expect<boolean>(await roles.isMinter(MINTER)).toEqual(true);
+      await roles.connect(SUPER_ADMIN).renounceSuperAdmin();
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(true);
+      expect<boolean>(await roles.isMinter(MINTER.address)).toEqual(true);
 
-      await roles.renounceSuperAdmin({ from: MINTER });
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
-      expect<boolean>(await roles.isMinter(MINTER)).toEqual(true);
+      await roles.connect(MINTER).renounceSuperAdmin();
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
+      expect<boolean>(await roles.isMinter(MINTER.address)).toEqual(true);
     });
 
     it('should not fail if called by someone other than a super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      roles.renounceSuperAdmin({ from: MINTER });
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
-      expect<boolean>(await roles.isMinter(MINTER)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      await roles.connect(MINTER).renounceSuperAdmin();
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
+      expect<boolean>(await roles.isMinter(MINTER.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
 
-      roles.renounceSuperAdmin({ from: OTHER1 });
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      await roles.connect(OTHER1).renounceSuperAdmin();
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
     });
   });
 
@@ -269,79 +293,87 @@ export const checkSuperAdmin = (
     it('should revoke if called by a current super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(MINTER, { from: SUPER_ADMIN });
-      await roles.addMinter(MINTER, { from: SUPER_ADMIN });
-      await roles.addSuperAdmin(OTHER1, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(MINTER.address);
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(OTHER1.address);
 
-      await roles.revokeSuperAdmin(MINTER, { from: OTHER1 });
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
-      expect<boolean>(await roles.isMinter(MINTER)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
+      await roles.connect(OTHER1).revokeSuperAdmin(MINTER.address);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
+      expect<boolean>(await roles.isMinter(MINTER.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
 
-      await roles.revokeSuperAdmin(SUPER_ADMIN, { from: OTHER1 });
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(MINTER)).toEqual(false);
-      expect<boolean>(await roles.isMinter(MINTER)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
+      await roles.connect(OTHER1).revokeSuperAdmin(SUPER_ADMIN.address);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(MINTER.address)).toEqual(false);
+      expect<boolean>(await roles.isMinter(MINTER.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
     });
 
     it('should fail if called by someone other than a super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(OTHER1, { from: SUPER_ADMIN });
-      await roles.addMinter(MINTER, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(OTHER1.address);
+      await roles.connect(SUPER_ADMIN).addMinter(MINTER.address);
 
-      await expectRevert(roles.revokeSuperAdmin(OTHER1, { from: MINTER }), 'sender must be an admin to revoke');
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
+      await expect<Promise<ContractTransaction>>(
+        roles.connect(MINTER).revokeSuperAdmin(OTHER1.address),
+      ).toBeRevertedWith('sender must be an admin to revoke');
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
 
-      await expectRevert(roles.revokeSuperAdmin(OTHER1, { from: OTHER2 }), 'sender must be an admin to revoke');
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
+      await expect<Promise<ContractTransaction>>(
+        roles.connect(OTHER2).revokeSuperAdmin(OTHER1.address),
+      ).toBeRevertedWith('sender must be an admin to revoke');
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
     });
   });
 };
 
-interface CheckRolesConfig {
-  createRoles: () => Promise<any>;
-  isInRole: (roles: any, role: string) => Promise<boolean>;
-  forRole?: (roles: any, options: any) => Promise<void>;
-  addToRole: (roles: any, role: string, options: any) => Promise<void>;
-  renounceRole: (roles: any, options: any) => Promise<void>;
-  revokeRole: (roles: any, role: string, options: any) => Promise<void>;
+interface CheckRolesConfig<R extends Roles> {
+  createRoles: () => Promise<R>;
+  isInRole: (roles: R, role: string) => Promise<boolean>;
+  forRole?: (roles: R) => Promise<ContractTransaction | void>;
+  addToRole: (roles: R, role: string) => Promise<ContractTransaction>;
+  renounceRole: (roles: R) => Promise<ContractTransaction>;
+  revokeRole: (roles: R, role: string) => Promise<ContractTransaction>;
 }
 
-export const checkRoles = (roleName: string, roleUnderTest: string, config: CheckRolesConfig) => {
+export const checkRoles = <R extends Roles>(
+  roleName: string,
+  getRoleUnderTest: () => SignerWithAddress,
+  config: CheckRolesConfig<R>,
+) => {
   const { createRoles, isInRole, forRole, addToRole, renounceRole, revokeRole } = config;
 
   describe(`is${roleName}`, () => {
     it(`should return true for the ${roleName}`, async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(true);
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(true);
     });
 
     it('should return false for someone else', async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(false);
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(false);
     });
 
     it('should return false for all when not set', async () => {
       const roles = await createRoles();
 
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(false);
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(false);
     });
 
     it('should return false for the super admin', async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-      expect<boolean>(await isInRole(roles, SUPER_ADMIN)).toEqual(false);
+      expect<boolean>(await isInRole(roles, SUPER_ADMIN.address)).toEqual(false);
     });
   });
 
@@ -350,15 +382,17 @@ export const checkRoles = (roleName: string, roleUnderTest: string, config: Chec
       it(`should be callable by ${roleName}`, async () => {
         const roles = await createRoles();
 
-        await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+        await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-        await forRole(roles, { from: roleUnderTest });
+        await forRole(roles.connect(getRoleUnderTest()));
       });
 
       it('should not be callable by someone else', async () => {
         const roles = await createRoles();
 
-        await expectRevert(forRole(roles, { from: OTHER1 }), `Caller does not have the ${roleName} role`);
+        await expect<Promise<ContractTransaction | void>>(forRole(roles.connect(OTHER1))).toBeRevertedWith(
+          `Caller does not have the ${roleName} role`,
+        );
       });
     });
   }
@@ -367,24 +401,28 @@ export const checkRoles = (roleName: string, roleUnderTest: string, config: Chec
     it('should add if called by a current super admin', async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(true);
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(true);
 
-      await roles.addSuperAdmin(roleUnderTest, { from: SUPER_ADMIN });
-      await addToRole(roles, OTHER1, { from: roleUnderTest });
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(true);
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(getRoleUnderTest().address);
+      await addToRole(roles.connect(getRoleUnderTest()), OTHER1.address);
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(true);
     });
 
     it('should fail if called by someone other than a super admin', async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-      await expectRevert(addToRole(roles, OTHER1, { from: OTHER1 }), 'Caller does not have the SuperAdmin role');
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(false);
+      await expect<Promise<ContractTransaction>>(addToRole(roles.connect(OTHER1), OTHER1.address)).toBeRevertedWith(
+        'Caller does not have the SuperAdmin role',
+      );
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(false);
 
-      await expectRevert(addToRole(roles, OTHER1, { from: roleUnderTest }), 'Caller does not have the SuperAdmin role');
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(false);
+      await expect<Promise<ContractTransaction>>(
+        addToRole(roles.connect(getRoleUnderTest()), OTHER1.address),
+      ).toBeRevertedWith('Caller does not have the SuperAdmin role');
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(false);
     });
   });
 
@@ -392,34 +430,34 @@ export const checkRoles = (roleName: string, roleUnderTest: string, config: Chec
     it(`should renounce if called by a current ${roleName}`, async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(roleUnderTest, { from: SUPER_ADMIN });
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
-      await addToRole(roles, OTHER1, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(getRoleUnderTest().address);
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
+      await addToRole(roles.connect(SUPER_ADMIN), OTHER1.address);
 
-      await renounceRole(roles, { from: roleUnderTest });
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(false);
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(roleUnderTest)).toEqual(true);
+      await renounceRole(roles.connect(getRoleUnderTest()));
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(false);
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(getRoleUnderTest().address)).toEqual(true);
 
-      await renounceRole(roles, { from: OTHER1 });
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(roleUnderTest)).toEqual(true);
+      await renounceRole(roles.connect(OTHER1));
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(getRoleUnderTest().address)).toEqual(true);
     });
 
     it(`should not fail if called by someone other than a ${roleName}`, async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(OTHER1, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(OTHER1.address);
 
-      renounceRole(roles, { from: OTHER1 });
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      await renounceRole(roles.connect(OTHER1));
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
 
-      renounceRole(roles, { from: OTHER2 });
-      expect<boolean>(await isInRole(roles, OTHER2)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(OTHER1)).toEqual(true);
-      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN)).toEqual(true);
+      await renounceRole(roles.connect(OTHER2));
+      expect<boolean>(await isInRole(roles, OTHER2.address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(OTHER1.address)).toEqual(true);
+      expect<boolean>(await roles.isSuperAdmin(SUPER_ADMIN.address)).toEqual(true);
     });
   });
 
@@ -427,33 +465,37 @@ export const checkRoles = (roleName: string, roleUnderTest: string, config: Chec
     it('should revoke if called by a super admin', async () => {
       const roles = await createRoles();
 
-      await roles.addSuperAdmin(OTHER1, { from: SUPER_ADMIN });
-      await roles.addSuperAdmin(roleUnderTest, { from: SUPER_ADMIN });
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
-      await addToRole(roles, OTHER2, { from: SUPER_ADMIN });
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(OTHER1.address);
+      await roles.connect(SUPER_ADMIN).addSuperAdmin(getRoleUnderTest().address);
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
+      await addToRole(roles.connect(SUPER_ADMIN), OTHER2.address);
 
-      await revokeRole(roles, roleUnderTest, { from: OTHER1 });
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(roleUnderTest)).toEqual(true);
-      expect<boolean>(await isInRole(roles, OTHER2)).toEqual(true);
+      await revokeRole(roles.connect(OTHER1), getRoleUnderTest().address);
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(getRoleUnderTest().address)).toEqual(true);
+      expect<boolean>(await isInRole(roles, OTHER2.address)).toEqual(true);
 
-      await revokeRole(roles, OTHER2, { from: OTHER1 });
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(false);
-      expect<boolean>(await roles.isSuperAdmin(roleUnderTest)).toEqual(true);
-      expect<boolean>(await isInRole(roles, OTHER2)).toEqual(false);
+      await revokeRole(roles.connect(OTHER1), OTHER2.address);
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(false);
+      expect<boolean>(await roles.isSuperAdmin(getRoleUnderTest().address)).toEqual(true);
+      expect<boolean>(await isInRole(roles, OTHER2.address)).toEqual(false);
     });
 
     it('should fail if called by someone other than a super admin', async () => {
       const roles = await createRoles();
 
-      await addToRole(roles, OTHER1, { from: SUPER_ADMIN });
-      await addToRole(roles, roleUnderTest, { from: SUPER_ADMIN });
+      await addToRole(roles.connect(SUPER_ADMIN), OTHER1.address);
+      await addToRole(roles.connect(SUPER_ADMIN), getRoleUnderTest().address);
 
-      await expectRevert(revokeRole(roles, OTHER1, { from: roleUnderTest }), 'sender must be an admin to revoke');
-      expect<boolean>(await isInRole(roles, OTHER1)).toEqual(true);
+      await expect<Promise<ContractTransaction>>(
+        revokeRole(roles.connect(getRoleUnderTest()), OTHER1.address),
+      ).toBeRevertedWith('sender must be an admin to revoke');
+      expect<boolean>(await isInRole(roles, OTHER1.address)).toEqual(true);
 
-      await expectRevert(revokeRole(roles, roleUnderTest, { from: OTHER2 }), 'sender must be an admin to revoke');
-      expect<boolean>(await isInRole(roles, roleUnderTest)).toEqual(true);
+      await expect<Promise<ContractTransaction>>(
+        revokeRole(roles.connect(OTHER2), getRoleUnderTest().address),
+      ).toBeRevertedWith('sender must be an admin to revoke');
+      expect<boolean>(await isInRole(roles, getRoleUnderTest().address)).toEqual(true);
     });
   });
 };

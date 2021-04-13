@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,20 +17,17 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { CONSUMABLE_MINTER, getContractAddress, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
+import { CONSUMABLE_MINTER, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
 import {
   createLimitedConsumable,
-  getBalance,
-  getLimit,
-  increaseAllowance,
+  deployLimitedConsumableContract,
   increaseLimit,
-  LimitedConsumableContract,
   mintConsumable,
 } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { getContractAddress } from '../../../helpers/ContractHelper';
 import { disableContract, shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
 
@@ -38,10 +35,10 @@ describe('initializeLimitedConsumable', () => {
   it('should set the name', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
 
-    const consumable = await LimitedConsumableContract.new();
-    await consumable.initializeLimitedConsumable(withDefaultContractInfo({ name: 'the name' }), '', roleDelegate, {
-      from: CONSUMABLE_MINTER,
-    });
+    const consumable = await deployLimitedConsumableContract();
+    await consumable
+      .connect(CONSUMABLE_MINTER)
+      .initializeLimitedConsumable(withDefaultContractInfo({ name: 'the name' }), '', roleDelegate);
 
     expect<string>(await consumable.contractName()).toEqual('the name');
   });
@@ -49,15 +46,10 @@ describe('initializeLimitedConsumable', () => {
   it('should set the description', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
 
-    const consumable = await LimitedConsumableContract.new();
-    await consumable.initializeLimitedConsumable(
-      withDefaultContractInfo({ description: 'the description' }),
-      '',
-      roleDelegate,
-      {
-        from: CONSUMABLE_MINTER,
-      },
-    );
+    const consumable = await deployLimitedConsumableContract();
+    await consumable
+      .connect(CONSUMABLE_MINTER)
+      .initializeLimitedConsumable(withDefaultContractInfo({ description: 'the description' }), '', roleDelegate);
 
     expect<string>(await consumable.contractDescription()).toEqual('the description');
   });
@@ -65,10 +57,10 @@ describe('initializeLimitedConsumable', () => {
   it('should set the uri', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
 
-    const consumable = await LimitedConsumableContract.new();
-    await consumable.initializeLimitedConsumable(withDefaultContractInfo({ uri: 'the uri' }), '', roleDelegate, {
-      from: CONSUMABLE_MINTER,
-    });
+    const consumable = await deployLimitedConsumableContract();
+    await consumable
+      .connect(CONSUMABLE_MINTER)
+      .initializeLimitedConsumable(withDefaultContractInfo({ uri: 'the uri' }), '', roleDelegate);
 
     expect<string>(await consumable.contractUri()).toEqual('the uri');
   });
@@ -76,10 +68,10 @@ describe('initializeLimitedConsumable', () => {
   it('should set the symbol', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
 
-    const consumable = await LimitedConsumableContract.new();
-    await consumable.initializeLimitedConsumable(withDefaultContractInfo({}), 'the symbol', roleDelegate, {
-      from: CONSUMABLE_MINTER,
-    });
+    const consumable = await deployLimitedConsumableContract();
+    await consumable
+      .connect(CONSUMABLE_MINTER)
+      .initializeLimitedConsumable(withDefaultContractInfo({}), 'the symbol', roleDelegate);
 
     expect<string>(await consumable.symbol()).toEqual('the symbol');
   });
@@ -87,17 +79,16 @@ describe('initializeLimitedConsumable', () => {
   it('should revert if called twice', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
 
-    const consumable = await LimitedConsumableContract.new();
-    await consumable.initializeLimitedConsumable(withDefaultContractInfo({ name: 'the name' }), '', roleDelegate, {
-      from: CONSUMABLE_MINTER,
-    });
+    const consumable = await deployLimitedConsumableContract();
+    await consumable
+      .connect(CONSUMABLE_MINTER)
+      .initializeLimitedConsumable(withDefaultContractInfo({ name: 'the name' }), '', roleDelegate);
 
-    await expectRevert(
-      consumable.initializeLimitedConsumable(withDefaultContractInfo({ name: 'the new name' }), '', roleDelegate, {
-        from: CONSUMABLE_MINTER,
-      }),
-      'Contract instance has already been initialized',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumable
+        .connect(CONSUMABLE_MINTER)
+        .initializeLimitedConsumable(withDefaultContractInfo({ name: 'the new name' }), '', roleDelegate),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await consumable.contractName()).toEqual('the name');
   });
@@ -107,66 +98,67 @@ describe('mint', () => {
   it('should give coins to the player', async () => {
     const consumable = await createLimitedConsumable();
 
-    await consumable.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER });
-    await consumable.mint(PLAYER2, 50, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100);
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER2.address, 50);
 
-    const result1 = await getBalance(consumable, PLAYER1);
-    expect<number>(result1).toEqual(100);
-
-    const result2 = await getBalance(consumable, PLAYER2);
-    expect<number>(result2).toEqual(50);
-
-    const result3 = await getBalance(consumable, PLAYER3);
-    expect<number>(result3).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(50);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 
   it('should give coins to the player when they have a limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 100);
-    await increaseLimit(consumable, PLAYER2, 200);
-    await increaseLimit(consumable, PLAYER3, 300);
+    await increaseLimit(consumable, PLAYER1.address, 100);
+    await increaseLimit(consumable, PLAYER2.address, 200);
+    await increaseLimit(consumable, PLAYER3.address, 300);
 
-    await consumable.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER });
-    await consumable.mint(PLAYER2, 50, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100);
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER2.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(50);
-    expect<number>(await getBalance(consumable, PLAYER3)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(50);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 
   it('should increase total supply', async () => {
     const consumable = await createLimitedConsumable();
 
-    await consumable.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER });
-    await consumable.mint(PLAYER2, 50, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100);
+    await consumable.connect(CONSUMABLE_MINTER).mint(PLAYER2.address, 50);
 
-    expect<number>(await toNumberAsync(consumable.totalSupply())).toEqual(150);
+    expect<BigNumber>(await consumable.totalSupply()).toEqBN(150);
   });
 
   it('should not mint coins if not the minter', async () => {
     const consumable = await createLimitedConsumable();
 
-    await expectRevert(consumable.mint(PLAYER1, 100, { from: PLAYER2 }), 'Caller does not have the Minter role');
+    await expect<Promise<ContractTransaction>>(consumable.connect(PLAYER2).mint(PLAYER1.address, 100)).toBeRevertedWith(
+      'Caller does not have the Minter role',
+    );
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
   });
 
   it('should not mint coins if the receiver will be over their limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 50);
+    await increaseLimit(consumable, PLAYER1.address, 50);
 
-    await expectRevert(consumable.mint(PLAYER1, 51, { from: CONSUMABLE_MINTER }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 51),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(0);
-    expect<number>(await toNumberAsync(consumable.totalSupply())).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.totalSupply()).toEqBN(0);
 
-    await expectRevert(consumable.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(0);
-    expect<number>(await toNumberAsync(consumable.totalSupply())).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.totalSupply()).toEqBN(0);
   });
 });
 
@@ -174,41 +166,42 @@ describe('increaseLimit', () => {
   it('should increase the limit of the account', async () => {
     const consumable = await createLimitedConsumable();
 
-    await consumable.increaseLimit(PLAYER1, 100, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER1.address, 100);
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
 
-    await consumable.increaseLimit(PLAYER2, 200, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER2.address, 200);
 
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(200);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(200);
 
-    await consumable.increaseLimit(PLAYER1, 50, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER1.address, 50);
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(150);
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(200);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(200);
   });
 
   it('should not change limit if would overflow', async () => {
     const consumable = await createLimitedConsumable();
 
-    await consumable.increaseLimit(PLAYER1, 100, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER1.address, 100);
 
-    await expectRevert(consumable.increaseLimit(PLAYER1, -1, { from: CONSUMABLE_MINTER }), 'addition overflow');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER1.address, -1),
+    ).toBeRevertedWith('value out-of-bounds');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
   });
 
   it('should not change limit if not the minter', async () => {
     const consumable = await createLimitedConsumable();
 
-    await expectRevert(
-      consumable.increaseLimit(PLAYER1, 100, { from: PLAYER2 }),
-      'Caller does not have the Minter role',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER2).increaseLimit(PLAYER1.address, 100),
+    ).toBeRevertedWith('Caller does not have the Minter role');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(0);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(0);
   });
 
   it('should not increase the limit if disabled', async () => {
@@ -216,7 +209,9 @@ describe('increaseLimit', () => {
 
     await disableContract(consumable, CONSUMABLE_MINTER);
 
-    await expectRevert(consumable.increaseLimit(PLAYER1, 100, { from: CONSUMABLE_MINTER }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).increaseLimit(PLAYER1.address, 100),
+    ).toBeRevertedWith('Contract is disabled');
   });
 });
 
@@ -224,71 +219,72 @@ describe('decreaseLimit', () => {
   it('should decrease the limit of the account', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
-    await increaseLimit(consumable, PLAYER2, 500);
+    await increaseLimit(consumable, PLAYER1.address, 200);
+    await increaseLimit(consumable, PLAYER2.address, 500);
 
-    await consumable.decreaseLimit(PLAYER1, 100, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER1.address, 100);
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
 
-    await consumable.decreaseLimit(PLAYER2, 200, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER2.address, 200);
 
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(300);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(300);
 
-    await consumable.decreaseLimit(PLAYER1, 50, { from: CONSUMABLE_MINTER });
+    await consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER1.address, 50);
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(50);
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(300);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(300);
   });
 
   it('should not change limit if would go below 0', async () => {
     const consumable = await createLimitedConsumable();
 
-    await expectRevert(consumable.decreaseLimit(PLAYER1, 1, { from: CONSUMABLE_MINTER }), 'decreased limit below zero');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER1.address, 1),
+    ).toBeRevertedWith('decreased limit below zero');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseLimit(consumable, PLAYER1, 100);
+    await increaseLimit(consumable, PLAYER1.address, 100);
 
-    await expectRevert(
-      consumable.decreaseLimit(PLAYER1, 101, { from: CONSUMABLE_MINTER }),
-      'decreased limit below zero',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER1.address, 101),
+    ).toBeRevertedWith('decreased limit below zero');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
   });
 
   it('should not change limit if not the minter', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 100);
-    await increaseLimit(consumable, PLAYER2, 200);
+    await increaseLimit(consumable, PLAYER1.address, 100);
+    await increaseLimit(consumable, PLAYER2.address, 200);
 
-    await expectRevert(
-      consumable.decreaseLimit(PLAYER1, 50, { from: PLAYER2 }),
-      'Caller does not have the Minter role',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER2).decreaseLimit(PLAYER1.address, 50),
+    ).toBeRevertedWith('Caller does not have the Minter role');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(200);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(200);
 
-    await expectRevert(
-      consumable.decreaseLimit(PLAYER1, 100, { from: PLAYER2 }),
-      'Caller does not have the Minter role',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER2).decreaseLimit(PLAYER1.address, 100),
+    ).toBeRevertedWith('Caller does not have the Minter role');
 
-    expect<number>(await getLimit(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getLimit(consumable, PLAYER2)).toEqual(200);
+    expect<BigNumber>(await consumable.limitOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.limitOf(PLAYER2.address)).toEqBN(200);
   });
 
   it('should not decrease the limit if disabled', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
+    await increaseLimit(consumable, PLAYER1.address, 200);
 
     await disableContract(consumable, CONSUMABLE_MINTER);
 
-    await expectRevert(consumable.decreaseLimit(PLAYER1, 100, { from: CONSUMABLE_MINTER }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(CONSUMABLE_MINTER).decreaseLimit(PLAYER1.address, 100),
+    ).toBeRevertedWith('Contract is disabled');
   });
 });
 
@@ -296,88 +292,96 @@ describe('transfer', () => {
   it('should transfer if the receiver does not have a limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 500);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 500);
 
-    await consumable.transfer(PLAYER1, 50, { from: PLAYER2 });
+    await consumable.connect(PLAYER2).transfer(PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(150);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await consumable.transfer(PLAYER1, 50, { from: PLAYER2 });
+    await consumable.connect(PLAYER2).transfer(PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(200);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(400);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(200);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(400);
 
-    await consumable.transfer(PLAYER2, 75, { from: PLAYER1 });
+    await consumable.connect(PLAYER1).transfer(PLAYER2.address, 75);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(125);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(475);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(125);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(475);
 
-    await consumable.transfer(PLAYER2, 25, { from: PLAYER1 });
+    await consumable.connect(PLAYER1).transfer(PLAYER2.address, 25);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(500);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(500);
   });
 
   it('should transfer if the receiver will not be over the limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
-    await increaseLimit(consumable, PLAYER2, 500);
+    await increaseLimit(consumable, PLAYER1.address, 200);
+    await increaseLimit(consumable, PLAYER2.address, 500);
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 500);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 500);
 
-    await consumable.transfer(PLAYER1, 50, { from: PLAYER2 });
+    await consumable.connect(PLAYER2).transfer(PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(150);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await consumable.transfer(PLAYER1, 50, { from: PLAYER2 });
+    await consumable.connect(PLAYER2).transfer(PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(200);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(400);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(200);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(400);
 
-    await consumable.transfer(PLAYER2, 75, { from: PLAYER1 });
+    await consumable.connect(PLAYER1).transfer(PLAYER2.address, 75);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(125);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(475);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(125);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(475);
 
-    await consumable.transfer(PLAYER2, 25, { from: PLAYER1 });
+    await consumable.connect(PLAYER1).transfer(PLAYER2.address, 25);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(500);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(500);
   });
 
   it('should not transfer if the receiver would go over the limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
-    await increaseLimit(consumable, PLAYER2, 500);
+    await increaseLimit(consumable, PLAYER1.address, 200);
+    await increaseLimit(consumable, PLAYER2.address, 500);
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 450);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 450);
 
-    await expectRevert(consumable.transfer(PLAYER1, 101, { from: PLAYER2 }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER2).transfer(PLAYER1.address, 101),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await expectRevert(consumable.transfer(PLAYER1, 150, { from: PLAYER2 }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER2).transfer(PLAYER1.address, 150),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await expectRevert(consumable.transfer(PLAYER2, 51, { from: PLAYER1 }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transfer(PLAYER2.address, 51),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await expectRevert(consumable.transfer(PLAYER2, 100, { from: PLAYER1 }), 'account balance over the limit');
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transfer(PLAYER2.address, 100),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
   });
 });
 
@@ -385,123 +389,119 @@ describe('transferFrom', () => {
   it('should transfer if the receiver does not have a limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 500);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 500);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 50);
-    await consumable.transferFrom(PLAYER2, PLAYER1, 50, { from: PLAYER1 });
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 50);
+    await consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(150);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 50);
-    await consumable.transferFrom(PLAYER2, PLAYER1, 50, { from: PLAYER1 });
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 50);
+    await consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(200);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(400);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(200);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(400);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 75);
-    await consumable.transferFrom(PLAYER1, PLAYER2, 75, { from: PLAYER2 });
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 75);
+    await consumable.connect(PLAYER2).transferFrom(PLAYER1.address, PLAYER2.address, 75);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(125);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(475);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(125);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(475);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 25);
-    await consumable.transferFrom(PLAYER1, PLAYER2, 25, { from: PLAYER2 });
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 25);
+    await consumable.connect(PLAYER2).transferFrom(PLAYER1.address, PLAYER2.address, 25);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(500);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(500);
   });
 
   it('should transfer if the receiver will not be over the limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
-    await increaseLimit(consumable, PLAYER2, 500);
+    await increaseLimit(consumable, PLAYER1.address, 200);
+    await increaseLimit(consumable, PLAYER2.address, 500);
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 500);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 500);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 50);
-    await consumable.transferFrom(PLAYER2, PLAYER1, 50, { from: PLAYER1 });
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 50);
+    await consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(150);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 50);
-    await consumable.transferFrom(PLAYER2, PLAYER1, 50, { from: PLAYER1 });
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 50);
+    await consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 50);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(200);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(400);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(200);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(400);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 75);
-    await consumable.transferFrom(PLAYER1, PLAYER2, 75, { from: PLAYER2 });
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 75);
+    await consumable.connect(PLAYER2).transferFrom(PLAYER1.address, PLAYER2.address, 75);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(125);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(475);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(125);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(475);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 25);
-    await consumable.transferFrom(PLAYER1, PLAYER2, 25, { from: PLAYER2 });
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 25);
+    await consumable.connect(PLAYER2).transferFrom(PLAYER1.address, PLAYER2.address, 25);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(500);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(500);
   });
 
   it('should not transfer if the receiver would go over the limit', async () => {
     const consumable = await createLimitedConsumable();
 
-    await increaseLimit(consumable, PLAYER1, 200);
-    await increaseLimit(consumable, PLAYER2, 500);
+    await increaseLimit(consumable, PLAYER1.address, 200);
+    await increaseLimit(consumable, PLAYER2.address, 500);
 
-    await mintConsumable(consumable, PLAYER1, 100);
-    await mintConsumable(consumable, PLAYER2, 450);
+    await mintConsumable(consumable, PLAYER1.address, 100);
+    await mintConsumable(consumable, PLAYER2.address, 450);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 101);
-    await expectRevert(
-      consumable.transferFrom(PLAYER2, PLAYER1, 101, { from: PLAYER1 }),
-      'account balance over the limit',
-    );
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 101);
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 101),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await increaseAllowance(consumable, PLAYER2, PLAYER1, 49);
-    await expectRevert(
-      consumable.transferFrom(PLAYER2, PLAYER1, 150, { from: PLAYER1 }),
-      'account balance over the limit',
-    );
+    await consumable.connect(PLAYER2).increaseAllowance(PLAYER1.address, 49);
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transferFrom(PLAYER2.address, PLAYER1.address, 150),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 51);
-    await expectRevert(
-      consumable.transferFrom(PLAYER1, PLAYER2, 51, { from: PLAYER1 }),
-      'account balance over the limit',
-    );
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 51);
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transferFrom(PLAYER1.address, PLAYER2.address, 51),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
 
-    await increaseAllowance(consumable, PLAYER1, PLAYER2, 49);
-    await expectRevert(
-      consumable.transferFrom(PLAYER1, PLAYER2, 100, { from: PLAYER1 }),
-      'account balance over the limit',
-    );
+    await consumable.connect(PLAYER1).increaseAllowance(PLAYER2.address, 49);
+    await expect<Promise<ContractTransaction>>(
+      consumable.connect(PLAYER1).transferFrom(PLAYER1.address, PLAYER2.address, 100),
+    ).toBeRevertedWith('account balance over the limit');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(450);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(450);
   });
 });
 
 describe('Enable/Disable', () => {
-  shouldRestrictEnableAndDisable(createLimitedConsumable, CONSUMABLE_MINTER);
+  shouldRestrictEnableAndDisable(createLimitedConsumable, { getAdmin: () => CONSUMABLE_MINTER });
 });
 
 describe('transferToken', () => {
-  shouldTransferToken(createLimitedConsumable, { superAdmin: CONSUMABLE_MINTER });
+  shouldTransferToken(createLimitedConsumable, { getSuperAdmin: () => CONSUMABLE_MINTER });
 });
 
 describe('transferItem', () => {
-  shouldTransferItem(createLimitedConsumable, { superAdmin: CONSUMABLE_MINTER });
+  shouldTransferItem(createLimitedConsumable, { getSuperAdmin: () => CONSUMABLE_MINTER });
 });

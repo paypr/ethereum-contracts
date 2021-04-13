@@ -19,10 +19,10 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './Activity.sol';
 import '../consumable/ConsumableExchangeInterfaceSupport.sol';
 import '../consumable/IConsumableExchange.sol';
@@ -30,7 +30,7 @@ import '../consumable/IConvertibleConsumable.sol';
 import '../consumable/ConsumableConversionMath.sol';
 
 abstract contract ExchangingActivity is Activity {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using ConsumableExchangeInterfaceSupport for IConsumableExchange;
   using ConsumableConversionMath for IConsumableExchange;
   using ConsumableConversionMath for uint256;
@@ -86,11 +86,12 @@ abstract contract ExchangingActivity is Activity {
 
       uint256 consumableBalance = consumable.myBalance();
 
-      uint256 amount = consumableBalance.exchangeTokenProvided(exchangeRate.intrinsicValue).convertibleTokenNeeded(
-        exchangeRate.intrinsicValue
-      );
+      uint256 amount =
+        consumableBalance.exchangeTokenProvided(exchangeRate.intrinsicValue).convertibleTokenNeeded(
+          exchangeRate.intrinsicValue
+        );
       if (amount > 0) {
-        ERC20UpgradeSafe token = ERC20UpgradeSafe(address(consumable));
+        ERC20Upgradeable token = ERC20Upgradeable(address(consumable));
         token.increaseAllowance(address(_exchange), amount);
         _exchange.exchangeFrom(consumable, amount);
       }
@@ -112,11 +113,12 @@ abstract contract ExchangingActivity is Activity {
       if (exchangeAmount > 0) {
         _exchange.exchangeTo(consumable, exchangeAmount);
 
-        bool success = consumable.transferFrom(
-          address(_exchange),
-          address(this),
-          exchangeAmount.convertibleTokenProvided(exchangeRate.purchasePrice)
-        );
+        bool success =
+          consumable.transferFrom(
+            address(_exchange),
+            address(this),
+            exchangeAmount.convertibleTokenProvided(exchangeRate.purchasePrice)
+          );
         require(success, 'Provider: Consumable failed to transfer');
       }
     }

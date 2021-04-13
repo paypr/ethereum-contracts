@@ -19,16 +19,16 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
 import '../item/IArtifact.sol';
 import '../consumable/IConsumable.sol';
 import '../activity/IActivity.sol';
 import '../skill/ISkill.sol';
 
-interface IPlayer is IERC165 {
+interface IPlayer is IERC165Upgradeable {
   /**
    * @dev Executes the given activity (see {IActivity}), using the given
    * items (see {IArtifact})

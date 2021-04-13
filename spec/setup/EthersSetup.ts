@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,13 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// SPDX-License-Identifier: GPL-3.0-only
+import { initAccounts } from '../helpers/Accounts';
 
-pragma solidity ^0.8.3;
-
-library RoleSupport {
-  bytes32 public constant SUPER_ADMIN_ROLE = 0x00;
-  bytes32 public constant MINTER_ROLE = keccak256('Minter');
-  bytes32 public constant ADMIN_ROLE = keccak256('Admin');
-  bytes32 public constant TRANSFER_AGENT_ROLE = keccak256('Transfer');
-}
+global.beforeEach(async () => {
+  await initAccounts();
+});

@@ -19,12 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Counters.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import '../activity/ActivityInterfaceSupport.sol';
 import '../activity/IActivity.sol';
 import '../consumable/ConsumableInterfaceSupport.sol';
@@ -41,7 +40,15 @@ import '../transfer/ITransferring.sol';
 import '../transfer/TransferLogic.sol';
 import '../item/ItemUserLogic.sol';
 
-contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ERC165UpgradeSafe, Disableable, Roles {
+contract Player is
+  Initializable,
+  ContextUpgradeable,
+  ITransferring,
+  IPlayer,
+  ERC165StorageUpgradeable,
+  Disableable,
+  Roles
+{
   using ActivityInterfaceSupport for IActivity;
   using ConsumableInterfaceSupport for IConsumable;
   using ConvertibleConsumableInterfaceSupport for IConvertibleConsumable;
@@ -113,7 +120,7 @@ contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ER
       require(consumable.supportsConsumableInterface(), 'Player: Consumable must support interface when providing');
 
       // could fail if not enough resources
-      ERC20UpgradeSafe token = ERC20UpgradeSafe(address(consumable));
+      ERC20Upgradeable token = ERC20Upgradeable(address(consumable));
       bool success = token.increaseAllowance(consumer, amountToProvide.amount);
       require(success, 'Provider: Consumable failed to transfer');
     }
@@ -132,7 +139,7 @@ contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ER
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -140,7 +147,7 @@ contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ER
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -154,6 +161,16 @@ contract Player is Initializable, ITransferring, IPlayer, ContextUpgradeSafe, ER
     bytes calldata data
   ) external virtual override returns (bytes4) {
     return TransferLogic.onERC721Received(operator, from, tokenId, data);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165Upgradeable, AccessControlUpgradeable, ERC165StorageUpgradeable)
+    returns (bool)
+  {
+    return ERC165StorageUpgradeable.supportsInterface(interfaceId);
   }
 
   function disable() external override onlyAdmin {

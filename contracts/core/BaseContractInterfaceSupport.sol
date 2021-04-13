@@ -19,13 +19,13 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165Checker.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import './IBaseContract.sol';
 
 library BaseContractInterfaceSupport {
-  using ERC165Checker for address;
+  using ERC165CheckerUpgradeable for address;
 
   bytes4 internal constant BASE_CONTRACT_INTERFACE_ID = 0x321f350b;
 

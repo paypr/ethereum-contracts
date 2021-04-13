@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,39 +17,42 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction, Signer } from 'ethers';
+import {
+  IDisableable,
+  ITransferring,
+  TestExchangingTransfer__factory,
+  TestTransfer__factory,
+} from '../../types/contracts';
 import { INITIALIZER, PLAYER3 } from './Accounts';
 import { createArtifact, mintItem } from './ArtifactHelper';
 import {
   createConsumable,
   createConsumableExchange,
   createConvertibleConsumable,
-  getAllowance,
-  getBalance,
   mintConsumable,
 } from './ConsumableHelper';
-import { getContract } from './ContractHelper';
 import { disableContract } from './DisableableHelper';
 
-export const TransferringContract = getContract('TestTransfer');
-export const ExchangingTransferringContract = getContract('TestExchangingTransfer');
+export const deployTransferringContract = () => new TestTransfer__factory(INITIALIZER).deploy();
+export const deployExchangingTransferringContract = () => new TestExchangingTransfer__factory(INITIALIZER).deploy();
 
 export const createTransferring = async () => {
-  const transferring = await TransferringContract.new();
-  await transferring.initializeTestTransfer({ from: INITIALIZER });
+  const transferring = await deployTransferringContract();
+  await transferring.initializeTestTransfer();
   return transferring;
 };
 
 export const createExchangingTransferring = async () => {
-  const transferring = await ExchangingTransferringContract.new();
-  await transferring.initializeExchangingTestTransfer({ from: INITIALIZER });
+  const transferring = await deployExchangingTransferringContract();
+  await transferring.initializeExchangingTestTransfer();
   return transferring;
 };
 
 interface TransferOptions {
-  superAdmin?: string;
-  admin?: string;
-  transferAgent?: string;
+  getSuperAdmin?: () => Signer;
+  getAdmin?: () => Signer;
+  getTransferAgent?: () => Signer;
   usingOwner?: boolean;
 }
 
@@ -57,12 +60,17 @@ export interface TransferTokenOptions extends TransferOptions {
   withExchange?: boolean;
 }
 
-export const shouldTransferToken = (create: () => any, options: TransferTokenOptions = {}) => {
+type TransferringContract = ITransferring & IDisableable;
+
+export const shouldTransferToken = (
+  create: () => Promise<TransferringContract>,
+  options: TransferTokenOptions = {},
+) => {
   const withExchange = Boolean(options.withExchange);
-  const superAdmin = options.superAdmin || INITIALIZER;
+  const getSuperAdmin = options.getSuperAdmin || (() => INITIALIZER);
   const usingOwner = Boolean(options.usingOwner);
-  const admin = options.admin || superAdmin;
-  const transferAgent = options.transferAgent || superAdmin;
+  const getAdmin = options.getAdmin || getSuperAdmin;
+  const getTransferAgent = options.getTransferAgent || getSuperAdmin;
   const invalidRoleError = buildInvalidRoleError(usingOwner);
 
   it('should transfer consumable to another address', async () => {
@@ -71,10 +79,10 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
     const consumable = await createConsumable();
     await mintConsumable(consumable, transferring.address, 1000);
 
-    await transferring.transferToken(consumable.address, 100, PLAYER3, { from: transferAgent });
+    await transferring.connect(getTransferAgent()).transferToken(consumable.address, 100, PLAYER3.address);
 
-    expect(await getBalance(consumable, transferring.address)).toEqual(900);
-    expect(await getBalance(consumable, PLAYER3)).toEqual(100);
+    expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(900);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(100);
   });
 
   if (withExchange) {
@@ -94,23 +102,23 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
 
       await mintConsumable(exchangeConsumable, transferring.address, 100);
 
-      await transferring.transferToken(consumable1.address, 100, PLAYER3, { from: transferAgent });
+      await transferring.connect(getTransferAgent()).transferToken(consumable1.address, 100, PLAYER3.address);
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(90);
-      expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
-      expect(await getBalance(consumable1, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable1, PLAYER3)).toEqual(100);
-      expect(await getAllowance(consumable1, consumable1.address, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(transferring.address)).toEqBN(90);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(PLAYER3.address)).toEqBN(0);
+      expect<BigNumber>(await exchangeConsumable.allowance(PLAYER3.address, consumable1.address)).toEqBN(0);
+      expect<BigNumber>(await consumable1.balanceOf(transferring.address)).toEqBN(0);
+      expect<BigNumber>(await consumable1.balanceOf(PLAYER3.address)).toEqBN(100);
+      expect<BigNumber>(await consumable1.allowance(consumable1.address, PLAYER3.address)).toEqBN(0);
 
-      await transferring.transferToken(consumable1.address, 101, PLAYER3, { from: transferAgent });
+      await transferring.connect(getTransferAgent()).transferToken(consumable1.address, 101, PLAYER3.address);
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(79);
-      expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
-      expect(await getBalance(consumable1, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable1, PLAYER3)).toEqual(201);
-      expect(await getAllowance(consumable1, consumable1.address, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(transferring.address)).toEqBN(79);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(PLAYER3.address)).toEqBN(0);
+      expect<BigNumber>(await exchangeConsumable.allowance(PLAYER3.address, consumable1.address)).toEqBN(0);
+      expect<BigNumber>(await consumable1.balanceOf(transferring.address)).toEqBN(0);
+      expect<BigNumber>(await consumable1.balanceOf(PLAYER3.address)).toEqBN(201);
+      expect<BigNumber>(await consumable1.allowance(consumable1.address, PLAYER3.address)).toEqBN(0);
 
       const consumable2 = await createConvertibleConsumable(
         exchangeConsumable.address,
@@ -122,23 +130,23 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
         undefined,
       );
 
-      await transferring.transferToken(consumable2.address, 10, PLAYER3, { from: transferAgent });
+      await transferring.connect(getTransferAgent()).transferToken(consumable2.address, 10, PLAYER3.address);
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(69);
-      expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
-      expect(await getBalance(consumable2, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable2, PLAYER3)).toEqual(10);
-      expect(await getAllowance(consumable2, consumable1.address, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(transferring.address)).toEqBN(69);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(PLAYER3.address)).toEqBN(0);
+      expect<BigNumber>(await exchangeConsumable.allowance(PLAYER3.address, consumable1.address)).toEqBN(0);
+      expect<BigNumber>(await consumable2.balanceOf(transferring.address)).toEqBN(0);
+      expect<BigNumber>(await consumable2.balanceOf(PLAYER3.address)).toEqBN(10);
+      expect<BigNumber>(await consumable2.allowance(consumable1.address, PLAYER3.address)).toEqBN(0);
 
-      await transferring.transferToken(consumable2.address, 11, PLAYER3, { from: transferAgent });
+      await transferring.connect(getTransferAgent()).transferToken(consumable2.address, 11, PLAYER3.address);
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(58);
-      expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
-      expect(await getAllowance(exchangeConsumable, PLAYER3, consumable1.address)).toEqual(0);
-      expect(await getBalance(consumable2, transferring.address)).toEqual(0);
-      expect(await getBalance(consumable2, PLAYER3)).toEqual(21);
-      expect(await getAllowance(consumable2, consumable1.address, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(transferring.address)).toEqBN(58);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(PLAYER3.address)).toEqBN(0);
+      expect<BigNumber>(await exchangeConsumable.allowance(PLAYER3.address, consumable1.address)).toEqBN(0);
+      expect<BigNumber>(await consumable2.balanceOf(transferring.address)).toEqBN(0);
+      expect<BigNumber>(await consumable2.balanceOf(PLAYER3.address)).toEqBN(21);
+      expect<BigNumber>(await consumable2.allowance(consumable1.address, PLAYER3.address)).toEqBN(0);
     });
   }
 
@@ -148,13 +156,12 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
     const consumable = await createConsumable();
     await mintConsumable(consumable, transferring.address, 99);
 
-    await expectRevert(
-      transferring.transferToken(consumable.address, 100, PLAYER3, { from: transferAgent }),
-      'transfer amount exceeds balance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(getTransferAgent()).transferToken(consumable.address, 100, PLAYER3.address),
+    ).toBeRevertedWith('transfer amount exceeds balance');
 
-    expect(await getBalance(consumable, transferring.address)).toEqual(99);
-    expect(await getBalance(consumable, PLAYER3)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(99);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 
   if (withExchange) {
@@ -175,16 +182,15 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
       await mintConsumable(exchangeConsumable, consumable.address, 10);
       await mintConsumable(consumable, transferring.address, 99);
 
-      await expectRevert(
-        transferring.transferToken(consumable.address, 100, PLAYER3, { from: transferAgent }),
-        'transfer amount exceeds balance',
-      );
+      await expect<Promise<ContractTransaction>>(
+        transferring.connect(getTransferAgent()).transferToken(consumable.address, 100, PLAYER3.address),
+      ).toBeRevertedWith('transfer amount exceeds balance');
 
-      expect(await getBalance(exchangeConsumable, transferring.address)).toEqual(0);
-      expect(await getBalance(exchangeConsumable, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(transferring.address)).toEqBN(0);
+      expect<BigNumber>(await exchangeConsumable.balanceOf(PLAYER3.address)).toEqBN(0);
 
-      expect(await getBalance(consumable, transferring.address)).toEqual(99);
-      expect(await getBalance(consumable, PLAYER3)).toEqual(0);
+      expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(99);
+      expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
     });
   }
 
@@ -194,13 +200,12 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
     const consumable = await createConsumable();
     await mintConsumable(consumable, transferring.address, 1000);
 
-    await expectRevert(
-      transferring.transferToken(consumable.address, 100, PLAYER3, { from: PLAYER3 }),
-      invalidRoleError,
-    );
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(PLAYER3).transferToken(consumable.address, 100, PLAYER3.address),
+    ).toBeRevertedWith(invalidRoleError);
 
-    expect(await getBalance(consumable, transferring.address)).toEqual(1000);
-    expect(await getBalance(consumable, PLAYER3)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 
   it('should not transfer if transfer is disabled', async () => {
@@ -209,23 +214,22 @@ export const shouldTransferToken = (create: () => any, options: TransferTokenOpt
     const consumable = await createConsumable();
     await mintConsumable(consumable, transferring.address, 1000);
 
-    await disableContract(transferring, admin);
+    await disableContract(transferring, getAdmin());
 
-    await expectRevert(
-      transferring.transferToken(consumable.address, 100, PLAYER3, { from: transferAgent }),
-      'Contract is disabled',
-    );
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(getTransferAgent()).transferToken(consumable.address, 100, PLAYER3.address),
+    ).toBeRevertedWith('Contract is disabled');
 
-    expect(await getBalance(consumable, transferring.address)).toEqual(1000);
-    expect(await getBalance(consumable, PLAYER3)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 };
 
-export const shouldTransferItem = (create: () => any, options: TransferOptions = {}) => {
-  const superAdmin = options.superAdmin || INITIALIZER;
+export const shouldTransferItem = (create: () => Promise<TransferringContract>, options: TransferOptions = {}) => {
+  const getSuperAdmin = options.getSuperAdmin || (() => INITIALIZER);
   const usingOwner = Boolean(options.usingOwner);
-  const admin = usingOwner ? superAdmin : superAdmin;
-  const transferAgent = usingOwner ? superAdmin : superAdmin;
+  const getAdmin = usingOwner ? getSuperAdmin : options.getAdmin || getSuperAdmin;
+  const getTransferAgent = usingOwner ? getSuperAdmin : options.getTransferAgent || getSuperAdmin;
   const invalidRoleError = buildInvalidRoleError(usingOwner);
 
   it('should transfer item to another address', async () => {
@@ -235,10 +239,10 @@ export const shouldTransferItem = (create: () => any, options: TransferOptions =
     await mintItem(artifact, transferring.address);
     await mintItem(artifact, transferring.address);
 
-    await transferring.transferItem(artifact.address, 1, PLAYER3, { from: transferAgent });
+    await transferring.connect(getTransferAgent()).transferItem(artifact.address, 1, PLAYER3.address);
 
-    expect(await artifact.ownerOf(1)).toEqual(PLAYER3);
-    expect(await artifact.ownerOf(2)).toEqual(transferring.address);
+    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER3.address);
+    expect<string>(await artifact.ownerOf(2)).toEqual(transferring.address);
   });
 
   it('should not transfer if not valid item', async () => {
@@ -247,12 +251,11 @@ export const shouldTransferItem = (create: () => any, options: TransferOptions =
     const artifact = await createArtifact();
     await mintItem(artifact, transferring.address);
 
-    await expectRevert(
-      transferring.transferItem(artifact.address, 2, PLAYER3, { from: transferAgent }),
-      'operator query for nonexistent token',
-    );
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(getTransferAgent()).transferItem(artifact.address, 2, PLAYER3.address),
+    ).toBeRevertedWith('operator query for nonexistent token');
 
-    expect(await artifact.ownerOf(1)).toEqual(transferring.address);
+    expect<string>(await artifact.ownerOf(1)).toEqual(transferring.address);
   });
 
   it('should not transfer if caller is not transfer agent', async () => {
@@ -261,9 +264,11 @@ export const shouldTransferItem = (create: () => any, options: TransferOptions =
     const artifact = await createArtifact();
     await mintItem(artifact, transferring.address);
 
-    await expectRevert(transferring.transferItem(artifact.address, 1, PLAYER3, { from: PLAYER3 }), invalidRoleError);
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(PLAYER3).transferItem(artifact.address, 1, PLAYER3.address),
+    ).toBeRevertedWith(invalidRoleError);
 
-    expect(await artifact.ownerOf(1)).toEqual(transferring.address);
+    expect<string>(await artifact.ownerOf(1)).toEqual(transferring.address);
   });
 
   it('should not transfer if transfer is disabled', async () => {
@@ -272,14 +277,13 @@ export const shouldTransferItem = (create: () => any, options: TransferOptions =
     const artifact = await createArtifact();
     await mintItem(artifact, transferring.address);
 
-    await disableContract(transferring, admin);
+    await disableContract(transferring, getAdmin());
 
-    await expectRevert(
-      transferring.transferItem(artifact.address, 1, PLAYER3, { from: transferAgent }),
-      'Contract is disabled',
-    );
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(getTransferAgent()).transferItem(artifact.address, 1, PLAYER3.address),
+    ).toBeRevertedWith('Contract is disabled');
 
-    expect(await artifact.ownerOf(1)).toEqual(transferring.address);
+    expect<string>(await artifact.ownerOf(1)).toEqual(transferring.address);
   });
 };
 

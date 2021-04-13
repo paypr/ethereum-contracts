@@ -19,7 +19,7 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
 import './IConsumable.sol';
 
@@ -27,7 +27,7 @@ interface IConvertibleConsumable is IConsumable {
   /**
    * @dev the token that can be exchanged to/from
    */
-  function exchangeToken() external view returns (IERC20);
+  function exchangeToken() external view returns (IERC20Upgradeable);
 
   /**
    * @dev whether or not this consumable has a different purchase price than intrinsic value

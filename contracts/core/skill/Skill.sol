@@ -19,10 +19,10 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol';
+import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 import '../BaseContract.sol';
 import './ISkill.sol';
 import './SkillInterfaceSupport.sol';
@@ -36,8 +36,8 @@ abstract contract Skill is
   Initializable,
   ITransferring,
   ISkill,
-  ContextUpgradeSafe,
-  ERC165UpgradeSafe,
+  ContextUpgradeable,
+  ERC165StorageUpgradeable,
   BaseContract
 {
   using TransferLogic for address;
@@ -50,11 +50,11 @@ abstract contract Skill is
     _registerInterface(TransferringInterfaceSupport.TRANSFERRING_INTERFACE_ID);
   }
 
-  function myCurrentLevel() external override view returns (uint256) {
+  function myCurrentLevel() external view override returns (uint256) {
     return currentLevel(_msgSender());
   }
 
-  function currentLevel(address player) public override view returns (uint256) {
+  function currentLevel(address player) public view override returns (uint256) {
     return _levels[player];
   }
 

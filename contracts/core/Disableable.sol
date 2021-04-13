@@ -19,18 +19,18 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
 import './IDisableable.sol';
 
 abstract contract Disableable is IDisableable {
   bool private _disabled;
 
-  function disabled() external override view returns (bool) {
+  function disabled() external view override returns (bool) {
     return _disabled;
   }
 
-  function enabled() external override view returns (bool) {
+  function enabled() external view override returns (bool) {
     return !_disabled;
   }
 

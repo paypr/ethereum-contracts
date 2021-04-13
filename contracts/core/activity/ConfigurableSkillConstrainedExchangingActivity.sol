@@ -19,7 +19,7 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
 import './ExchangingActivity.sol';
@@ -29,8 +29,8 @@ import '../Disableable.sol';
 
 contract ConfigurableSkillConstrainedExchangingActivity is
   Initializable,
-  ContextUpgradeSafe,
-  ERC165UpgradeSafe,
+  ContextUpgradeable,
+  ERC165StorageUpgradeable,
   ExchangingActivity,
   SkillConstrained,
   Disableable,
@@ -54,7 +54,7 @@ contract ConfigurableSkillConstrainedExchangingActivity is
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -62,14 +62,14 @@ contract ConfigurableSkillConstrainedExchangingActivity is
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
     address(this).transferItem(artifact, itemId, recipient);
   }
 
-  function _checkRequirements(address player) internal override view {
+  function _checkRequirements(address player) internal view override {
     _checkRequiredSkills(player);
   }
 

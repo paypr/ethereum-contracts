@@ -19,12 +19,12 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 
-interface IConsumable is IERC165, IERC20 {
+interface IConsumable is IERC165Upgradeable, IERC20Upgradeable {
   struct ConsumableAmount {
     IConsumable consumable;
     uint256 amount;

@@ -19,11 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721Receiver.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol';
 import '../consumable/IConvertibleConsumable.sol';
 import '../consumable/ConvertibleConsumableInterfaceSupport.sol';
 
@@ -32,7 +32,7 @@ library TransferLogic {
 
   function transferToken(
     address, /*account*/
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) internal {
@@ -41,7 +41,7 @@ library TransferLogic {
 
   function transferTokenWithExchange(
     address account,
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) internal {
@@ -53,7 +53,7 @@ library TransferLogic {
       uint256 amountConsumableNeeded = amount - myBalance; // safe since we checked < above
       uint256 amountExchangeToken = convertibleConsumable.amountExchangeTokenNeeded(amountConsumableNeeded);
 
-      ERC20UpgradeSafe exchange = ERC20UpgradeSafe(address(convertibleConsumable.exchangeToken()));
+      ERC20Upgradeable exchange = ERC20Upgradeable(address(convertibleConsumable.exchangeToken()));
       exchange.increaseAllowance(address(token), amountExchangeToken);
     }
 
@@ -62,7 +62,7 @@ library TransferLogic {
 
   function transferItem(
     address account,
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) internal {
@@ -75,6 +75,6 @@ library TransferLogic {
     uint256, /*tokenId*/
     bytes memory /*data*/
   ) internal pure returns (bytes4) {
-    return IERC721Receiver.onERC721Received.selector;
+    return IERC721ReceiverUpgradeable.onERC721Received.selector;
   }
 }

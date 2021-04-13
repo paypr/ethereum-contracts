@@ -19,14 +19,14 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
 import './Activity.sol';
 import '../access/DelegatingRoles.sol';
 import '../Disableable.sol';
 
-contract ConfigurableActivity is Initializable, ContextUpgradeSafe, Activity, Disableable, DelegatingRoles {
+contract ConfigurableActivity is Initializable, ContextUpgradeable, Activity, Disableable, DelegatingRoles {
   using TransferLogic for address;
 
   function initializeActivity(
@@ -41,7 +41,7 @@ contract ConfigurableActivity is Initializable, ContextUpgradeSafe, Activity, Di
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -49,7 +49,7 @@ contract ConfigurableActivity is Initializable, ContextUpgradeSafe, Activity, Di
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

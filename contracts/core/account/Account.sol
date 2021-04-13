@@ -19,13 +19,13 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '../transfer/TransferringInterfaceSupport.sol';
 import '../Disableable.sol';
 import '../access/Roles.sol';
@@ -33,7 +33,7 @@ import '../access/RoleDelegateInterfaceSupport.sol';
 import '../transfer/ITransferring.sol';
 import '../transfer/TransferLogic.sol';
 
-contract Account is Initializable, ITransferring, ContextUpgradeSafe, ERC165UpgradeSafe, Disableable, Roles {
+contract Account is Initializable, ContextUpgradeable, ITransferring, ERC165StorageUpgradeable, Disableable, Roles {
   using TransferLogic for address;
 
   function initializeAccount(IRoleDelegate roleDelegate) public initializer {
@@ -51,7 +51,7 @@ contract Account is Initializable, ITransferring, ContextUpgradeSafe, ERC165Upgr
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -59,7 +59,7 @@ contract Account is Initializable, ITransferring, ContextUpgradeSafe, ERC165Upgr
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -73,6 +73,16 @@ contract Account is Initializable, ITransferring, ContextUpgradeSafe, ERC165Upgr
     bytes calldata data
   ) external virtual override returns (bytes4) {
     return TransferLogic.onERC721Received(operator, from, tokenId, data);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165Upgradeable, AccessControlUpgradeable, ERC165StorageUpgradeable)
+    returns (bool)
+  {
+    return ERC165StorageUpgradeable.supportsInterface(interfaceId);
   }
 
   function disable() external override onlyAdmin {

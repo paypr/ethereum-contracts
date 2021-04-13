@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectEvent, expectRevert } from '@openzeppelin/test-helpers';
+import { ContractTransaction } from 'ethers';
 import { createRoles, OTHER1, SUPER_ADMIN } from '../../../helpers/AccessHelper';
 
 describe('addRoleDelegate', () => {
@@ -25,43 +25,42 @@ describe('addRoleDelegate', () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles();
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
-    await roles.addRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN });
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    await roles.connect(SUPER_ADMIN).addRoleDelegate(roleDelegate.address);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
   });
 
   it('should not add the delegate when called by someone else', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles();
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
-    await expectRevert(
-      roles.addRoleDelegate(roleDelegate.address, { from: OTHER1 }),
-      'Caller does not have the SuperAdmin role',
-    );
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    await expect<Promise<ContractTransaction>>(
+      roles.connect(OTHER1).addRoleDelegate(roleDelegate.address),
+    ).toBeRevertedWith('Caller does not have the SuperAdmin role');
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
   });
 
   it('should not fail when added twice', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles(roleDelegate.address);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
-    await roles.addRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN });
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    await roles.connect(SUPER_ADMIN).addRoleDelegate(roleDelegate.address);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
   });
 
   it('should emit RoleDelegateAdded event when added', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles();
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
 
-    expectEvent(await roles.addRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN }), 'RoleDelegateAdded', {
-      roleDelegate: roleDelegate.address,
-    });
+    await expect<ContractTransaction>(
+      await roles.connect(SUPER_ADMIN).addRoleDelegate(roleDelegate.address),
+    ).toHaveEmittedWith(roles, 'RoleDelegateAdded', [roleDelegate.address]);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
   });
 });
 
@@ -70,42 +69,41 @@ describe('removeRoleDelegate', () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles(roleDelegate.address);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
-    await roles.removeRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN });
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    await roles.connect(SUPER_ADMIN).removeRoleDelegate(roleDelegate.address);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
   });
 
   it('should not remove the delegate when called by someone else', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles(roleDelegate.address);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
-    await expectRevert(
-      roles.removeRoleDelegate(roleDelegate.address, { from: OTHER1 }),
-      'Caller does not have the SuperAdmin role',
-    );
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    await expect<Promise<ContractTransaction>>(
+      roles.connect(OTHER1).removeRoleDelegate(roleDelegate.address),
+    ).toBeRevertedWith('Caller does not have the SuperAdmin role');
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
   });
 
   it('should not fail if the delegate is not in the list', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles();
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
-    await roles.removeRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN });
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    await roles.connect(SUPER_ADMIN).removeRoleDelegate(roleDelegate.address);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
   });
 
   it('should emit RoleDelegateRemoved event when removed', async () => {
     const roleDelegate = await createRoles();
     const roles = await createRoles(roleDelegate.address);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(true);
 
-    expectEvent(await roles.removeRoleDelegate(roleDelegate.address, { from: SUPER_ADMIN }), 'RoleDelegateRemoved', {
-      roleDelegate: roleDelegate.address,
-    });
+    await expect<ContractTransaction>(
+      await roles.connect(SUPER_ADMIN).removeRoleDelegate(roleDelegate.address),
+    ).toHaveEmittedWith(roles, 'RoleDelegateRemoved', [roleDelegate.address]);
 
-    expect(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
+    expect<boolean>(await roles.isRoleDelegate(roleDelegate.address)).toBe(false);
   });
 });

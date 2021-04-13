@@ -19,17 +19,17 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import './ConsumableInterfaceSupport.sol';
 import './IConsumableProvider.sol';
 import './IConsumable.sol';
 
 contract ConsumableProvider is IConsumableProvider {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using ConsumableInterfaceSupport for IConsumable;
 
   mapping(address => uint256) private _amountsToProvide;
@@ -48,15 +48,15 @@ contract ConsumableProvider is IConsumableProvider {
     }
   }
 
-  function consumablesProvided() external override view returns (IConsumable[] memory) {
+  function consumablesProvided() external view override returns (IConsumable[] memory) {
     return _consumablesToProvide;
   }
 
-  function isProvided(IConsumable consumable) external override view returns (bool) {
+  function isProvided(IConsumable consumable) external view override returns (bool) {
     return _amountsToProvide[address(consumable)] > 0;
   }
 
-  function amountProvided(IConsumable consumable) external override view returns (uint256) {
+  function amountProvided(IConsumable consumable) external view override returns (uint256) {
     return _amountsToProvide[address(consumable)];
   }
 
@@ -91,7 +91,7 @@ contract ConsumableProvider is IConsumableProvider {
       IConsumable consumable = _consumablesToProvide[consumableIndex];
 
       // could fail if not enough resources
-      ERC20UpgradeSafe token = ERC20UpgradeSafe(address(consumable));
+      ERC20Upgradeable token = ERC20Upgradeable(address(consumable));
       bool success = token.increaseAllowance(consumer, _amountsToProvide[address(consumable)]);
       require(success, 'Provider: Consumable failed to transfer');
 

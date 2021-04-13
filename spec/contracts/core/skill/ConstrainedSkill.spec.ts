@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,9 +17,9 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { BigNumber } from 'ethers';
 import { BASE_CONTRACT_ID, ERC165_ID, SKILL_CONSTRAINED_ID, SKILL_ID } from '../../../helpers/ContractIds';
+import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { shouldSupportInterface } from '../../../helpers/ERC165';
 import { createConstrainedSkill } from '../../../helpers/SkillHelper';
 
@@ -34,31 +34,31 @@ describe('currentLevel', () => {
   it('should get 0 when no levels found', async () => {
     const skill = await createConstrainedSkill();
 
-    const currentLevel = await toNumberAsync(skill.currentLevel(PLAYER1));
-    expect<number>(currentLevel).toEqual(0);
+    const currentLevel = await skill.currentLevel(PLAYER1.address);
+    expect<BigNumber>(currentLevel).toEqBN(0);
   });
 
   it('should get 0 when player has no levels', async () => {
     const skill = await createConstrainedSkill();
 
-    await skill.acquireNext([], { from: PLAYER2 });
+    await skill.connect(PLAYER2).acquireNext([]);
 
-    const currentLevel = await toNumberAsync(skill.currentLevel(PLAYER1));
-    expect<number>(currentLevel).toEqual(0);
+    const currentLevel = await skill.currentLevel(PLAYER1.address);
+    expect<BigNumber>(currentLevel).toEqBN(0);
   });
 
   it('should get correct level when player has level', async () => {
     const skill = await createConstrainedSkill();
 
-    await skill.acquireNext([], { from: PLAYER1 });
-    await skill.acquireNext([], { from: PLAYER1 });
-    await skill.acquireNext([], { from: PLAYER2 });
+    await skill.connect(PLAYER1).acquireNext([]);
+    await skill.connect(PLAYER1).acquireNext([]);
+    await skill.connect(PLAYER2).acquireNext([]);
 
-    const currentLevel1 = await toNumberAsync(skill.currentLevel(PLAYER1));
-    expect<number>(currentLevel1).toEqual(2);
+    const currentLevel1 = await skill.currentLevel(PLAYER1.address);
+    expect<BigNumber>(currentLevel1).toEqBN(2);
 
-    const currentLevel2 = await toNumberAsync(skill.currentLevel(PLAYER2));
-    expect<number>(currentLevel2).toEqual(1);
+    const currentLevel2 = await skill.currentLevel(PLAYER2.address);
+    expect<BigNumber>(currentLevel2).toEqBN(1);
   });
 });
 
@@ -66,30 +66,30 @@ describe('myCurrentLevel', () => {
   it('should get 0 when no levels found', async () => {
     const skill = await createConstrainedSkill();
 
-    const currentLevel = await toNumberAsync(skill.myCurrentLevel({ from: PLAYER1 }));
-    expect<number>(currentLevel).toEqual(0);
+    const currentLevel = await skill.connect(PLAYER1).myCurrentLevel();
+    expect<BigNumber>(currentLevel).toEqBN(0);
   });
 
   it('should get 0 when player has no levels', async () => {
     const skill = await createConstrainedSkill();
 
-    await skill.acquireNext([], { from: PLAYER2 });
+    await skill.connect(PLAYER2).acquireNext([]);
 
-    const currentLevel1 = await toNumberAsync(skill.myCurrentLevel({ from: PLAYER1 }));
-    expect<number>(currentLevel1).toEqual(0);
+    const currentLevel1 = await skill.connect(PLAYER1).myCurrentLevel();
+    expect<BigNumber>(currentLevel1).toEqBN(0);
   });
 
   it('should get correct level when player has level', async () => {
     const skill = await createConstrainedSkill();
 
-    await skill.acquireNext([], { from: PLAYER1 });
-    await skill.acquireNext([], { from: PLAYER1 });
-    await skill.acquireNext([], { from: PLAYER2 });
+    await skill.connect(PLAYER1).acquireNext([]);
+    await skill.connect(PLAYER1).acquireNext([]);
+    await skill.connect(PLAYER2).acquireNext([]);
 
-    const currentLevel1 = await toNumberAsync(skill.myCurrentLevel({ from: PLAYER1 }));
-    expect<number>(currentLevel1).toEqual(2);
+    const currentLevel1 = await skill.connect(PLAYER1).myCurrentLevel();
+    expect<BigNumber>(currentLevel1).toEqBN(2);
 
-    const currentLevel2 = await toNumberAsync(skill.myCurrentLevel({ from: PLAYER2 }));
-    expect<number>(currentLevel2).toEqual(1);
+    const currentLevel2 = await skill.connect(PLAYER2).myCurrentLevel();
+    expect<BigNumber>(currentLevel2).toEqBN(1);
   });
 });

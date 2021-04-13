@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,17 +17,15 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
-import { SkillLevel } from '../../../../src/contracts/core/skills';
-import { createSkill, createSkillConstrained } from '../../../helpers/SkillHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { BigNumber } from 'ethers';
 import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
+import { createSkill, createSkillConstrained } from '../../../helpers/SkillHelper';
 
 describe('skillsRequired', () => {
   it('should return empty when no skills required', async () => {
     const constrained = await createSkillConstrained();
 
-    expect(await constrained.skillsRequired()).toEqual([]);
+    expect<string[]>(await constrained.skillsRequired()).toEqual([]);
   });
 
   it('should return the skills required', async () => {
@@ -39,7 +37,7 @@ describe('skillsRequired', () => {
       { skill: skill2.address, level: 2 },
     ]);
 
-    expect<SkillLevel[]>(await constrained.skillsRequired()).toEqual([skill1.address, skill2.address]);
+    expect<string[]>(await constrained.skillsRequired()).toEqual([skill1.address, skill2.address]);
   });
 });
 
@@ -77,8 +75,8 @@ describe('skillLevelRequired', () => {
 
     const constrained = await createSkillConstrained();
 
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill2.address))).toEqual(0);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill1.address)).toEqBN(0);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill2.address)).toEqBN(0);
   });
 
   it('should return 0 when the skill is not required', async () => {
@@ -92,8 +90,8 @@ describe('skillLevelRequired', () => {
       { skill: skill2.address, level: 2 },
     ]);
 
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill3.address))).toEqual(0);
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill4.address))).toEqual(0);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill3.address)).toEqBN(0);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill4.address)).toEqBN(0);
   });
 
   it('should return the level when the skill is required', async () => {
@@ -105,8 +103,8 @@ describe('skillLevelRequired', () => {
       { skill: skill2.address, level: 2 },
     ]);
 
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill1.address))).toEqual(1);
-    expect<number>(await toNumberAsync(constrained.skillLevelRequired(skill2.address))).toEqual(2);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill1.address)).toEqBN(1);
+    expect<BigNumber>(await constrained.skillLevelRequired(skill2.address)).toEqBN(2);
   });
 });
 
@@ -117,15 +115,15 @@ describe('checkRequiredSkills', () => {
 
     const constrained = await createSkillConstrained();
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
 
-    await skill1.acquireNext([], { from: PLAYER1 });
+    await skill1.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
 
-    await skill2.acquireNext([], { from: PLAYER1 });
+    await skill2.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
   });
 
   it('should succeed when player has all required skills', async () => {
@@ -138,23 +136,23 @@ describe('checkRequiredSkills', () => {
       { skill: skill2.address, level: 2 },
     ]);
 
-    await skill1.acquireNext([], { from: PLAYER1 });
-    await skill2.acquireNext([], { from: PLAYER1 });
-    await skill2.acquireNext([], { from: PLAYER1 });
+    await skill1.connect(PLAYER1).acquireNext([]);
+    await skill2.connect(PLAYER1).acquireNext([]);
+    await skill2.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
 
-    await skill1.acquireNext([], { from: PLAYER1 });
+    await skill1.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
 
-    await skill2.acquireNext([], { from: PLAYER1 });
+    await skill2.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
 
-    await skill3.acquireNext([], { from: PLAYER1 });
+    await skill3.connect(PLAYER1).acquireNext([]);
 
-    await constrained.checkRequiredSkills(PLAYER1);
+    await constrained.checkRequiredSkills(PLAYER1.address);
   });
 
   it('should revert when player does not have any of the required skills', async () => {
@@ -167,33 +165,47 @@ describe('checkRequiredSkills', () => {
       { skill: skill2.address, level: 2 },
     ]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER1), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER1.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill1.acquireNext([], { from: PLAYER1 });
+    await skill1.connect(PLAYER1).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER1), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER1.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill2.acquireNext([], { from: PLAYER1 });
+    await skill2.connect(PLAYER1).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER1), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER1.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill1.acquireNext([], { from: PLAYER1 });
+    await skill1.connect(PLAYER1).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER1), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER1.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill2.acquireNext([], { from: PLAYER1 });
+    await skill2.connect(PLAYER1).acquireNext([]);
 
-    await skill2.acquireNext([], { from: PLAYER2 });
-    await skill2.acquireNext([], { from: PLAYER2 });
+    await skill2.connect(PLAYER2).acquireNext([]);
+    await skill2.connect(PLAYER2).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER2), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER2.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill2.acquireNext([], { from: PLAYER2 });
+    await skill2.connect(PLAYER2).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER2), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER2.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
 
-    await skill3.acquireNext([], { from: PLAYER2 });
+    await skill3.connect(PLAYER2).acquireNext([]);
 
-    await expectRevert(constrained.checkRequiredSkills(PLAYER2), 'SkillConstrained: missing required skill');
+    await expect<Promise<void>>(constrained.checkRequiredSkills(PLAYER2.address)).toBeRevertedWith(
+      'SkillConstrained: missing required skill',
+    );
   });
 });

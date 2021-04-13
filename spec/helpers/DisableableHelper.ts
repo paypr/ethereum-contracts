@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,24 +17,35 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { ContractTransaction, Signer } from 'ethers';
+import { IDisableable } from '../../types/contracts';
 import { INITIALIZER, PLAYER1 } from './Accounts';
 
-export const disableContract = async (contract: any, admin: string = INITIALIZER) => contract.disable({ from: admin });
+export const disableContract = async (contract: IDisableable, admin: Signer = INITIALIZER) =>
+  contract.connect(admin).disable();
 
-export const enableContract = async (contract: any, admin: string = INITIALIZER) => contract.enable({ from: admin });
+export const enableContract = async (contract: IDisableable, admin: Signer = INITIALIZER) =>
+  contract.connect(admin).enable();
+
+interface EnableAndDisableOptions {
+  getAdmin?: () => Signer;
+  getNonAdmin?: () => Signer;
+  expectedMessage?: string;
+}
 
 export const shouldRestrictEnableAndDisable = (
-  create: () => Promise<any>,
-  admin: string = INITIALIZER,
-  nonAdmin: string = PLAYER1,
-  expectedMessage: string = 'Caller does not have the Admin role',
+  create: () => Promise<IDisableable>,
+  options: EnableAndDisableOptions = {},
 ) => {
+  const getAdmin = options.getAdmin || (() => INITIALIZER);
+  const getNonAdmin = options.getNonAdmin || (() => PLAYER1);
+  const expectedMessage = options.expectedMessage || 'Caller does not have the Admin role';
+
   describe('enable', () => {
     it('should enable the contract if admin', async () => {
       const obj = await create();
 
-      await enableContract(obj, admin);
+      await enableContract(obj, getAdmin());
 
       expect<boolean>(await obj.enabled()).toBe(true);
     });
@@ -42,9 +53,9 @@ export const shouldRestrictEnableAndDisable = (
     it('should not enable the contract if not admin', async () => {
       const obj = await create();
 
-      await disableContract(obj, admin);
+      await disableContract(obj, getAdmin());
 
-      await expectRevert(enableContract(obj, nonAdmin), expectedMessage);
+      await expect<Promise<ContractTransaction>>(enableContract(obj, getNonAdmin())).toBeRevertedWith(expectedMessage);
 
       expect<boolean>(await obj.enabled()).toBe(false);
     });
@@ -54,7 +65,7 @@ export const shouldRestrictEnableAndDisable = (
     it('should disable the contract if admin', async () => {
       const obj = await create();
 
-      await disableContract(obj, admin);
+      await disableContract(obj, getAdmin());
 
       expect<boolean>(await obj.enabled()).toBe(false);
     });
@@ -62,7 +73,7 @@ export const shouldRestrictEnableAndDisable = (
     it('should not disable the contract if not admin', async () => {
       const obj = await create();
 
-      await expectRevert(disableContract(obj, nonAdmin), expectedMessage);
+      await expect<Promise<ContractTransaction>>(disableContract(obj, getNonAdmin())).toBeRevertedWith(expectedMessage);
 
       expect<boolean>(await obj.enabled()).toBe(true);
     });

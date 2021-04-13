@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,7 +17,14 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export const shouldSupportInterface = (interfaceName: string, create: () => Promise<any>, interfaceId: number[]) => {
+import { IERC165Upgradeable } from '../../types/contracts';
+import { Byte4String } from './ContractIds';
+
+export const shouldSupportInterface = (
+  interfaceName: string,
+  create: () => Promise<IERC165Upgradeable>,
+  interfaceId: Byte4String,
+) => {
   it(`should support ${interfaceName} interface`, async () => {
     const obj = await create();
 

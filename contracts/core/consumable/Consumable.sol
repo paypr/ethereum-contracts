@@ -19,11 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import './ConsumableInterfaceSupport.sol';
 import './IConsumable.sol';
 import '../BaseContract.sol';
@@ -35,12 +35,13 @@ import '../transfer/TransferLogic.sol';
 abstract contract Consumable is
   IDisableable,
   Initializable,
+  ContextUpgradeable,
+  IERC165Upgradeable,
   ITransferring,
-  ContextUpgradeSafe,
   IConsumable,
-  ERC165UpgradeSafe,
+  ERC165StorageUpgradeable,
   BaseContract,
-  ERC20UpgradeSafe
+  ERC20Upgradeable
 {
   using TransferLogic for address;
 
@@ -52,11 +53,11 @@ abstract contract Consumable is
     _registerInterface(TransferringInterfaceSupport.TRANSFERRING_INTERFACE_ID);
   }
 
-  function myBalance() external override view returns (uint256) {
+  function myBalance() external view override returns (uint256) {
     return balanceOf(_msgSender());
   }
 
-  function myAllowance(address owner) external override view returns (uint256) {
+  function myAllowance(address owner) external view override returns (uint256) {
     return allowance(owner, _msgSender());
   }
 

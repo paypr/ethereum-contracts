@@ -19,10 +19,10 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './Consumable.sol';
 import './ConvertibleConsumableInterfaceSupport.sol';
 import './IConvertibleConsumable.sol';
@@ -30,10 +30,10 @@ import './IConsumableExchange.sol';
 import './ConsumableConversionMath.sol';
 
 abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using ConsumableConversionMath for uint256;
 
-  IERC20 private _exchangeToken;
+  IERC20Upgradeable private _exchangeToken;
 
   // amount that 1 of exchangeToken will convert into this consumable
   // eg if purchasePriceExchangeRate is 1000, then 1 exchangeToken will purchase 1000 of this token
@@ -46,7 +46,7 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
   function _initializeConvertibleConsumable(
     ContractInfo memory info,
     string memory symbol,
-    IERC20 exchangeToken,
+    IERC20Upgradeable exchangeToken,
     uint256 purchasePriceExchangeRate,
     uint256 intrinsicValueExchangeRate,
     bool registerWithExchange
@@ -72,23 +72,23 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
     }
   }
 
-  function exchangeToken() external override view returns (IERC20) {
+  function exchangeToken() external view override returns (IERC20Upgradeable) {
     return _exchangeToken;
   }
 
-  function asymmetricalExchangeRate() external override view returns (bool) {
+  function asymmetricalExchangeRate() external view override returns (bool) {
     return _purchasePriceExchangeRate != _intrinsicValueExchangeRate;
   }
 
-  function purchasePriceExchangeRate() external override view returns (uint256) {
+  function purchasePriceExchangeRate() external view override returns (uint256) {
     return _purchasePriceExchangeRate;
   }
 
-  function intrinsicValueExchangeRate() external override view returns (uint256) {
+  function intrinsicValueExchangeRate() external view override returns (uint256) {
     return _intrinsicValueExchangeRate;
   }
 
-  function amountExchangeTokenAvailable() external override view returns (uint256) {
+  function amountExchangeTokenAvailable() external view override returns (uint256) {
     uint256 amountNeeded = totalSupply().exchangeTokenNeeded(_intrinsicValueExchangeRate);
     uint256 amountExchangeToken = _exchangeToken.balanceOf(address(this));
     if (amountNeeded >= amountExchangeToken) {
@@ -115,7 +115,7 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
   function _exchangeIfNeeded(address sender, uint256 consumableAmount) internal onlyEnabled {
     uint256 senderBalance = this.balanceOf(sender);
     if (senderBalance < consumableAmount) {
-      // no need to use SafeMath since we know that the sender balance < amount
+      // no need to use SafeMathUpgradeable since we know that the sender balance < amount
       uint256 consumableAmountNeeded = consumableAmount - senderBalance;
 
       // assume that they wanted to convert since they knew they didn't have enough to transfer
@@ -138,7 +138,7 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
     _mint(account, consumableAmount);
   }
 
-  function amountExchangeTokenNeeded(uint256 consumableAmount) external override view returns (uint256) {
+  function amountExchangeTokenNeeded(uint256 consumableAmount) external view override returns (uint256) {
     return consumableAmount.exchangeTokenNeeded(_purchasePriceExchangeRate);
   }
 
@@ -160,13 +160,13 @@ abstract contract ConvertibleConsumable is IConvertibleConsumable, Consumable {
   function _burnByExchange(address receiver, uint256 consumableAmount) internal onlyEnabled {
     _burn(receiver, consumableAmount);
 
-    ERC20UpgradeSafe token = ERC20UpgradeSafe(address(_exchangeToken));
+    ERC20Upgradeable token = ERC20Upgradeable(address(_exchangeToken));
 
     uint256 exchangeTokenAmount = this.amountExchangeTokenProvided(consumableAmount);
     token.increaseAllowance(receiver, exchangeTokenAmount);
   }
 
-  function amountExchangeTokenProvided(uint256 consumableAmount) external override view returns (uint256) {
+  function amountExchangeTokenProvided(uint256 consumableAmount) external view override returns (uint256) {
     return consumableAmount.exchangeTokenProvided(_intrinsicValueExchangeRate);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,16 +17,16 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { getContractAddress, INITIALIZER } from '../../../helpers/Accounts';
+import { INITIALIZER } from '../../../helpers/Accounts';
 import {
   createSkillConstrainedExchangingActivity,
-  SkillConstrainedExchangingActivity,
+  deploySkillConstrainedExchangingActivity,
 } from '../../../helpers/ActivityHelper';
 import { createConsumableExchange, createConvertibleConsumable } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { getContractAddress } from '../../../helpers/ContractHelper';
 import { shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { createSkill } from '../../../helpers/SkillHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
@@ -37,16 +37,17 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
-      withDefaultContractInfo({ name: 'the name' }),
-      [],
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      { from: INITIALIZER },
-    );
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity
+      .connect(INITIALIZER)
+      .initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({ name: 'the name' }),
+        [],
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractName()).toEqual('the name');
   });
@@ -56,16 +57,17 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
-      withDefaultContractInfo({ description: 'the description' }),
-      [],
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      { from: INITIALIZER },
-    );
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity
+      .connect(INITIALIZER)
+      .initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({ description: 'the description' }),
+        [],
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractDescription()).toEqual('the description');
   });
@@ -75,16 +77,17 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
-      withDefaultContractInfo({ uri: 'the uri' }),
-      [],
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      { from: INITIALIZER },
-    );
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity
+      .connect(INITIALIZER)
+      .initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({ uri: 'the uri' }),
+        [],
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractUri()).toEqual('the uri');
   });
@@ -97,8 +100,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const skill1 = await createSkill({ name: 'skill 1' });
     const skill2 = await createSkill({ name: 'skill 2' });
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
       withDefaultContractInfo({}),
       [
         { skill: skill1.address, level: 1 },
@@ -108,14 +111,13 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
       [],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
     expect<boolean>(await activity.isSkillRequired(skill1.address)).toEqual(true);
     expect<boolean>(await activity.isSkillRequired(skill2.address)).toEqual(true);
 
-    expect<number>(await toNumberAsync(activity.skillLevelRequired(skill1.address))).toEqual(1);
-    expect<number>(await toNumberAsync(activity.skillLevelRequired(skill2.address))).toEqual(2);
+    expect<BigNumber>(await activity.skillLevelRequired(skill1.address)).toEqBN(1);
+    expect<BigNumber>(await activity.skillLevelRequired(skill2.address)).toEqBN(2);
   });
 
   it('should set the consumed amounts', async () => {
@@ -127,8 +129,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1);
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
       withDefaultContractInfo({}),
       [],
       [
@@ -138,16 +140,15 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
       [],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable1.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable2.address))).toEqual(200);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountRequired(consumable1.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountRequired(consumable2.address)).toEqBN(200);
+    expect<BigNumber>(await activity.amountRequired(consumable3.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable2.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountProvided(consumable1.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable2.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable3.address)).toEqBN(0);
   });
 
   it('should set the consumed and provided amounts', async () => {
@@ -159,8 +160,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1);
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
       withDefaultContractInfo({}),
       [],
       [
@@ -173,16 +174,15 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
       ],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable1.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable2.address))).toEqual(200);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountRequired(consumable1.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountRequired(consumable2.address)).toEqBN(200);
+    expect<BigNumber>(await activity.amountRequired(consumable3.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable2.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable3.address))).toEqual(200);
+    expect<BigNumber>(await activity.amountProvided(consumable1.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable2.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountProvided(consumable3.address)).toEqBN(200);
   });
 
   it('should set the exchange', async () => {
@@ -190,18 +190,17 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
-      withDefaultContractInfo({}),
-      [],
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      {
-        from: INITIALIZER,
-      },
-    );
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity
+      .connect(INITIALIZER)
+      .initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({}),
+        [],
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.exchange()).toEqual(exchange.address);
   });
@@ -215,8 +214,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1000);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 10_000);
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
       withDefaultContractInfo({}),
       [],
       [
@@ -229,7 +228,6 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
       ],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
     //   (100,000 / 100 + 20,000 / 1,000) - (1,000 / 1,000 + 50_000 / 10_000)
@@ -237,7 +235,7 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     // =              1,020               -                6
     // = 1,014
 
-    expect<number>(await toNumberAsync(activity.executionProfit())).toEqual(1014);
+    expect<BigNumber>(await activity.executionProfit()).toEqBN(1014);
   });
 
   it('should revert if called twice', async () => {
@@ -245,33 +243,30 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await SkillConstrainedExchangingActivity.new();
-    await activity.initializeSkillConstrainedExchangingActivity(
-      withDefaultContractInfo({ name: 'the name' }),
-      [],
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      {
-        from: INITIALIZER,
-      },
-    );
-
-    await expectRevert(
-      activity.initializeSkillConstrainedExchangingActivity(
-        withDefaultContractInfo({ name: 'the new name' }),
+    const activity = await deploySkillConstrainedExchangingActivity();
+    await activity
+      .connect(INITIALIZER)
+      .initializeSkillConstrainedExchangingActivity(
+        withDefaultContractInfo({ name: 'the name' }),
         [],
         [],
         [],
         exchange.address,
         roleDelegate,
-        {
-          from: INITIALIZER,
-        },
-      ),
-      'Contract instance has already been initialized',
-    );
+      );
+
+    await expect<Promise<ContractTransaction>>(
+      activity
+        .connect(INITIALIZER)
+        .initializeSkillConstrainedExchangingActivity(
+          withDefaultContractInfo({ name: 'the new name' }),
+          [],
+          [],
+          [],
+          exchange.address,
+          roleDelegate,
+        ),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await activity.contractName()).toEqual('the name');
   });
@@ -285,10 +280,10 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 200);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 100);
 
-    const activity = await SkillConstrainedExchangingActivity.new();
+    const activity = await deploySkillConstrainedExchangingActivity();
 
-    await expectRevert(
-      activity.initializeSkillConstrainedExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [],
@@ -298,13 +293,11 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
 
-    await expectRevert(
-      activity.initializeSkillConstrainedExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [
@@ -316,10 +309,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
   });
 
   it('should revert if not sustainable with asymmetric exchange rates', async () => {
@@ -331,10 +322,10 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 200);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 100, 200);
 
-    const activity = await SkillConstrainedExchangingActivity.new();
+    const activity = await deploySkillConstrainedExchangingActivity();
 
-    await expectRevert(
-      activity.initializeSkillConstrainedExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [],
@@ -344,13 +335,11 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
 
-    await expectRevert(
-      activity.initializeSkillConstrainedExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeSkillConstrainedExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [
@@ -362,10 +351,8 @@ describe('initializeSkillConstrainedExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
   });
 });
 

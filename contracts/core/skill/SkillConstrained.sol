@@ -19,15 +19,15 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
 import './ISkill.sol';
 import './ISkillConstrained.sol';
 import './SkillConstrainedInterfaceSupport.sol';
 import './SkillInterfaceSupport.sol';
 
-contract SkillConstrained is Initializable, ISkillConstrained, ERC165UpgradeSafe {
+contract SkillConstrained is Initializable, ISkillConstrained, ERC165StorageUpgradeable {
   using SkillInterfaceSupport for ISkill;
 
   struct SkillLevel {
@@ -43,15 +43,15 @@ contract SkillConstrained is Initializable, ISkillConstrained, ERC165UpgradeSafe
     _registerInterface(SkillConstrainedInterfaceSupport.SKILL_CONSTRAINED_INTERFACE_ID);
   }
 
-  function skillsRequired() external override view returns (ISkill[] memory) {
+  function skillsRequired() external view override returns (ISkill[] memory) {
     return _skillsRequired;
   }
 
-  function isSkillRequired(ISkill skill) external override view returns (bool) {
+  function isSkillRequired(ISkill skill) external view override returns (bool) {
     return _skillLevelsRequired[address(skill)] > 0;
   }
 
-  function skillLevelRequired(ISkill skill) external override view returns (uint256) {
+  function skillLevelRequired(ISkill skill) external view override returns (uint256) {
     return _skillLevelsRequired[address(skill)];
   }
 
@@ -63,7 +63,7 @@ contract SkillConstrained is Initializable, ISkillConstrained, ERC165UpgradeSafe
 
   function _requireSkill(ISkill skill, uint256 level) internal {
     require(level > 0, 'Skill: required skill level is invalid');
-    require(skill != ISkill(0), 'Skill: required skill is zero address');
+    require(skill != ISkill(address(0)), 'Skill: required skill is zero address');
     require(skill.supportsSkillInterface(), 'Skill: required skill does not implement interface');
 
     _skillLevelsRequired[address(skill)] = level;

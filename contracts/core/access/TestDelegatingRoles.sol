@@ -19,9 +19,9 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
 import './DelegatingRoles.sol';
 
 contract TestDelegatingRoles is DelegatingRoles {

@@ -19,7 +19,7 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
 import './ConvertibleConsumable.sol';
@@ -27,7 +27,7 @@ import '../access/DelegatingRoles.sol';
 
 contract ConfigurableConvertibleConsumable is
   Initializable,
-  ContextUpgradeSafe,
+  ContextUpgradeable,
   ConvertibleConsumable,
   Disableable,
   DelegatingRoles
@@ -37,7 +37,7 @@ contract ConfigurableConvertibleConsumable is
   function initializeConvertibleConsumable(
     ContractInfo memory info,
     string memory symbol,
-    IERC20 exchangeToken,
+    IERC20Upgradeable exchangeToken,
     uint256 purchasePriceExchangeRate,
     uint256 intrinsicValueExchangeRate,
     bool registerWithExchange,
@@ -83,7 +83,7 @@ contract ConfigurableConvertibleConsumable is
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -91,7 +91,7 @@ contract ConfigurableConvertibleConsumable is
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

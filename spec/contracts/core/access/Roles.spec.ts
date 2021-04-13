@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,6 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { ERC165_ID, ROLE_DELEGATE_ID } from '../../../helpers/ContractIds';
+import { TestRoles } from '../../../../types/contracts';
 import {
   ADMIN,
   checkDelegatingRoles,
@@ -27,7 +29,6 @@ import {
   MINTER,
   TRANSFER_AGENT,
 } from '../../../helpers/AccessHelper';
-import { ERC165_ID, ROLE_DELEGATE_ID } from '../../../helpers/ContractIds';
 import { shouldSupportInterface } from '../../../helpers/ERC165';
 
 describe('supportsInterface', () => {
@@ -36,59 +37,59 @@ describe('supportsInterface', () => {
 });
 
 describe('check roles', () => {
-  checkSuperAdmin(createRoles, (roles, options) => roles.forSuperAdmin(options));
+  checkSuperAdmin(createRoles, (roles) => roles.forSuperAdmin());
 
-  checkRoles('Admin', ADMIN, {
+  checkRoles<TestRoles>('Admin', () => ADMIN, {
     createRoles,
     isInRole: (roles, role) => roles.isAdmin(role),
-    forRole: (roles, options) => roles.forAdmin(options),
-    addToRole: (roles, role, options) => roles.addAdmin(role, options),
-    renounceRole: (roles, options) => roles.renounceAdmin(options),
-    revokeRole: (roles, role, options) => roles.revokeAdmin(role, options),
+    forRole: (roles) => roles.forAdmin(),
+    addToRole: (roles, role) => roles.addAdmin(role),
+    renounceRole: (roles) => roles.renounceAdmin(),
+    revokeRole: (roles, role) => roles.revokeAdmin(role),
   });
 
-  checkRoles('Minter', MINTER, {
+  checkRoles<TestRoles>('Minter', () => MINTER, {
     createRoles,
     isInRole: (roles, role) => roles.isMinter(role),
-    forRole: (roles, options) => roles.forMinter(options),
-    addToRole: (roles, role, options) => roles.addMinter(role, options),
-    renounceRole: (roles, options) => roles.renounceMinter(options),
-    revokeRole: (roles, role, options) => roles.revokeMinter(role, options),
+    forRole: (roles) => roles.forMinter(),
+    addToRole: (roles, role) => roles.addMinter(role),
+    renounceRole: (roles) => roles.renounceMinter(),
+    revokeRole: (roles, role) => roles.revokeMinter(role),
   });
 
-  checkRoles('Transfer Agent', TRANSFER_AGENT, {
+  checkRoles<TestRoles>('Transfer Agent', () => TRANSFER_AGENT, {
     createRoles,
     isInRole: (roles, role) => roles.isTransferAgent(role),
-    forRole: (roles, options) => roles.forTransferAgent(options),
-    addToRole: (roles, role, options) => roles.addTransferAgent(role, options),
-    renounceRole: (roles, options) => roles.renounceTransferAgent(options),
-    revokeRole: (roles, role, options) => roles.revokeTransferAgent(role, options),
+    forRole: (roles) => roles.forTransferAgent(),
+    addToRole: (roles, role) => roles.addTransferAgent(role),
+    renounceRole: (roles) => roles.renounceTransferAgent(),
+    revokeRole: (roles, role) => roles.revokeTransferAgent(role),
   });
 });
 
 describe('check delegating roles', () => {
   const createDelegatingRoles = (address: string) => createRoles(address);
 
-  checkSuperAdminDelegation(createDelegatingRoles, (roles, options) => roles.forSuperAdmin(options));
+  checkSuperAdminDelegation<TestRoles>(createDelegatingRoles, (roles) => roles.forSuperAdmin());
 
-  checkDelegatingRoles('Admin', ADMIN, {
+  checkDelegatingRoles<TestRoles>('Admin', () => ADMIN, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isAdmin(role),
-    forRole: (roles, options) => roles.forAdmin(options),
-    addToRole: (roles, role, options) => roles.addAdmin(role, options),
+    forRole: (roles) => roles.forAdmin(),
+    addToRole: (roles, role) => roles.addAdmin(role),
   });
 
-  checkDelegatingRoles('Minter', MINTER, {
+  checkDelegatingRoles<TestRoles>('Minter', () => MINTER, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isMinter(role),
-    forRole: (roles, options) => roles.forMinter(options),
-    addToRole: (roles, role, options) => roles.addMinter(role, options),
+    forRole: (roles) => roles.forMinter(),
+    addToRole: (roles, role) => roles.addMinter(role),
   });
 
-  checkDelegatingRoles('Transfer Agent', TRANSFER_AGENT, {
+  checkDelegatingRoles<TestRoles>('Transfer Agent', () => TRANSFER_AGENT, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isTransferAgent(role),
-    forRole: (roles, options) => roles.forTransferAgent(options),
-    addToRole: (roles, role, options) => roles.addTransferAgent(role, options),
+    forRole: (roles) => roles.forTransferAgent(),
+    addToRole: (roles, role) => roles.addTransferAgent(role),
   });
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,10 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { contract } from '@openzeppelin/test-environment';
+import { Contract } from 'ethers';
+import ContractAddress from '../../src/contracts/ContractAddress';
 
-export const getContract = (contractName: string) => contract.fromArtifact(contractName);
-
-export const toNumber = (bigNumber: any) => Number(bigNumber.toString());
-
-export const toNumberAsync = async (bigNumberPromise: Promise<any> | any) => toNumber(await bigNumberPromise);
+export const getContractAddress = async (contract: Contract | Promise<Contract>): Promise<ContractAddress> =>
+  (await contract).address;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,12 +17,13 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectEvent, expectRevert } from '@openzeppelin/test-helpers';
-import { getContract } from '../../helpers/ContractHelper';
+import { ContractTransaction } from 'ethers';
+import { TestDisableable__factory } from '../../types/contracts';
+import { INITIALIZER } from '../helpers/Accounts';
 
-const DisableableContract = getContract('TestDisableable');
+const deployDisableableContract = () => new TestDisableable__factory(INITIALIZER).deploy();
 
-const createDisableable = async () => DisableableContract.new();
+const createDisableable = async () => deployDisableableContract();
 
 describe('enabled', () => {
   it('should be true on create', async () => {
@@ -79,15 +80,15 @@ describe('disable', () => {
   it('should emit Disabled event when enabled', async () => {
     const disableable = await createDisableable();
 
-    expectEvent(await disableable.disable(), 'Disabled', {});
+    await expect<ContractTransaction>(await disableable.disable()).toHaveEmittedWith(disableable, 'Disabled', []);
   });
 
-  it.skip('should not emit Disabled event when already disabled', async () => {
+  it('should not emit Disabled event when already disabled', async () => {
     const disableable = await createDisableable();
 
     await disableable.disable();
 
-    expectEvent.not(await disableable.disable(), 'Disabled', {}).not;
+    await expect<ContractTransaction>(await disableable.disable()).not.toHaveEmitted(disableable, 'Disabled');
   });
 });
 
@@ -117,13 +118,13 @@ describe('enable', () => {
 
     await disableable.disable();
 
-    expectEvent(await disableable.enable(), 'Enabled', {});
+    await expect<ContractTransaction>(await disableable.enable()).toHaveEmittedWith(disableable, 'Enabled', []);
   });
 
-  it.skip('should not emit Enabled event when already enabled', async () => {
+  it('should not emit Enabled event when already enabled', async () => {
     const disableable = await createDisableable();
 
-    expectEvent.not(await disableable.enable(), 'Enabled', {});
+    await expect<ContractTransaction>(await disableable.enable()).not.toHaveEmitted(disableable, 'Enabled');
   });
 });
 
@@ -144,11 +145,11 @@ describe('onlyEnabled', () => {
 
     await disableable.disable();
 
-    await expectRevert(disableable.requiresEnabled(), 'Contract is disabled');
+    await expect<Promise<void>>(disableable.requiresEnabled()).toBeRevertedWith('Contract is disabled');
 
     await disableable.enable();
     await disableable.disable();
 
-    await expectRevert(disableable.requiresEnabled(), 'Contract is disabled');
+    await expect<Promise<void>>(disableable.requiresEnabled()).toBeRevertedWith('Contract is disabled');
   });
 });

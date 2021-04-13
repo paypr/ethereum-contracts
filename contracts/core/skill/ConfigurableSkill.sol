@@ -19,14 +19,14 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
 import './Skill.sol';
 import '../access/DelegatingRoles.sol';
 import '../Disableable.sol';
 
-contract ConfigurableSkill is Initializable, ContextUpgradeSafe, Skill, Disableable, DelegatingRoles {
+contract ConfigurableSkill is Initializable, ContextUpgradeable, Skill, Disableable, DelegatingRoles {
   using TransferLogic for address;
 
   function initializeSkill(ContractInfo memory info, IRoleDelegate roleDelegate) public initializer {
@@ -36,7 +36,7 @@ contract ConfigurableSkill is Initializable, ContextUpgradeSafe, Skill, Disablea
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -44,7 +44,7 @@ contract ConfigurableSkill is Initializable, ContextUpgradeSafe, Skill, Disablea
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

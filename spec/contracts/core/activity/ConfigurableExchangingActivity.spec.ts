@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,13 +17,13 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { getContractAddress, INITIALIZER } from '../../../helpers/Accounts';
-import { createExchangingActivity, ExchangingActivityContract } from '../../../helpers/ActivityHelper';
+import { INITIALIZER } from '../../../helpers/Accounts';
+import { createExchangingActivity, deployExchangingActivityContract } from '../../../helpers/ActivityHelper';
 import { createConsumableExchange, createConvertibleConsumable } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { getContractAddress } from '../../../helpers/ContractHelper';
 import { shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
 
@@ -33,17 +33,16 @@ describe('initializeExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
-      withDefaultContractInfo({ name: 'the name' }),
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      {
-        from: INITIALIZER,
-      },
-    );
+    const activity = await deployExchangingActivityContract();
+    await activity
+      .connect(INITIALIZER)
+      .initializeExchangingActivity(
+        withDefaultContractInfo({ name: 'the name' }),
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractName()).toEqual('the name');
   });
@@ -53,15 +52,16 @@ describe('initializeExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
-      withDefaultContractInfo({ description: 'the description' }),
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      { from: INITIALIZER },
-    );
+    const activity = await deployExchangingActivityContract();
+    await activity
+      .connect(INITIALIZER)
+      .initializeExchangingActivity(
+        withDefaultContractInfo({ description: 'the description' }),
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractDescription()).toEqual('the description');
   });
@@ -71,17 +71,16 @@ describe('initializeExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
-      withDefaultContractInfo({ uri: 'the uri' }),
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      {
-        from: INITIALIZER,
-      },
-    );
+    const activity = await deployExchangingActivityContract();
+    await activity
+      .connect(INITIALIZER)
+      .initializeExchangingActivity(
+        withDefaultContractInfo({ uri: 'the uri' }),
+        [],
+        [],
+        exchange.address,
+        roleDelegate,
+      );
 
     expect<string>(await activity.contractUri()).toEqual('the uri');
   });
@@ -95,8 +94,8 @@ describe('initializeExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1);
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
+    const activity = await deployExchangingActivityContract();
+    await activity.connect(INITIALIZER).initializeExchangingActivity(
       withDefaultContractInfo({}),
       [
         { consumable: consumable1.address, amount: 100 },
@@ -105,16 +104,15 @@ describe('initializeExchangingActivity', () => {
       [],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable1.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable2.address))).toEqual(200);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountRequired(consumable1.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountRequired(consumable2.address)).toEqBN(200);
+    expect<BigNumber>(await activity.amountRequired(consumable3.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable2.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountProvided(consumable1.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable2.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable3.address)).toEqBN(0);
   });
 
   it('should set the consumed and provided amounts', async () => {
@@ -126,8 +124,8 @@ describe('initializeExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 1);
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
+    const activity = await deployExchangingActivityContract();
+    await activity.connect(INITIALIZER).initializeExchangingActivity(
       withDefaultContractInfo({}),
       [
         { consumable: consumable1.address, amount: 100 },
@@ -139,16 +137,15 @@ describe('initializeExchangingActivity', () => {
       ],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable1.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable2.address))).toEqual(200);
-    expect<number>(await toNumberAsync(activity.amountRequired(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await activity.amountRequired(consumable1.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountRequired(consumable2.address)).toEqBN(200);
+    expect<BigNumber>(await activity.amountRequired(consumable3.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable1.address))).toEqual(0);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable2.address))).toEqual(100);
-    expect<number>(await toNumberAsync(activity.amountProvided(consumable3.address))).toEqual(200);
+    expect<BigNumber>(await activity.amountProvided(consumable1.address)).toEqBN(0);
+    expect<BigNumber>(await activity.amountProvided(consumable2.address)).toEqBN(100);
+    expect<BigNumber>(await activity.amountProvided(consumable3.address)).toEqBN(200);
   });
 
   it('should set the exchange', async () => {
@@ -156,10 +153,10 @@ describe('initializeExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(withDefaultContractInfo({}), [], [], exchange.address, roleDelegate, {
-      from: INITIALIZER,
-    });
+    const activity = await deployExchangingActivityContract();
+    await activity
+      .connect(INITIALIZER)
+      .initializeExchangingActivity(withDefaultContractInfo({}), [], [], exchange.address, roleDelegate);
 
     expect<string>(await activity.exchange()).toEqual(exchange.address);
   });
@@ -173,8 +170,8 @@ describe('initializeExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 1000);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 10_000);
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
+    const activity = await deployExchangingActivityContract();
+    await activity.connect(INITIALIZER).initializeExchangingActivity(
       withDefaultContractInfo({}),
       [
         { consumable: consumable1.address, amount: 100_000 },
@@ -186,7 +183,6 @@ describe('initializeExchangingActivity', () => {
       ],
       exchange.address,
       roleDelegate,
-      { from: INITIALIZER },
     );
 
     //   (100,000 / 100 + 20,000 / 1,000) - (1,000 / 1,000 + 50_000 / 10_000)
@@ -194,7 +190,7 @@ describe('initializeExchangingActivity', () => {
     // =              1,020               -                6
     // = 1,014
 
-    expect<number>(await toNumberAsync(activity.executionProfit())).toEqual(1014);
+    expect<BigNumber>(await activity.executionProfit()).toEqBN(1014);
   });
 
   it('should revert if called twice', async () => {
@@ -202,31 +198,28 @@ describe('initializeExchangingActivity', () => {
 
     const exchange = await createConsumableExchange();
 
-    const activity = await ExchangingActivityContract.new();
-    await activity.initializeExchangingActivity(
-      withDefaultContractInfo({ name: 'the name' }),
-      [],
-      [],
-      exchange.address,
-      roleDelegate,
-      {
-        from: INITIALIZER,
-      },
-    );
-
-    await expectRevert(
-      activity.initializeExchangingActivity(
-        withDefaultContractInfo({ name: 'the new name' }),
+    const activity = await deployExchangingActivityContract();
+    await activity
+      .connect(INITIALIZER)
+      .initializeExchangingActivity(
+        withDefaultContractInfo({ name: 'the name' }),
         [],
         [],
         exchange.address,
         roleDelegate,
-        {
-          from: INITIALIZER,
-        },
-      ),
-      'Contract instance has already been initialized',
-    );
+      );
+
+    await expect<Promise<ContractTransaction>>(
+      activity
+        .connect(INITIALIZER)
+        .initializeExchangingActivity(
+          withDefaultContractInfo({ name: 'the new name' }),
+          [],
+          [],
+          exchange.address,
+          roleDelegate,
+        ),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await activity.contractName()).toEqual('the name');
   });
@@ -240,10 +233,10 @@ describe('initializeExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 200);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 100);
 
-    const activity = await ExchangingActivityContract.new();
+    const activity = await deployExchangingActivityContract();
 
-    await expectRevert(
-      activity.initializeExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [
@@ -252,13 +245,11 @@ describe('initializeExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
 
-    await expectRevert(
-      activity.initializeExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeExchangingActivity(
         withDefaultContractInfo({}),
         [
           { consumable: consumable1.address, amount: 100 }, // 30_000
@@ -269,10 +260,8 @@ describe('initializeExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
   });
 
   it('should revert if not sustainable with asymmetric exchange rates', async () => {
@@ -284,10 +273,10 @@ describe('initializeExchangingActivity', () => {
     const consumable2 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 2' }, '', 200);
     const consumable3 = await createConvertibleConsumable(exchange.address, { name: 'Consumable 3' }, '', 100, 200);
 
-    const activity = await ExchangingActivityContract.new();
+    const activity = await deployExchangingActivityContract();
 
-    await expectRevert(
-      activity.initializeExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeExchangingActivity(
         withDefaultContractInfo({}),
         [],
         [
@@ -296,13 +285,11 @@ describe('initializeExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
 
-    await expectRevert(
-      activity.initializeExchangingActivity(
+    await expect<Promise<ContractTransaction>>(
+      activity.connect(INITIALIZER).initializeExchangingActivity(
         withDefaultContractInfo({}),
         [
           { consumable: consumable1.address, amount: 100 }, // 30_000
@@ -313,10 +300,8 @@ describe('initializeExchangingActivity', () => {
         ],
         exchange.address,
         roleDelegate,
-        { from: INITIALIZER },
       ),
-      'Not enough exchange token consumed to be sustainable',
-    );
+    ).toBeRevertedWith('Not enough exchange token consumed to be sustainable');
   });
 });
 

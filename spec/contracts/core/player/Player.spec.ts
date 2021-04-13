@@ -1,28 +1,9 @@
-/*
- * Copyright (c) 2020 The Paypr Company, LLC
- *
- * This file is part of Paypr Ethereum Contracts.
- *
- * Paypr Ethereum Contracts is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Paypr Ethereum Contracts is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { HELPER1, PLAYER_ADMIN, ZERO_ADDRESS } from '../../../helpers/Accounts';
 import { ERC165_ID, PLAYER_ID, ROLE_DELEGATE_ID, TRANSFERRING_ID } from '../../../helpers/ContractIds';
+import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
+import { HELPER1, INITIALIZER, PLAYER_ADMIN, ZERO_ADDRESS } from '../../../helpers/Accounts';
 import { shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165';
-import { createPlayer, PlayerContract } from '../../../helpers/PlayerHelper';
+import { createPlayer, deployPlayer } from '../../../helpers/PlayerHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
 
 describe('supportsInterface', () => {
@@ -34,34 +15,35 @@ describe('supportsInterface', () => {
 
 describe('initializePlayer', () => {
   it('should set roles when no delegate provided', async () => {
-    const player = await PlayerContract.new();
-    await player.initializePlayer(ZERO_ADDRESS, { from: PLAYER_ADMIN });
+    const player = await deployPlayer();
+    await player.connect(PLAYER_ADMIN).initializePlayer(ZERO_ADDRESS);
 
-    expect<string>(await player.isSuperAdmin(PLAYER_ADMIN)).toBe(true);
-    expect<string>(await player.isAdmin(PLAYER_ADMIN)).toBe(true);
-    expect<string>(await player.isTransferAgent(PLAYER_ADMIN)).toBe(true);
+    expect<boolean>(await player.isSuperAdmin(INITIALIZER.address)).toBe(false);
+    expect<boolean>(await player.isSuperAdmin(PLAYER_ADMIN.address)).toBe(true);
+    expect<boolean>(await player.isAdmin(PLAYER_ADMIN.address)).toBe(true);
+    expect<boolean>(await player.isTransferAgent(PLAYER_ADMIN.address)).toBe(true);
   });
 
   it('should set delegate', async () => {
     const roleDelegate = await createRolesWithAllSameRole(PLAYER_ADMIN);
-    const player = await PlayerContract.new();
-    await player.initializePlayer(roleDelegate.address, { from: PLAYER_ADMIN });
+    const player = await deployPlayer();
+    await player.connect(PLAYER_ADMIN).initializePlayer(roleDelegate.address);
 
-    expect<string>(await player.isRoleDelegate(roleDelegate.address)).toBe(true);
-    expect<string>(await player.isSuperAdmin(PLAYER_ADMIN)).toBe(true);
-    expect<string>(await player.isAdmin(PLAYER_ADMIN)).toBe(true);
-    expect<string>(await player.isTransferAgent(PLAYER_ADMIN)).toBe(true);
+    expect<boolean>(await player.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await player.isSuperAdmin(PLAYER_ADMIN.address)).toBe(true);
+    expect<boolean>(await player.isAdmin(PLAYER_ADMIN.address)).toBe(true);
+    expect<boolean>(await player.isTransferAgent(PLAYER_ADMIN.address)).toBe(true);
   });
 });
 
 describe('Enable/Disable', () => {
-  shouldRestrictEnableAndDisable(createPlayer, PLAYER_ADMIN, HELPER1);
+  shouldRestrictEnableAndDisable(createPlayer, { getAdmin: () => PLAYER_ADMIN, getNonAdmin: () => HELPER1 });
 });
 
 describe('transferToken', () => {
-  shouldTransferToken(createPlayer, { withExchange: true, superAdmin: PLAYER_ADMIN });
+  shouldTransferToken(createPlayer, { withExchange: true, getSuperAdmin: () => PLAYER_ADMIN });
 });
 
 describe('transferItem', () => {
-  shouldTransferItem(createPlayer, { superAdmin: PLAYER_ADMIN });
+  shouldTransferItem(createPlayer, { getSuperAdmin: () => PLAYER_ADMIN });
 });

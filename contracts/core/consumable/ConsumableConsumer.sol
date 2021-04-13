@@ -19,15 +19,15 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './ConsumableInterfaceSupport.sol';
 import './IConsumable.sol';
 import './IConsumableConsumer.sol';
 
 contract ConsumableConsumer is IConsumableConsumer {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using ConsumableInterfaceSupport for IConsumable;
 
   mapping(address => uint256) private _amountsToConsume;
@@ -44,15 +44,15 @@ contract ConsumableConsumer is IConsumableConsumer {
     }
   }
 
-  function consumablesRequired() external override view returns (IConsumable[] memory) {
+  function consumablesRequired() external view override returns (IConsumable[] memory) {
     return _consumablesToConsume;
   }
 
-  function isRequired(IConsumable consumable) external override view returns (bool) {
+  function isRequired(IConsumable consumable) external view override returns (bool) {
     return _amountsToConsume[address(consumable)] > 0;
   }
 
-  function amountRequired(IConsumable consumable) external override view returns (uint256) {
+  function amountRequired(IConsumable consumable) external view override returns (uint256) {
     return _amountsToConsume[address(consumable)];
   }
 

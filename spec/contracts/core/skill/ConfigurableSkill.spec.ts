@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,20 +17,21 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { getContractAddress, INITIALIZER } from '../../../helpers/Accounts';
+import { INITIALIZER } from '../../../helpers/Accounts';
+import { getContractAddress } from '../../../helpers/ContractHelper';
 import { shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
-import { createSkill, SkillContract } from '../../../helpers/SkillHelper';
+import { createSkill, deploySkillContract } from '../../../helpers/SkillHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
 
 describe('initializeSkill', () => {
   it('should set the name', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(INITIALIZER));
 
-    const skill = await SkillContract.new();
-    await skill.initializeSkill(withDefaultContractInfo({ name: 'the name' }), roleDelegate, { from: INITIALIZER });
+    const skill = await deploySkillContract();
+    await skill.connect(INITIALIZER).initializeSkill(withDefaultContractInfo({ name: 'the name' }), roleDelegate);
 
     expect<string>(await skill.contractName()).toEqual('the name');
   });
@@ -38,10 +39,10 @@ describe('initializeSkill', () => {
   it('should set the description', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(INITIALIZER));
 
-    const skill = await SkillContract.new();
-    await skill.initializeSkill(withDefaultContractInfo({ description: 'the description' }), roleDelegate, {
-      from: INITIALIZER,
-    });
+    const skill = await deploySkillContract();
+    await skill
+      .connect(INITIALIZER)
+      .initializeSkill(withDefaultContractInfo({ description: 'the description' }), roleDelegate);
 
     expect<string>(await skill.contractDescription()).toEqual('the description');
   });
@@ -49,8 +50,8 @@ describe('initializeSkill', () => {
   it('should set the uri', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(INITIALIZER));
 
-    const skill = await SkillContract.new();
-    await skill.initializeSkill(withDefaultContractInfo({ uri: 'the uri' }), roleDelegate, { from: INITIALIZER });
+    const skill = await deploySkillContract();
+    await skill.connect(INITIALIZER).initializeSkill(withDefaultContractInfo({ uri: 'the uri' }), roleDelegate);
 
     expect<string>(await skill.contractUri()).toEqual('the uri');
   });
@@ -58,13 +59,12 @@ describe('initializeSkill', () => {
   it('should revert if called twice', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(INITIALIZER));
 
-    const skill = await SkillContract.new();
-    await skill.initializeSkill(withDefaultContractInfo({ name: 'the name' }), roleDelegate, { from: INITIALIZER });
+    const skill = await deploySkillContract();
+    await skill.connect(INITIALIZER).initializeSkill(withDefaultContractInfo({ name: 'the name' }), roleDelegate);
 
-    await expectRevert(
-      skill.initializeSkill(withDefaultContractInfo({ name: 'the new name' }), roleDelegate, { from: INITIALIZER }),
-      'Contract instance has already been initialized',
-    );
+    await expect<Promise<ContractTransaction>>(
+      skill.connect(INITIALIZER).initializeSkill(withDefaultContractInfo({ name: 'the new name' }), roleDelegate),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await skill.contractName()).toEqual('the name');
   });

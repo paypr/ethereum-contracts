@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,12 +17,11 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { BN, expectEvent, expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { ARTIFACT_MINTER, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
 import { createArtifact, mintItem } from '../../../helpers/ArtifactHelper';
 import { createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
 import {
   ARTIFACT_ID,
   BASE_CONTRACT_ID,
@@ -45,23 +44,23 @@ describe('initialUses', () => {
   it('should return the correct number', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    expect<number>(await toNumberAsync(artifact.initialUses())).toEqual(3);
+    expect<BigNumber>(await artifact.initialUses()).toEqBN(3);
   });
 
   it('should return the same number no matter how many items are minted', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
+    await mintItem(artifact, PLAYER1.address);
 
-    expect<number>(await toNumberAsync(artifact.initialUses())).toEqual(3);
+    expect<BigNumber>(await artifact.initialUses()).toEqBN(3);
 
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.initialUses())).toEqual(3);
+    expect<BigNumber>(await artifact.initialUses()).toEqBN(3);
 
-    await mintItem(artifact, PLAYER3);
+    await mintItem(artifact, PLAYER3.address);
 
-    expect<number>(await toNumberAsync(artifact.initialUses())).toEqual(3);
+    expect<BigNumber>(await artifact.initialUses()).toEqBN(3);
   });
 });
 
@@ -69,38 +68,38 @@ describe('usesLeft', () => {
   it('should return the initial uses when an item has yet to been used', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(3);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(3);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
   });
 
   it('should return the number of uses left for an item', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(2);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(2);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
 
-    await artifact.useItem(1, PLAYER3, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER3.address);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(1);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(1);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
 
-    await artifact.useItem(2, PLAYER1, { from: PLAYER2 });
+    await artifact.connect(PLAYER2).useItem(2, PLAYER1.address);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(2);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(2);
   });
 });
 
@@ -108,47 +107,47 @@ describe('totalUsesLeft', () => {
   it('should return 0 when there are no items', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(0);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(0);
   });
 
   it('should return multiple of initialUses when no items have been used', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(6);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(6);
   });
 
   it('should return the number of uses left for all items', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(5);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(5);
 
-    await artifact.useItem(1, PLAYER3, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER3.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(4);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(4);
 
-    await artifact.useItem(2, PLAYER1, { from: PLAYER2 });
+    await artifact.connect(PLAYER2).useItem(2, PLAYER1.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(3);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(3);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(2);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(2);
 
-    await artifact.useItem(2, PLAYER3, { from: PLAYER2 });
+    await artifact.connect(PLAYER2).useItem(2, PLAYER3.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(1);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(1);
 
-    await artifact.useItem(2, PLAYER1, { from: PLAYER2 });
+    await artifact.connect(PLAYER2).useItem(2, PLAYER1.address);
 
-    expect<number>(await toNumberAsync(artifact.totalUsesLeft())).toEqual(0);
+    expect<BigNumber>(await artifact.totalUsesLeft()).toEqBN(0);
   });
 });
 
@@ -172,47 +171,47 @@ describe('useItem', () => {
     await mintConsumable(consumable1, artifact.address, 1000);
     await mintConsumable(consumable2, artifact.address, 1000);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER1))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER2))).toEqual(100);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER2))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER2))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER2.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER2.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER2.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(1);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(2);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(1);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(2);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER1))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER2))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER2))).toEqual(400);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER2))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER2.address)).toEqBN(200);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER2.address)).toEqBN(400);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER2.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(2);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(2);
 
-    await artifact.useItem(2, PLAYER1, { from: PLAYER2 });
+    await artifact.connect(PLAYER2).useItem(2, PLAYER1.address);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER1))).toEqual(100);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER1))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER1))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER1.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER2))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER2))).toEqual(400);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER2))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER2.address)).toEqBN(200);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER2.address)).toEqBN(400);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER2.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(1);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(1);
   });
 
   it('should not provide consumables if there are no uses left', async () => {
@@ -234,49 +233,55 @@ describe('useItem', () => {
     await mintConsumable(consumable1, artifact.address, 1000);
     await mintConsumable(consumable2, artifact.address, 1000);
 
-    await mintItem(artifact, PLAYER1);
+    await mintItem(artifact, PLAYER1.address);
 
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
-    await artifact.useItem(1, PLAYER2, { from: PLAYER1 });
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
+    await artifact.connect(PLAYER1).useItem(1, PLAYER2.address);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER1))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER2))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER2))).toEqual(400);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER2))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER2.address)).toEqBN(200);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER2.address)).toEqBN(400);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER2.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
 
-    await expectRevert(artifact.useItem(1, PLAYER2, { from: PLAYER1 }), 'Artifact: no uses left for item');
+    await expect<Promise<ContractTransaction>>(artifact.connect(PLAYER1).useItem(1, PLAYER2.address)).toBeRevertedWith(
+      'Artifact: no uses left for item',
+    );
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER1))).toEqual(0);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER1))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER1.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(consumable1.allowance(artifact.address, PLAYER2))).toEqual(200);
-    expect<number>(await toNumberAsync(consumable2.allowance(artifact.address, PLAYER2))).toEqual(400);
-    expect<number>(await toNumberAsync(consumable3.allowance(artifact.address, PLAYER2))).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(artifact.address, PLAYER2.address)).toEqBN(200);
+    expect<BigNumber>(await consumable2.allowance(artifact.address, PLAYER2.address)).toEqBN(400);
+    expect<BigNumber>(await consumable3.allowance(artifact.address, PLAYER2.address)).toEqBN(0);
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(0);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(0);
   });
 
   it('should not use the item if called by someone other than the owner', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    await expectRevert(artifact.useItem(1, PLAYER1, { from: PLAYER2 }), 'Artifact: must be used by the owner');
+    await expect<Promise<ContractTransaction>>(artifact.connect(PLAYER2).useItem(1, PLAYER1.address)).toBeRevertedWith(
+      'Artifact: must be used by the owner',
+    );
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(3);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(3);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
 
-    await expectRevert(artifact.useItem(2, PLAYER2, { from: PLAYER1 }), 'Artifact: must be used by the owner');
+    await expect<Promise<ContractTransaction>>(artifact.connect(PLAYER1).useItem(2, PLAYER2.address)).toBeRevertedWith(
+      'Artifact: must be used by the owner',
+    );
 
-    expect<number>(await toNumberAsync(artifact.usesLeft(1))).toEqual(3);
-    expect<number>(await toNumberAsync(artifact.usesLeft(2))).toEqual(3);
+    expect<BigNumber>(await artifact.usesLeft(1)).toEqBN(3);
+    expect<BigNumber>(await artifact.usesLeft(2)).toEqBN(3);
   });
 
   it('should not use item if disabled', async () => {
@@ -284,25 +289,23 @@ describe('useItem', () => {
 
     await disableContract(artifact, ARTIFACT_MINTER);
 
-    await expectRevert(artifact.useItem(1, PLAYER2, { from: PLAYER1 }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(artifact.connect(PLAYER1).useItem(1, PLAYER2.address)).toBeRevertedWith(
+      'Contract is disabled',
+    );
   });
 
   it('should emit Used event', async () => {
     const artifact = await createArtifact({}, '', '', [], 3);
 
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER2);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER2.address);
 
-    expectEvent(await artifact.useItem(1, PLAYER2, { from: PLAYER1 }), 'Used', {
-      player: PLAYER1,
-      action: PLAYER2,
-      itemId: new BN(1),
-    });
+    await expect<ContractTransaction>(
+      await artifact.connect(PLAYER1).useItem(1, PLAYER2.address),
+    ).toHaveEmittedWith(artifact, 'Used', [PLAYER1.address, PLAYER2.address, '1']);
 
-    expectEvent(await artifact.useItem(2, PLAYER1, { from: PLAYER2 }), 'Used', {
-      player: PLAYER2,
-      action: PLAYER1,
-      itemId: new BN(2),
-    });
+    await expect<ContractTransaction>(
+      await artifact.connect(PLAYER2).useItem(2, PLAYER1.address),
+    ).toHaveEmittedWith(artifact, 'Used', [PLAYER2.address, PLAYER1.address, '2']);
   });
 });

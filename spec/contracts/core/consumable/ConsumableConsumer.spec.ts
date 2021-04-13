@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,18 +17,15 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
-import { ConsumableAmount } from '../../../../src/contracts/core/consumables';
+import { BigNumber, ContractTransaction } from 'ethers';
+import { INITIALIZER, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
+import { createBaseContract } from '../../../helpers/BaseContractHelper';
 import {
-  ConsumableConsumerContract,
   createConsumable,
   createConsumableConsumer,
-  getAllowance,
-  getBalance,
+  deployConsumableConsumerContract,
+  mintConsumable,
 } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
-import { CONSUMABLE_MINTER, INITIALIZER, PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
-import { createBaseContract } from '../../../helpers/BaseContractHelper';
 
 describe('initializeConsumableConsumer', () => {
   it('should revert if called with non-consumables', async () => {
@@ -36,35 +33,23 @@ describe('initializeConsumableConsumer', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const genericConcept = await createBaseContract({ name: 'Generic Concept' });
 
-    const consumer = await ConsumableConsumerContract.new();
+    const consumer = await deployConsumableConsumerContract();
 
-    await expectRevert(
-      consumer.initializeConsumableConsumer(
-        [
-          { consumable: consumable1.address, amount: 50 },
-          { consumable: PLAYER1, amount: 100 },
-          { consumable: consumable2.address, amount: 200 },
-        ],
-        {
-          from: INITIALIZER,
-        },
-      ),
-      'revert',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumer.connect(INITIALIZER).initializeConsumableConsumer([
+        { consumable: consumable1.address, amount: 50 },
+        { consumable: PLAYER1.address, amount: 100 },
+        { consumable: consumable2.address, amount: 200 },
+      ]),
+    ).toBeRevertedWith('revert');
 
-    await expectRevert(
-      consumer.initializeConsumableConsumer(
-        [
-          { consumable: consumable1.address, amount: 50 },
-          { consumable: genericConcept.address, amount: 100 },
-          { consumable: consumable2.address, amount: 200 },
-        ],
-        {
-          from: INITIALIZER,
-        },
-      ),
-      'Consumer: Consumable must support interface',
-    );
+    await expect<Promise<ContractTransaction>>(
+      consumer.connect(INITIALIZER).initializeConsumableConsumer([
+        { consumable: consumable1.address, amount: 50 },
+        { consumable: genericConcept.address, amount: 100 },
+        { consumable: consumable2.address, amount: 200 },
+      ]),
+    ).toBeRevertedWith('Consumer: Consumable must support interface');
   });
 });
 
@@ -72,7 +57,7 @@ describe('consumablesRequired', () => {
   it('should return empty when no consumables required', async () => {
     const consumer = await createConsumableConsumer();
 
-    expect<ConsumableAmount[]>(await consumer.consumablesRequired()).toEqual([]);
+    expect<string[]>(await consumer.consumablesRequired()).toEqual([]);
   });
 
   it('should return the consumables required', async () => {
@@ -84,10 +69,7 @@ describe('consumablesRequired', () => {
       { consumable: consumable2.address, amount: 200 },
     ]);
 
-    expect<ConsumableAmount[]>(await consumer.consumablesRequired()).toEqual([
-      consumable1.address,
-      consumable2.address,
-    ]);
+    expect<string[]>(await consumer.consumablesRequired()).toEqual([consumable1.address, consumable2.address]);
   });
 });
 
@@ -139,8 +121,8 @@ describe('amountRequired', () => {
 
     const consumer = await createConsumableConsumer();
 
-    const result = await toNumberAsync(consumer.amountRequired(consumable.address));
-    expect<number>(result).toEqual(0);
+    const result = await consumer.amountRequired(consumable.address);
+    expect<BigNumber>(result).toEqBN(0);
   });
 
   it('should return 0 when the given consumable is not consumed', async () => {
@@ -153,8 +135,8 @@ describe('amountRequired', () => {
       { consumable: consumable2.address, amount: 200 },
     ]);
 
-    const result = await toNumberAsync(consumer.amountRequired(consumable3.address));
-    expect<number>(result).toEqual(0);
+    const result = await consumer.amountRequired(consumable3.address);
+    expect<BigNumber>(result).toEqBN(0);
   });
 
   it('should return the amount when the given consumable is consumed', async () => {
@@ -168,11 +150,11 @@ describe('amountRequired', () => {
       { consumable: consumable3.address, amount: 300 },
     ]);
 
-    const result1 = await toNumberAsync(consumer.amountRequired(consumable1.address));
-    expect<number>(result1).toEqual(100);
+    const result1 = await consumer.amountRequired(consumable1.address);
+    expect<BigNumber>(result1).toEqBN(100);
 
-    const result2 = await toNumberAsync(consumer.amountRequired(consumable2.address));
-    expect<number>(result2).toEqual(200);
+    const result2 = await consumer.amountRequired(consumable2.address);
+    expect<BigNumber>(result2).toEqBN(200);
   });
 });
 
@@ -188,91 +170,91 @@ describe('consumeConsumables', () => {
       { consumable: consumable3.address, amount: 300 },
     ]);
 
-    await consumable1.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
+    await mintConsumable(consumable3, PLAYER1.address, 1000);
 
-    await consumable1.increaseAllowance(consumer.address, 100, { from: PLAYER1 });
-    await consumable2.increaseAllowance(consumer.address, 200, { from: PLAYER1 });
-    await consumable3.increaseAllowance(consumer.address, 300, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 100);
+    await consumable2.connect(PLAYER1).increaseAllowance(consumer.address, 200);
+    await consumable3.connect(PLAYER1).increaseAllowance(consumer.address, 300);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    await consumer.consumeConsumables([PLAYER1]);
+    await consumer.consumeConsumables([PLAYER1.address]);
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(100);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(200);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(300);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(300);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(800);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(700);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(800);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(700);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
 
-    await consumable1.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER2.address, 1000);
+    await mintConsumable(consumable2, PLAYER2.address, 1000);
+    await mintConsumable(consumable3, PLAYER2.address, 1000);
 
-    await consumable1.increaseAllowance(consumer.address, 100, { from: PLAYER2 });
-    await consumable2.increaseAllowance(consumer.address, 200, { from: PLAYER2 });
-    await consumable3.increaseAllowance(consumer.address, 300, { from: PLAYER2 });
+    await consumable1.connect(PLAYER2).increaseAllowance(consumer.address, 100);
+    await consumable2.connect(PLAYER2).increaseAllowance(consumer.address, 200);
+    await consumable3.connect(PLAYER2).increaseAllowance(consumer.address, 300);
 
-    await consumer.consumeConsumables([PLAYER2]);
+    await consumer.consumeConsumables([PLAYER2.address]);
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(200);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(400);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(600);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(400);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(600);
 
-    expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(800);
-    expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(700);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER2.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER2.address)).toEqBN(800);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER2.address)).toEqBN(700);
 
-    await consumable1.increaseAllowance(consumer.address, 100, { from: PLAYER1 });
-    await consumable2.increaseAllowance(consumer.address, 200, { from: PLAYER1 });
-    await consumable3.increaseAllowance(consumer.address, 300, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 100);
+    await consumable2.connect(PLAYER1).increaseAllowance(consumer.address, 200);
+    await consumable3.connect(PLAYER1).increaseAllowance(consumer.address, 300);
 
-    await consumer.consumeConsumables([PLAYER1]);
+    await consumer.consumeConsumables([PLAYER1.address]);
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(300);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(600);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(900);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(300);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(600);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(900);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(800);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(600);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(400);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(800);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(600);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(400);
 
-    await consumable1.increaseAllowance(consumer.address, 50, { from: PLAYER1 });
-    await consumable2.increaseAllowance(consumer.address, 100, { from: PLAYER1 });
-    await consumable3.increaseAllowance(consumer.address, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 50);
+    await consumable2.connect(PLAYER1).increaseAllowance(consumer.address, 100);
+    await consumable3.connect(PLAYER1).increaseAllowance(consumer.address, 100);
 
-    await consumable1.increaseAllowance(consumer.address, 50, { from: PLAYER2 });
-    await consumable2.increaseAllowance(consumer.address, 100, { from: PLAYER2 });
-    await consumable3.increaseAllowance(consumer.address, 100, { from: PLAYER2 });
+    await consumable1.connect(PLAYER2).increaseAllowance(consumer.address, 50);
+    await consumable2.connect(PLAYER2).increaseAllowance(consumer.address, 100);
+    await consumable3.connect(PLAYER2).increaseAllowance(consumer.address, 100);
 
-    await consumable3.mint(PLAYER3, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable3, PLAYER3.address, 1000);
 
-    await consumable3.increaseAllowance(consumer.address, 100, { from: PLAYER3 });
+    await consumable3.connect(PLAYER3).increaseAllowance(consumer.address, 100);
 
-    await consumer.consumeConsumables([PLAYER1, PLAYER2, PLAYER3]);
+    await consumer.consumeConsumables([PLAYER1.address, PLAYER2.address, PLAYER3.address]);
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(400);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(800);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(1200);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(400);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(800);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(1200);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(750);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(500);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(300);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(750);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(500);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(300);
 
-    expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(700);
-    expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(600);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER2.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER2.address)).toEqBN(700);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER2.address)).toEqBN(600);
 
-    expect<number>(await getBalance(consumable3, PLAYER3)).toEqual(900);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER3.address)).toEqBN(900);
   });
 
   it('should transfer as much as the providers are willing to give', async () => {
@@ -286,43 +268,43 @@ describe('consumeConsumables', () => {
       { consumable: consumable3.address, amount: 300 },
     ]);
 
-    await consumable1.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
+    await mintConsumable(consumable3, PLAYER1.address, 1000);
 
-    await consumable1.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER2.address, 1000);
+    await mintConsumable(consumable2, PLAYER2.address, 1000);
+    await mintConsumable(consumable3, PLAYER2.address, 1000);
 
-    await consumable1.increaseAllowance(consumer.address, 500, { from: PLAYER1 });
-    await consumable2.increaseAllowance(consumer.address, 500, { from: PLAYER1 });
-    await consumable3.increaseAllowance(consumer.address, 500, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 500);
+    await consumable2.connect(PLAYER1).increaseAllowance(consumer.address, 500);
+    await consumable3.connect(PLAYER1).increaseAllowance(consumer.address, 500);
 
-    await consumable1.increaseAllowance(consumer.address, 500, { from: PLAYER2 });
-    await consumable2.increaseAllowance(consumer.address, 500, { from: PLAYER2 });
-    await consumable3.increaseAllowance(consumer.address, 500, { from: PLAYER2 });
+    await consumable1.connect(PLAYER2).increaseAllowance(consumer.address, 500);
+    await consumable2.connect(PLAYER2).increaseAllowance(consumer.address, 500);
+    await consumable3.connect(PLAYER2).increaseAllowance(consumer.address, 500);
 
-    await consumer.consumeConsumables([PLAYER1, PLAYER2]);
+    await consumer.consumeConsumables([PLAYER1.address, PLAYER2.address]);
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(1000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(500);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(500);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(500);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(500);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(500);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(500);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(0);
 
-    expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(500);
-    expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(500);
-    expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(500);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER2.address)).toEqBN(500);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER2.address)).toEqBN(500);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER2.address)).toEqBN(500);
 
-    expect<number>(await getAllowance(consumable1, PLAYER2, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER2, consumer.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable3, PLAYER2, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER2.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER2.address, consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER2.address, consumer.address)).toEqBN(0);
   });
 
   it('should not transfer consumables to the receiver when there is not enough of all', async () => {
@@ -336,100 +318,110 @@ describe('consumeConsumables', () => {
       { consumable: consumable3.address, amount: 300 },
     ]);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await expectRevert(consumer.consumeConsumables([PLAYER1]), 'Consumer: Not enough consumable to transfer');
+    await expect<Promise<ContractTransaction>>(consumer.consumeConsumables([PLAYER1.address])).toBeRevertedWith(
+      'Consumer: Not enough consumable to transfer',
+    );
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(0);
 
-    await consumable1.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER1, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
+    await mintConsumable(consumable3, PLAYER1.address, 1000);
 
-    await consumable1.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable2.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
-    await consumable3.mint(PLAYER2, 1000, { from: CONSUMABLE_MINTER });
+    await mintConsumable(consumable1, PLAYER2.address, 1000);
+    await mintConsumable(consumable2, PLAYER2.address, 1000);
+    await mintConsumable(consumable3, PLAYER2.address, 1000);
 
-    await expectRevert(consumer.consumeConsumables([PLAYER1]), 'Consumer: Not enough consumable to transfer');
+    await expect<Promise<ContractTransaction>>(consumer.consumeConsumables([PLAYER1.address])).toBeRevertedWith(
+      'Consumer: Not enough consumable to transfer',
+    );
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(0);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    await consumable1.increaseAllowance(consumer.address, 99, { from: PLAYER1 });
-    await consumable2.increaseAllowance(consumer.address, 200, { from: PLAYER1 });
-    await consumable3.increaseAllowance(consumer.address, 299, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 99);
+    await consumable2.connect(PLAYER1).increaseAllowance(consumer.address, 200);
+    await consumable3.connect(PLAYER1).increaseAllowance(consumer.address, 299);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(200);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(299);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(299);
 
-    await expectRevert(consumer.consumeConsumables([PLAYER1]), 'Consumer: Not enough consumable to transfer');
+    await expect<Promise<ContractTransaction>>(consumer.consumeConsumables([PLAYER1.address])).toBeRevertedWith(
+      'Consumer: Not enough consumable to transfer',
+    );
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(0);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(200);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(299);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(299);
 
-    await consumable1.increaseAllowance(consumer.address, 1, { from: PLAYER2 });
+    await consumable1.connect(PLAYER2).increaseAllowance(consumer.address, 1);
 
-    await expectRevert(consumer.consumeConsumables([PLAYER1, PLAYER2]), 'Consumer: Not enough consumable to transfer');
+    await expect<Promise<ContractTransaction>>(
+      consumer.consumeConsumables([PLAYER1.address, PLAYER2.address]),
+    ).toBeRevertedWith('Consumer: Not enough consumable to transfer');
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(0);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER2)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER2.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER2.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER2.address)).toEqBN(1000);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(200);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(299);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(299);
 
-    expect<number>(await getAllowance(consumable1, PLAYER2, consumer.address)).toEqual(1);
+    expect<BigNumber>(await consumable1.allowance(PLAYER2.address, consumer.address)).toEqBN(1);
 
-    await consumable1.increaseAllowance(consumer.address, 1, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).increaseAllowance(consumer.address, 1);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(200);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(299);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(299);
 
-    await expectRevert(consumer.consumeConsumables([PLAYER1]), 'Consumer: Not enough consumable to transfer');
+    await expect<Promise<ContractTransaction>>(consumer.consumeConsumables([PLAYER1.address])).toBeRevertedWith(
+      'Consumer: Not enough consumable to transfer',
+    );
 
-    expect<number>(await getBalance(consumable1, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable2, consumer.address)).toEqual(0);
-    expect<number>(await getBalance(consumable3, consumer.address)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(consumer.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(consumer.address)).toEqBN(0);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable3, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    expect<number>(await getAllowance(consumable1, PLAYER1, consumer.address)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, PLAYER1, consumer.address)).toEqual(200);
-    expect<number>(await getAllowance(consumable3, PLAYER1, consumer.address)).toEqual(299);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, consumer.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, consumer.address)).toEqBN(200);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, consumer.address)).toEqBN(299);
   });
 });

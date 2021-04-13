@@ -19,12 +19,12 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import '../core/access/Roles.sol';
 
-contract TestStableCoin is Initializable, ContextUpgradeSafe, ERC20UpgradeSafe, AccessControlUpgradeSafe, Roles {
+contract TestStableCoin is Initializable, ContextUpgradeable, ERC20Upgradeable, AccessControlUpgradeable, Roles {
   function initialize() external initializer {
     __ERC20_init('MyStableCoin', 'MSC');
 

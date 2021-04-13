@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,15 +17,15 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getContract } from './ContractHelper';
-import { INITIALIZER } from './Accounts';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
+import { TestBaseContract__factory } from '../../types/contracts';
+import { INITIALIZER } from './Accounts';
 
-export const BaseContractContract = getContract('TestBaseContract');
+export const deployBaseContract = () => new TestBaseContract__factory(INITIALIZER).deploy();
 
 export const createBaseContract = async (info: Partial<ContractInfo> = {}) => {
-  const BaseContract = await BaseContractContract.new();
-  await BaseContract.initialize(withDefaultContractInfo(info), { from: INITIALIZER });
+  const baseContract = await deployBaseContract();
+  await baseContract.connect(INITIALIZER).initialize(withDefaultContractInfo(info));
 
-  return BaseContract;
+  return baseContract;
 };

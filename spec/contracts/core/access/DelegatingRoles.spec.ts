@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -26,24 +26,24 @@ import {
 } from '../../../helpers/AccessHelper';
 
 describe('check delegating roles', () => {
-  checkDelegatingRoles('Admin', ADMIN, {
+  checkDelegatingRoles('Admin', () => ADMIN, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isAdmin(role),
-    forRole: (roles, options) => roles.forAdmin(options),
-    addToRole: (roles, role, options) => roles.addAdmin(role, options),
+    forRole: (roles) => roles.forAdmin(),
+    addToRole: (roles, role) => roles.addAdmin(role),
   });
 
-  checkDelegatingRoles('Minter', MINTER, {
+  checkDelegatingRoles('Minter', () => MINTER, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isMinter(role),
-    forRole: (roles, options) => roles.forMinter(options),
-    addToRole: (roles, role, options) => roles.addMinter(role, options),
+    forRole: (roles) => roles.forMinter(),
+    addToRole: (roles, role) => roles.addMinter(role),
   });
 
-  checkDelegatingRoles('Transfer Agent', TRANSFER_AGENT, {
+  checkDelegatingRoles('Transfer Agent', () => TRANSFER_AGENT, {
     createDelegatingRoles,
     isInRole: (roles, role) => roles.isTransferAgent(role),
-    forRole: (roles, options) => roles.forTransferAgent(options),
-    addToRole: (roles, role, options) => roles.addTransferAgent(role, options),
+    forRole: (roles) => roles.forTransferAgent(),
+    addToRole: (roles, role) => roles.addTransferAgent(role),
   });
 });

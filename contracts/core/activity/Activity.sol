@@ -19,11 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import './ActivityInterfaceSupport.sol';
 import './IActivity.sol';
 import '../consumable/ConsumableConsumer.sol';
@@ -41,17 +41,17 @@ abstract contract Activity is
   Initializable,
   ITransferring,
   IActivity,
-  ContextUpgradeSafe,
-  ERC165UpgradeSafe,
+  ContextUpgradeable,
+  ERC165StorageUpgradeable,
   BaseContract,
   ConsumableConsumer,
   ConsumableProvider
 {
-  using Counters for Counters.Counter;
+  using CountersUpgradeable for CountersUpgradeable.Counter;
   using TransferLogic for address;
 
-  mapping(address => Counters.Counter) private _executed;
-  Counters.Counter private _totalExecuted;
+  mapping(address => CountersUpgradeable.Counter) private _executed;
+  CountersUpgradeable.Counter private _totalExecuted;
 
   function _initializeActivity(
     ContractInfo memory info,
@@ -70,11 +70,11 @@ abstract contract Activity is
     _registerInterface(TransferringInterfaceSupport.TRANSFERRING_INTERFACE_ID);
   }
 
-  function executed(address player) external override view returns (uint256) {
+  function executed(address player) external view override returns (uint256) {
     return _executed[player].current();
   }
 
-  function totalExecuted() external override view returns (uint256) {
+  function totalExecuted() external view override returns (uint256) {
     return _totalExecuted.current();
   }
 
@@ -99,7 +99,7 @@ abstract contract Activity is
     emit Executed(player);
   }
 
-  function _checkRequirements(address player) internal virtual view {
+  function _checkRequirements(address player) internal view virtual {
     // does nothing by default
   }
 

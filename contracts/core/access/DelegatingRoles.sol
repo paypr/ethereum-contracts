@@ -19,19 +19,19 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/EnumerableSet.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/GSN/Context.sol';
+import '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 import './IRoleDelegate.sol';
 import './RoleDelegateInterfaceSupport.sol';
 import './RoleSupport.sol';
 
-contract DelegatingRoles is Initializable, ContextUpgradeSafe {
-  using EnumerableSet for EnumerableSet.AddressSet;
+contract DelegatingRoles is Initializable, ContextUpgradeable {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using RoleDelegateInterfaceSupport for IRoleDelegate;
 
-  EnumerableSet.AddressSet private _roleDelegates;
+  EnumerableSetUpgradeable.AddressSet private _roleDelegates;
 
   function isRoleDelegate(IRoleDelegate roleDelegate) public view returns (bool) {
     return _roleDelegates.contains(address(roleDelegate));
@@ -59,7 +59,7 @@ contract DelegatingRoles is Initializable, ContextUpgradeSafe {
   /**
    * @dev Returns `true` if `account` has been granted `role`.
    */
-  function _hasRole(bytes32 role, address account) internal virtual view returns (bool) {
+  function _hasRole(bytes32 role, address account) internal view virtual returns (bool) {
     uint256 roleDelegateLength = _roleDelegates.length();
     for (uint256 roleDelegateIndex = 0; roleDelegateIndex < roleDelegateLength; roleDelegateIndex++) {
       IRoleDelegate roleDelegate = IRoleDelegate(_roleDelegates.at(roleDelegateIndex));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,10 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
-import { createSkillConstrainedExchangingActivity } from '../../../helpers/ActivityHelper';
-import { createConsumableExchange } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { BigNumber } from 'ethers';
 import {
   ACTIVITY_ID,
   BASE_CONTRACT_ID,
@@ -30,6 +27,9 @@ import {
   SKILL_CONSTRAINED_ID,
   TRANSFERRING_ID,
 } from '../../../helpers/ContractIds';
+import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
+import { createSkillConstrainedExchangingActivity } from '../../../helpers/ActivityHelper';
+import { createConsumableExchange } from '../../../helpers/ConsumableHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165';
 
 describe('supportsInterface', () => {
@@ -54,11 +54,8 @@ describe('executed', () => {
 
     const activity = await createSkillConstrainedExchangingActivity(exchange.address);
 
-    const result1 = await toNumberAsync(activity.executed(PLAYER1));
-    expect<number>(result1).toEqual(0);
-
-    const result2 = await toNumberAsync(activity.executed(PLAYER2));
-    expect<number>(result2).toEqual(0);
+    expect<BigNumber>(await activity.executed(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await activity.executed(PLAYER2.address)).toEqBN(0);
   });
 
   it('should return 0 when the player has never executed the activity', async () => {
@@ -66,10 +63,9 @@ describe('executed', () => {
 
     const activity = await createSkillConstrainedExchangingActivity(exchange.address);
 
-    await activity.execute([], { from: PLAYER2 });
+    await activity.connect(PLAYER2).execute([]);
 
-    const result = await toNumberAsync(activity.executed(PLAYER1));
-    expect<number>(result).toEqual(0);
+    expect<BigNumber>(await activity.executed(PLAYER1.address)).toEqBN(0);
   });
 
   it('should return the number of times the player has executed the activity', async () => {
@@ -77,15 +73,12 @@ describe('executed', () => {
 
     const activity = await createSkillConstrainedExchangingActivity(exchange.address);
 
-    await activity.execute([], { from: PLAYER1 });
-    await activity.execute([], { from: PLAYER2 });
-    await activity.execute([], { from: PLAYER2 });
+    await activity.connect(PLAYER1).execute([]);
+    await activity.connect(PLAYER2).execute([]);
+    await activity.connect(PLAYER2).execute([]);
 
-    const result1 = await toNumberAsync(activity.executed(PLAYER1));
-    expect<number>(result1).toEqual(1);
-
-    const result2 = await toNumberAsync(activity.executed(PLAYER2));
-    expect<number>(result2).toEqual(2);
+    expect<BigNumber>(await activity.executed(PLAYER1.address)).toEqBN(1);
+    expect<BigNumber>(await activity.executed(PLAYER2.address)).toEqBN(2);
   });
 });
 
@@ -95,8 +88,8 @@ describe('totalExecuted', () => {
 
     const activity = await createSkillConstrainedExchangingActivity(exchange.address);
 
-    const result = await toNumberAsync(activity.totalExecuted());
-    expect<number>(result).toEqual(0);
+    const result = await activity.totalExecuted();
+    expect<BigNumber>(result).toEqBN(0);
   });
 
   it('should return the number of times the activity has been executed by all players', async () => {
@@ -104,15 +97,13 @@ describe('totalExecuted', () => {
 
     const activity = await createSkillConstrainedExchangingActivity(exchange.address);
 
-    await activity.execute([], { from: PLAYER1 });
+    await activity.connect(PLAYER1).execute([]);
 
-    const result1 = await toNumberAsync(activity.totalExecuted());
-    expect<number>(result1).toEqual(1);
+    expect<BigNumber>(await activity.totalExecuted()).toEqBN(1);
 
-    await activity.execute([], { from: PLAYER2 });
-    await activity.execute([], { from: PLAYER1 });
+    await activity.connect(PLAYER2).execute([]);
+    await activity.connect(PLAYER1).execute([]);
 
-    const result2 = await toNumberAsync(activity.totalExecuted());
-    expect<number>(result2).toEqual(3);
+    expect<BigNumber>(await activity.totalExecuted()).toEqBN(3);
   });
 });

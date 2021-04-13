@@ -19,16 +19,16 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
 import './TransferringInterfaceSupport.sol';
 import '../access/Roles.sol';
 import '../Disableable.sol';
 import './ITransferring.sol';
 import './TransferLogic.sol';
 
-contract TestTransfer is ITransferring, ERC165UpgradeSafe, Disableable, Roles {
+contract TestTransfer is ITransferring, ERC165StorageUpgradeable, Disableable, Roles {
   using TransferLogic for address;
 
   function initializeTestTransfer() external initializer {
@@ -39,7 +39,7 @@ contract TestTransfer is ITransferring, ERC165UpgradeSafe, Disableable, Roles {
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -47,7 +47,7 @@ contract TestTransfer is ITransferring, ERC165UpgradeSafe, Disableable, Roles {
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -61,6 +61,16 @@ contract TestTransfer is ITransferring, ERC165UpgradeSafe, Disableable, Roles {
     bytes calldata data
   ) external virtual override returns (bytes4) {
     return TransferLogic.onERC721Received(operator, from, tokenId, data);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165Upgradeable, AccessControlUpgradeable, ERC165StorageUpgradeable)
+    returns (bool)
+  {
+    return ERC165StorageUpgradeable.supportsInterface(interfaceId);
   }
 
   function disable() external override onlyAdmin {
