@@ -19,9 +19,9 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import '../core/activity/IActivity.sol';
 import '../core/item/IArtifact.sol';
 import '../core/consumable/IConsumable.sol';
@@ -69,7 +69,7 @@ contract ERC165IdCalc {
   }
 
   function calcConsumableInterfaceId() external pure returns (bytes4) {
-    ERC20UpgradeSafe token;
+    ERC20Upgradeable token;
     IConsumable consumable;
     return
       token.symbol.selector ^

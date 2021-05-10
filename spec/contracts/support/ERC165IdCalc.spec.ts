@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,36 +17,37 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { contract } from '@openzeppelin/test-environment';
 import {
   ACTIVITY_ID,
   ARTIFACT_ID,
-  byte4ToString,
+  BASE_CONTRACT_ID,
+  Byte4String,
   CONSUMABLE_CONSUMER_ID,
   CONSUMABLE_EXCHANGE_ID,
   CONSUMABLE_ID,
   CONSUMABLE_PROVIDER_ID,
   CONVERTIBLE_CONSUMABLE_ID,
-  BASE_CONTRACT_ID,
   LIMITED_CONSUMABLE_ID,
   PLAYER_ID,
+  ROLE_DELEGATE_ID,
   SKILL_CONSTRAINED_ID,
   SKILL_ID,
   TRANSFERRING_ID,
-  ROLE_DELEGATE_ID,
 } from '../../helpers/ContractIds';
+import { INITIALIZER } from '../../helpers/Accounts';
+import { ERC165IdCalc, ERC165IdCalc__factory } from '../../../types/contracts';
 
-export const ERC165IdCalcContract = contract.fromArtifact('ERC165IdCalc');
+export const deployERC165IdCalcContract = () => new ERC165IdCalc__factory(INITIALIZER).deploy();
 
 const calcShouldMatch = (
   interfaceName: string,
-  calcInterfaceId: (idCalc: any) => Promise<number[]>,
-  interfaceId: number[],
+  calcInterfaceId: (idCalc: ERC165IdCalc) => Promise<string>,
+  interfaceId: Byte4String,
 ) => {
   it(`calc${interfaceName}InterfaceId should match ${interfaceName} id`, async () => {
-    const idCalc = await ERC165IdCalcContract.new();
+    const idCalc = await deployERC165IdCalcContract();
 
-    expect<number[]>(await calcInterfaceId(idCalc)).toEqual(byte4ToString(interfaceId));
+    expect<string>(await calcInterfaceId(idCalc)).toEqual(interfaceId);
   });
 };
 

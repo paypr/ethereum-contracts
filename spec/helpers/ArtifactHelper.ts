@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -19,11 +19,11 @@
 
 import { ConsumableAmount } from '../../src/contracts/core/consumables';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
+import { ConfigurableArtifact, ConfigurableArtifact__factory } from '../../types/contracts';
 import { getOrDefaultRoleDelegate } from './AccessHelper';
-import { ARTIFACT_MINTER } from './Accounts';
-import { getContract, toNumberAsync } from './ContractHelper';
+import { ARTIFACT_MINTER, INITIALIZER } from './Accounts';
 
-export const ArtifactContract = getContract('ConfigurableArtifact');
+export const deployArtifactContract = () => new ConfigurableArtifact__factory(INITIALIZER).deploy();
 
 export const createArtifact = async (
   info: Partial<ContractInfo> = {},
@@ -33,21 +33,18 @@ export const createArtifact = async (
   initialUses: number = 1,
   roleDelegate?: string,
 ) => {
-  const artifact = await ArtifactContract.new();
-  await artifact.initializeArtifact(
-    withDefaultContractInfo(info),
-    baseUri,
-    symbol,
-    amountsToProvide,
-    initialUses,
-    await getOrDefaultRoleDelegate(roleDelegate, ARTIFACT_MINTER),
-    {
-      from: ARTIFACT_MINTER,
-    },
-  );
+  const artifact = await deployArtifactContract();
+  await artifact
+    .connect(ARTIFACT_MINTER)
+    .initializeArtifact(
+      withDefaultContractInfo(info),
+      baseUri,
+      symbol,
+      amountsToProvide,
+      initialUses,
+      await getOrDefaultRoleDelegate(roleDelegate, ARTIFACT_MINTER),
+    );
   return artifact;
 };
 
-export const mintItem = (artifact: any, to: string) => artifact.mint(to, { from: ARTIFACT_MINTER });
-
-export const getItemUsesLeft = (artifact: any, itemId: string) => toNumberAsync(artifact.usesLeft(itemId));
+export const mintItem = (artifact: ConfigurableArtifact, to: string) => artifact.connect(ARTIFACT_MINTER).mint(to);

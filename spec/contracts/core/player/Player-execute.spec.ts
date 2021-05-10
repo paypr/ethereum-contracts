@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,19 +17,12 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { Item } from '../../../../src/contracts/core/activities';
 import { PLAYER1, PLAYER_ADMIN } from '../../../helpers/Accounts';
 import { createActivity } from '../../../helpers/ActivityHelper';
-import { createArtifact, getItemUsesLeft, mintItem } from '../../../helpers/ArtifactHelper';
-import {
-  burnConsumable,
-  createConsumable,
-  getAllowance,
-  getBalance,
-  mintConsumable,
-} from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { createArtifact, mintItem } from '../../../helpers/ArtifactHelper';
+import { burnConsumable, createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
 import { disableContract } from '../../../helpers/DisableableHelper';
 import { createPlayer, executeActivity } from '../../../helpers/PlayerHelper';
 
@@ -39,10 +32,14 @@ it('should execute the activity', async () => {
   const activity = await createActivity();
 
   await executeActivity(player, activity.address);
-  expect<number>(await toNumberAsync(activity.executed(player.address))).toEqual(1);
-  expect<number>(await toNumberAsync(activity.totalExecuted())).toEqual(1);
+  expect<BigNumber>(await activity.executed(player.address)).toEqBN(1);
+  expect<BigNumber>(await activity.totalExecuted()).toEqBN(1);
 
-  // expectEvent(await executeActivity(player, activity.address), 'Executed', {player: player.address});
+  await expect<ContractTransaction>(await executeActivity(player, activity.address)).toHaveEmittedWith(
+    activity,
+    'Executed',
+    [player.address],
+  );
 });
 
 it('should use the items', async () => {
@@ -62,9 +59,9 @@ it('should use the items', async () => {
 
   await executeActivity(player, activity.address, [item1, item2, item3]);
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(0);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(0);
 });
 
 it('should provide the activity with consumables', async () => {
@@ -123,25 +120,25 @@ it('should provide the activity with consumables', async () => {
     ],
   );
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(800);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(800);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(800);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(800);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(900);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(900);
 
   await executeActivity(player, activity.address, [item1, item2, item3]);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(800);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(600);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(800);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(600);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(700);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(400);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(700);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(400);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(900);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(900);
 });
 
 it('should consume consumables from the activity', async () => {
@@ -201,32 +198,32 @@ it('should consume consumables from the activity', async () => {
     ],
   );
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(0);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(990);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable3, player.address)).toEqual(100);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(990);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable3.balanceOf(player.address)).toEqBN(100);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(910);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(950);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(910);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(950);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(900);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(900);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, activity.address)).toEqual(100);
-  expect<number>(await getBalance(consumable2, activity.address)).toEqual(150);
-  expect<number>(await getBalance(consumable3, activity.address)).toEqual(900);
+  expect<BigNumber>(await consumable1.balanceOf(activity.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.balanceOf(activity.address)).toEqBN(150);
+  expect<BigNumber>(await consumable3.balanceOf(activity.address)).toEqBN(900);
 });
 
 it('should not use the items or provide any consumables if not enough uses left of any items', async () => {
@@ -265,7 +262,7 @@ it('should not use the items or provide any consumables if not enough uses left 
 
   await executeActivity(player, activity.address, [item2]);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -275,30 +272,29 @@ it('should not use the items or provide any consumables if not enough uses left 
         { consumable: consumable2.address, amount: 200 },
       ],
     ),
-    'no uses left for item',
-  );
+  ).toBeRevertedWith('no uses left for item');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(800);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(800);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 });
 
 it('should not use the items or provide any consumables if not enough of any consumables to provide', async () => {
@@ -338,56 +334,57 @@ it('should not use the items or provide any consumables if not enough of any con
   await mintConsumable(consumable1, activity.address, 1000);
   await mintConsumable(consumable2, activity.address, 1000);
 
-  await expectRevert(executeActivity(player, activity.address, [item1, item2]), 'Not enough consumable to transfer');
+  await expect<Promise<ContractTransaction>>(
+    executeActivity(player, activity.address, [item1, item2]),
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(player, activity.address, [item1, item2, item3]),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 });
 
 // tslint:disable-next-line:max-line-length
@@ -428,7 +425,7 @@ it('should not use the items or provide any consumables if player does not trans
   await mintConsumable(consumable1, activity.address, 1000);
   await mintConsumable(consumable2, activity.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -438,32 +435,31 @@ it('should not use the items or provide any consumables if player does not trans
         { consumable: consumable2.address, amount: 100 },
       ],
     ),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -473,30 +469,29 @@ it('should not use the items or provide any consumables if player does not trans
         { consumable: consumable2.address, amount: 99 },
       ],
     ),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 });
 
 // tslint:disable-next-line:max-line-length
@@ -537,7 +532,7 @@ it('should not use the items or provide any consumables if player does not have 
   await mintConsumable(consumable1, activity.address, 1000);
   await mintConsumable(consumable2, activity.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -547,32 +542,31 @@ it('should not use the items or provide any consumables if player does not have 
         { consumable: consumable2.address, amount: 10000 },
       ],
     ),
-    'transfer amount exceeds balance',
-  );
+  ).toBeRevertedWith('transfer amount exceeds balance');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -582,30 +576,29 @@ it('should not use the items or provide any consumables if player does not have 
         { consumable: consumable2.address, amount: 100 },
       ],
     ),
-    'transfer amount exceeds balance',
-  );
+  ).toBeRevertedWith('transfer amount exceeds balance');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 });
 
 // tslint:disable-next-line:max-line-length
@@ -645,62 +638,60 @@ it('should not use the items or provide any consumables if artifact does not hav
 
   await mintConsumable(consumable1, activity.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(player, activity.address, [item1, item2, item3]),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 
   await burnConsumable(consumable1, activity.address, 1000);
   await mintConsumable(consumable2, activity.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(player, activity.address, [item1, item2, item3]),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity.address)).toEqBN(0);
 });
 
 it('should not use the items or provide any consumables if did not receive enough consumables', async () => {
@@ -747,7 +738,7 @@ it('should not use the items or provide any consumables if did not receive enoug
   await mintConsumable(consumable1, activity1.address, 1000);
   await mintConsumable(consumable2, activity1.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity1.address,
@@ -758,32 +749,31 @@ it('should not use the items or provide any consumables if did not receive enoug
         { consumable: consumable2.address, amount: 199 },
       ],
     ),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity1.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity1.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity1.address)).toEqBN(0);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity1.address,
@@ -794,30 +784,29 @@ it('should not use the items or provide any consumables if did not receive enoug
         { consumable: consumable2.address, amount: 201 },
       ],
     ),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getItemUsesLeft(artifact1, item1.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item2.itemId)).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, item3.itemId)).toEqual(1);
+  expect<BigNumber>(await artifact1.usesLeft(item1.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item2.itemId)).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft(item3.itemId)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, artifact1.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact1.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact1.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact1.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact1.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact1.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact1.address, activity1.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, artifact2.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, artifact2.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(artifact2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(artifact2.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, artifact2.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, artifact2.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(artifact2.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(artifact2.address, activity1.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
 
-  expect<number>(await getAllowance(consumable1, player.address, activity1.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, activity1.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, activity1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, activity1.address)).toEqBN(0);
 });
 
 it('should revert when activity address is not an activity', async () => {
@@ -825,10 +814,9 @@ it('should revert when activity address is not an activity', async () => {
 
   const notAnActivity = await createConsumable({ name: 'Not an activity' });
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(player, notAnActivity.address, [], [], []),
-    'activity address must support IActivity',
-  );
+  ).toBeRevertedWith('activity address must support IActivity');
 });
 
 it('should revert when any item is not an artifact', async () => {
@@ -842,7 +830,7 @@ it('should revert when any item is not an artifact', async () => {
 
   const notAnArtifact = await createConsumable({ name: 'Not an artifact' });
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -853,8 +841,7 @@ it('should revert when any item is not an artifact', async () => {
       [],
       [],
     ),
-    'item address must support IArtifact',
-  );
+  ).toBeRevertedWith('item address must support IArtifact');
 });
 
 it('should revert when any item is not owned by the player', async () => {
@@ -866,9 +853,9 @@ it('should revert when any item is not owned by the player', async () => {
   await mintItem(artifact1, player.address);
 
   const artifact2 = await createArtifact({ name: 'Artifact 2' });
-  await mintItem(artifact2, PLAYER1);
+  await mintItem(artifact2, PLAYER1.address);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -879,10 +866,9 @@ it('should revert when any item is not owned by the player', async () => {
       [],
       [],
     ),
-    'must be used by the owner',
-  );
+  ).toBeRevertedWith('must be used by the owner');
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -893,8 +879,7 @@ it('should revert when any item is not owned by the player', async () => {
       [],
       [],
     ),
-    'owner query for nonexistent token',
-  );
+  ).toBeRevertedWith('owner query for nonexistent token');
 });
 
 it('should revert when called with non-consumables to provide', async () => {
@@ -907,7 +892,7 @@ it('should revert when called with non-consumables to provide', async () => {
 
   await mintConsumable(consumable, player.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -918,8 +903,7 @@ it('should revert when called with non-consumables to provide', async () => {
       ],
       [],
     ),
-    'Consumable must support interface when providing',
-  );
+  ).toBeRevertedWith('Consumable must support interface when providing');
 });
 
 it('should revert when called with non-consumables to consume', async () => {
@@ -932,7 +916,7 @@ it('should revert when called with non-consumables to consume', async () => {
 
   await mintConsumable(consumable, activity.address, 1000);
 
-  await expectRevert(
+  await expect<Promise<ContractTransaction>>(
     executeActivity(
       player,
       activity.address,
@@ -943,8 +927,7 @@ it('should revert when called with non-consumables to consume', async () => {
         { consumable: notAConsumable.address, amount: 200 },
       ],
     ),
-    'Consumable must support interface when consuming',
-  );
+  ).toBeRevertedWith('Consumable must support interface when consuming');
 });
 
 it('should revert when not called by owner', async () => {
@@ -952,10 +935,9 @@ it('should revert when not called by owner', async () => {
 
   const activity = await createActivity({ name: 'Activity' });
 
-  await expectRevert(
-    player.execute(activity.address, [], [], [], { from: PLAYER1 }),
-    'Caller does not have the Admin role',
-  );
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER1).execute(activity.address, [], [], []),
+  ).toBeRevertedWith('Caller does not have the Admin role');
 });
 
 it('should not execute the activity if disabled', async () => {
@@ -965,5 +947,7 @@ it('should not execute the activity if disabled', async () => {
 
   await disableContract(player, PLAYER_ADMIN);
 
-  await expectRevert(executeActivity(player, activity.address), 'Contract is disabled');
+  await expect<Promise<ContractTransaction>>(executeActivity(player, activity.address)).toBeRevertedWith(
+    'Contract is disabled',
+  );
 });

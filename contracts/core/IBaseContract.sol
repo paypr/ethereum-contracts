@@ -19,11 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
 
-interface IBaseContract is IERC165 {
+interface IBaseContract is IERC165Upgradeable {
   function contractName() external view returns (string memory);
 
   function contractDescription() external view returns (string memory);

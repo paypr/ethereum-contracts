@@ -19,7 +19,7 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
 import './ConstrainedSkill.sol';
@@ -28,7 +28,7 @@ import '../Disableable.sol';
 
 contract ConfigurableConstrainedSkill is
   Initializable,
-  ContextUpgradeSafe,
+  ContextUpgradeable,
   ConstrainedSkill,
   Disableable,
   DelegatingRoles
@@ -48,7 +48,7 @@ contract ConfigurableConstrainedSkill is
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -56,7 +56,7 @@ contract ConfigurableConstrainedSkill is
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,31 +17,32 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Item } from '../../src/contracts/core/activities';
 import { ConsumableAmount } from '../../src/contracts/core/consumables';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
 import { SkillLevel } from '../../src/contracts/core/skills';
+import {
+  ConfigurableConstrainedSkill__factory,
+  ConfigurableSkill__factory,
+  TestSkillConstrained__factory,
+} from '../../types/contracts';
 import { getOrDefaultRoleDelegate } from './AccessHelper';
 import { INITIALIZER } from './Accounts';
-import { getContract, toNumberAsync } from './ContractHelper';
 
-export const SkillContract = getContract('ConfigurableSkill');
-export const SkillConstrainedContract = getContract('TestSkillConstrained');
-export const ConstrainedSkillContract = getContract('ConfigurableConstrainedSkill');
+export const deploySkillContract = () => new ConfigurableSkill__factory(INITIALIZER).deploy();
+export const deploySkillConstrainedContract = () => new TestSkillConstrained__factory(INITIALIZER).deploy();
+export const deployConstrainedSkillContract = () => new ConfigurableConstrainedSkill__factory(INITIALIZER).deploy();
 
 export const createSkill = async (info: Partial<ContractInfo> = {}, roleDelegate?: string) => {
-  const skill = await SkillContract.new();
-  await skill.initializeSkill(
-    withDefaultContractInfo(info),
-    await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
-    { from: INITIALIZER },
-  );
+  const skill = await deploySkillContract();
+  await skill
+    .connect(INITIALIZER)
+    .initializeSkill(withDefaultContractInfo(info), await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER));
   return skill;
 };
 
 export const createSkillConstrained = async (requiredSkills: SkillLevel[] = []) => {
-  const skillConstrained = await SkillConstrainedContract.new();
-  await skillConstrained.initializeSkillConstrained(requiredSkills, { from: INITIALIZER });
+  const skillConstrained = await deploySkillConstrainedContract();
+  await skillConstrained.connect(INITIALIZER).initializeSkillConstrained(requiredSkills);
   return skillConstrained;
 };
 
@@ -51,20 +52,14 @@ export const createConstrainedSkill = async (
   requiredSkills: SkillLevel[] = [],
   roleDelegate?: string,
 ) => {
-  const skill = await ConstrainedSkillContract.new();
-  await skill.initializeConstrainedSkill(
-    withDefaultContractInfo(info),
-    amountsToConsume,
-    requiredSkills,
-    await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
-    {
-      from: INITIALIZER,
-    },
-  );
+  const skill = await deployConstrainedSkillContract();
+  await skill
+    .connect(INITIALIZER)
+    .initializeConstrainedSkill(
+      withDefaultContractInfo(info),
+      amountsToConsume,
+      requiredSkills,
+      await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
+    );
   return skill;
 };
-
-export const getSkilllevel = async (skill: any, player: string) => toNumberAsync(skill.currentLevel(player));
-
-export const acquireNextSkillLevel = async (skill: any, player: string, useItems: Item[] = []) =>
-  skill.acquireNext(useItems, { from: player });

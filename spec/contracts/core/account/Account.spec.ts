@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,6 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { ERC165_ID, ROLE_DELEGATE_ID } from '../../../helpers/ContractIds';
+import { Account } from '../../../../types/contracts';
 import {
   ADMIN,
   checkDelegatingRoles,
@@ -30,10 +32,9 @@ import {
   SUPER_ADMIN,
   TRANSFER_AGENT,
 } from '../../../helpers/AccessHelper';
-import { AccountContract, createAccount } from '../../../helpers/AccountHelper';
+import { createAccount, deployAccountContract } from '../../../helpers/AccountHelper';
 import { ZERO_ADDRESS } from '../../../helpers/Accounts';
 import { createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
-import { ERC165_ID, ROLE_DELEGATE_ID } from '../../../helpers/ContractIds';
 import { shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
@@ -45,137 +46,137 @@ describe('supportsInterface', () => {
 
 describe('initializeAccount', () => {
   it('should set roles when no delegate provided', async () => {
-    const account = await AccountContract.new();
-    await account.initializeAccount(ZERO_ADDRESS, { from: SUPER_ADMIN });
+    const account = await deployAccountContract();
+    await account.connect(SUPER_ADMIN).initializeAccount(ZERO_ADDRESS);
 
-    expect<string>(await account.isSuperAdmin(SUPER_ADMIN)).toBe(true);
-    expect<string>(await account.isAdmin(SUPER_ADMIN)).toBe(true);
-    expect<string>(await account.isTransferAgent(SUPER_ADMIN)).toBe(true);
+    expect<boolean>(await account.isSuperAdmin(SUPER_ADMIN.address)).toBe(true);
+    expect<boolean>(await account.isAdmin(SUPER_ADMIN.address)).toBe(true);
+    expect<boolean>(await account.isTransferAgent(SUPER_ADMIN.address)).toBe(true);
   });
 
   it('should set delegate', async () => {
     const roleDelegate = await createRolesWithAllSameRole(SUPER_ADMIN);
-    const account = await AccountContract.new();
-    await account.initializeAccount(roleDelegate.address, { from: SUPER_ADMIN });
+    const account = await deployAccountContract();
+    await account.connect(SUPER_ADMIN).initializeAccount(roleDelegate.address);
 
-    expect<string>(await account.isRoleDelegate(roleDelegate.address)).toBe(true);
-    expect<string>(await account.isSuperAdmin(SUPER_ADMIN)).toBe(true);
-    expect<string>(await account.isAdmin(SUPER_ADMIN)).toBe(true);
-    expect<string>(await account.isTransferAgent(SUPER_ADMIN)).toBe(true);
+    expect<boolean>(await account.isRoleDelegate(roleDelegate.address)).toBe(true);
+    expect<boolean>(await account.isSuperAdmin(SUPER_ADMIN.address)).toBe(true);
+    expect<boolean>(await account.isAdmin(SUPER_ADMIN.address)).toBe(true);
+    expect<boolean>(await account.isTransferAgent(SUPER_ADMIN.address)).toBe(true);
   });
 });
 
 describe('Enable/Disable', () => {
-  const admin = ADMIN;
-  const nonAdmin = OTHER1;
+  const getAdmin = () => ADMIN;
+  const getNonAdmin = () => OTHER1;
 
   const create = async () => {
     const account = await createAccount();
-    await account.addAdmin(admin, { from: SUPER_ADMIN });
+    await account.connect(SUPER_ADMIN).addAdmin(getAdmin().address);
     return account;
   };
 
-  shouldRestrictEnableAndDisable(create, admin, nonAdmin);
+  shouldRestrictEnableAndDisable(create, { getAdmin, getNonAdmin });
 
   const createWithRoleDelegate = async () => {
     const roleDelegate = await createRoles();
-    await roleDelegate.addAdmin(admin, { from: SUPER_ADMIN });
+    await roleDelegate.connect(SUPER_ADMIN).addAdmin(getAdmin().address);
 
     return createAccount(roleDelegate.address);
   };
 
-  shouldRestrictEnableAndDisable(createWithRoleDelegate, admin, nonAdmin);
+  shouldRestrictEnableAndDisable(createWithRoleDelegate, { getAdmin, getNonAdmin });
 });
 
 describe('transferToken', () => {
   const create = async () => {
     const account = await createAccount();
-    await account.addAdmin(SUPER_ADMIN, { from: SUPER_ADMIN });
-    await account.addTransferAgent(SUPER_ADMIN, { from: SUPER_ADMIN });
+    await account.connect(SUPER_ADMIN).addAdmin(SUPER_ADMIN.address);
+    await account.connect(SUPER_ADMIN).addTransferAgent(SUPER_ADMIN.address);
     return account;
   };
 
-  shouldTransferToken(create, { superAdmin: SUPER_ADMIN, withExchange: true });
+  shouldTransferToken(create, { getSuperAdmin: () => SUPER_ADMIN, withExchange: true });
 });
 
 describe('transferItem', () => {
   const create = async () => {
     const account = await createAccount();
-    await account.addAdmin(SUPER_ADMIN, { from: SUPER_ADMIN });
-    await account.addTransferAgent(SUPER_ADMIN, { from: SUPER_ADMIN });
+    await account.connect(SUPER_ADMIN).addAdmin(SUPER_ADMIN.address);
+    await account.connect(SUPER_ADMIN).addTransferAgent(SUPER_ADMIN.address);
     return account;
   };
 
-  shouldTransferItem(create, { superAdmin: SUPER_ADMIN });
+  shouldTransferItem(create, { getSuperAdmin: () => SUPER_ADMIN });
 });
 
 describe('check roles', () => {
   const createRoles = async () => {
     const account = await createAccount();
-    await account.renounceAdmin({ from: SUPER_ADMIN });
-    await account.renounceTransferAgent({ from: SUPER_ADMIN });
+    await account.connect(SUPER_ADMIN).renounceAdmin();
+    await account.connect(SUPER_ADMIN).renounceTransferAgent();
     return account;
   };
 
-  checkSuperAdmin(createRoles, (account, options) => account.addAdmin(OTHER1, options));
+  checkSuperAdmin(createRoles, (account) => account.addAdmin(OTHER1.address));
 
-  checkRoles('Admin', ADMIN, {
+  checkRoles<Account>('Admin', () => ADMIN, {
     createRoles,
     isInRole: (account, role) => account.isAdmin(role),
-    forRole: (account, options) => account.disable(options),
-    addToRole: (account, role, options) => account.addAdmin(role, options),
-    renounceRole: (account, options) => account.renounceAdmin(options),
-    revokeRole: (account, role, options) => account.revokeAdmin(role, options),
+    forRole: (account) => account.disable(),
+    addToRole: (account, role) => account.addAdmin(role),
+    renounceRole: (account) => account.renounceAdmin(),
+    revokeRole: (account, role) => account.revokeAdmin(role),
   });
 
-  checkRoles('Minter', MINTER, {
+  checkRoles<Account>('Minter', () => MINTER, {
     createRoles,
     isInRole: (account, role) => account.isMinter(role),
-    addToRole: (account, role, options) => account.addMinter(role, options),
-    renounceRole: (account, options) => account.renounceMinter(options),
-    revokeRole: (account, role, options) => account.revokeMinter(role, options),
+    addToRole: (account, role) => account.addMinter(role),
+    renounceRole: (account) => account.renounceMinter(),
+    revokeRole: (account, role) => account.revokeMinter(role),
   });
 
-  checkRoles('Transfer Agent', TRANSFER_AGENT, {
+  checkRoles<Account>('Transfer Agent', () => TRANSFER_AGENT, {
     createRoles,
     isInRole: (account, role) => account.isTransferAgent(role),
-    forRole: async (account, options) => {
+    forRole: async (account) => {
       const consumable = await createConsumable();
       await mintConsumable(consumable, account.address, 1000);
-      await account.transferToken(consumable.address, 100, OTHER1, options);
+      return account.transferToken(consumable.address, 100, OTHER1.address);
     },
-    addToRole: (account, role, options) => account.addTransferAgent(role, options),
-    renounceRole: (account, options) => account.renounceTransferAgent(options),
-    revokeRole: (account, role, options) => account.revokeTransferAgent(role, options),
+    addToRole: (account, role) => account.addTransferAgent(role),
+    renounceRole: (account) => account.renounceTransferAgent(),
+    revokeRole: (account, role) => account.revokeTransferAgent(role),
   });
 });
 
 describe('check delegating roles', () => {
   const createDelegatingRoles = (address: string) => createAccount(address);
 
-  checkSuperAdminDelegation(createDelegatingRoles, (account, options) => account.addAdmin(OTHER1, options));
+  checkSuperAdminDelegation<Account>(createDelegatingRoles, (account) => account.addAdmin(OTHER1.address));
 
-  checkDelegatingRoles('Admin', ADMIN, {
+  checkDelegatingRoles<Account>('Admin', () => ADMIN, {
     createDelegatingRoles,
     isInRole: (account, role) => account.isAdmin(role),
-    forRole: (account, options) => account.disable(options),
-    addToRole: (account, role, options) => account.addAdmin(role, options),
+    forRole: (account) => account.disable(),
+    addToRole: (account, role) => account.addAdmin(role),
   });
 
-  checkDelegatingRoles('Minter', MINTER, {
+  checkDelegatingRoles<Account>('Minter', () => MINTER, {
     createDelegatingRoles,
     isInRole: (account, role) => account.isMinter(role),
-    addToRole: (account, role, options) => account.addMinter(role, options),
+    addToRole: (account, role) => account.addMinter(role),
   });
 
-  checkDelegatingRoles('Transfer Agent', TRANSFER_AGENT, {
+  checkDelegatingRoles('Transfer Agent', () => TRANSFER_AGENT, {
     createDelegatingRoles,
     isInRole: (account, role) => account.isTransferAgent(role),
-    forRole: async (account, options) => {
+    forRole: async (account) => {
       const consumable = await createConsumable();
       await mintConsumable(consumable, account.address, 1000);
-      await account.transferToken(consumable.address, 100, OTHER1, options);
+      return account.transferToken(consumable.address, 100, OTHER1.address);
     },
-    addToRole: (account, role, options) => account.addTransferAgent(role, options),
+    addToRole: (account, role) => account.addTransferAgent(role),
   });
 });

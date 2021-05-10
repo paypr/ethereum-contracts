@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -20,13 +20,18 @@
 import { ConsumableAmount } from '../../src/contracts/core/consumables';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
 import { SkillLevel } from '../../src/contracts/core/skills';
+import {
+  ConfigurableActivity__factory,
+  ConfigurableExchangingActivity__factory,
+  ConfigurableSkillConstrainedExchangingActivity__factory,
+} from '../../types/contracts';
 import { getOrDefaultRoleDelegate } from './AccessHelper';
 import { INITIALIZER } from './Accounts';
-import { getContract } from './ContractHelper';
 
-export const ActivityContract = getContract('ConfigurableActivity');
-export const ExchangingActivityContract = getContract('ConfigurableExchangingActivity');
-export const SkillConstrainedExchangingActivity = getContract('ConfigurableSkillConstrainedExchangingActivity');
+export const deployActivityContract = () => new ConfigurableActivity__factory(INITIALIZER).deploy();
+export const deployExchangingActivityContract = () => new ConfigurableExchangingActivity__factory(INITIALIZER).deploy();
+export const deploySkillConstrainedExchangingActivity = () =>
+  new ConfigurableSkillConstrainedExchangingActivity__factory(INITIALIZER).deploy();
 
 export const createActivity = async (
   info: Partial<ContractInfo> = {},
@@ -34,16 +39,15 @@ export const createActivity = async (
   amountsToProvide: ConsumableAmount[] = [],
   roleDelegate?: string,
 ) => {
-  const activity = await ActivityContract.new();
-  await activity.initializeActivity(
-    withDefaultContractInfo(info),
-    amountsToConsume,
-    amountsToProvide,
-    await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
-    {
-      from: INITIALIZER,
-    },
-  );
+  const activity = await deployActivityContract();
+  await activity
+    .connect(INITIALIZER)
+    .initializeActivity(
+      withDefaultContractInfo(info),
+      amountsToConsume,
+      amountsToProvide,
+      await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
+    );
   return activity;
 };
 
@@ -54,15 +58,16 @@ export const createExchangingActivity = async (
   amountsToProvide: ConsumableAmount[] = [],
   roleDelegate?: string,
 ) => {
-  const activity = await ExchangingActivityContract.new();
-  await activity.initializeExchangingActivity(
-    withDefaultContractInfo(info),
-    amountsToConsume,
-    amountsToProvide,
-    tokenForExchange,
-    await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
-    { from: INITIALIZER },
-  );
+  const activity = await deployExchangingActivityContract();
+  await activity
+    .connect(INITIALIZER)
+    .initializeExchangingActivity(
+      withDefaultContractInfo(info),
+      amountsToConsume,
+      amountsToProvide,
+      tokenForExchange,
+      await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
+    );
   return activity;
 };
 
@@ -74,15 +79,16 @@ export const createSkillConstrainedExchangingActivity = async (
   amountsToProvide: ConsumableAmount[] = [],
   roleDelegate?: string,
 ) => {
-  const activity = await SkillConstrainedExchangingActivity.new();
-  await activity.initializeSkillConstrainedExchangingActivity(
-    withDefaultContractInfo(info),
-    requiredSkills,
-    amountsToConsume,
-    amountsToProvide,
-    tokenForExchange,
-    await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
-    { from: INITIALIZER },
-  );
+  const activity = await deploySkillConstrainedExchangingActivity();
+  await activity
+    .connect(INITIALIZER)
+    .initializeSkillConstrainedExchangingActivity(
+      withDefaultContractInfo(info),
+      requiredSkills,
+      amountsToConsume,
+      amountsToProvide,
+      tokenForExchange,
+      await getOrDefaultRoleDelegate(roleDelegate, INITIALIZER),
+    );
   return activity;
 };

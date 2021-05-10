@@ -19,11 +19,11 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/EnumerableSet.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './Consumable.sol';
 import './ConsumableExchangeInterfaceSupport.sol';
 import './IConsumableExchange.sol';
@@ -31,33 +31,33 @@ import './IConvertibleConsumable.sol';
 import './ConsumableConversionMath.sol';
 
 abstract contract ConsumableExchange is IConsumableExchange, Consumable {
-  using EnumerableSet for EnumerableSet.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using ConsumableConversionMath for uint256;
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
 
   // amount that 1 of this consumable will convert into the associated token
   // eg if exchange rate is 1000, then 1 this consumable == 1000 associated tokens
   mapping(address => ExchangeRate) private _exchangeRates;
-  EnumerableSet.AddressSet private _convertibles;
+  EnumerableSetUpgradeable.AddressSet private _convertibles;
 
   function _initializeConsumableExchange(ContractInfo memory info, string memory symbol) internal initializer {
     _initializeConsumable(info, symbol);
     _registerInterface(ConsumableExchangeInterfaceSupport.CONSUMABLE_EXCHANGE_INTERFACE_ID);
   }
 
-  function totalConvertibles() external override view returns (uint256) {
+  function totalConvertibles() external view override returns (uint256) {
     return _convertibles.length();
   }
 
-  function convertibleAt(uint256 index) external override view returns (IConvertibleConsumable) {
+  function convertibleAt(uint256 index) external view override returns (IConvertibleConsumable) {
     return IConvertibleConsumable(_convertibles.at(index));
   }
 
-  function isConvertible(IConvertibleConsumable token) external override view returns (bool) {
+  function isConvertible(IConvertibleConsumable token) external view override returns (bool) {
     return _exchangeRates[address(token)].purchasePrice > 0;
   }
 
-  function exchangeRateOf(IConvertibleConsumable token) external override view returns (ExchangeRate memory) {
+  function exchangeRateOf(IConvertibleConsumable token) external view override returns (ExchangeRate memory) {
     return _exchangeRates[address(token)];
   }
 
@@ -81,7 +81,7 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
 
     consumable.mintByExchange(tokenAmount);
 
-    ERC20UpgradeSafe token = ERC20UpgradeSafe(address(consumable));
+    ERC20Upgradeable token = ERC20Upgradeable(address(consumable));
     token.increaseAllowance(account, tokenAmount);
   }
 
@@ -121,7 +121,7 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
       uint256 senderBalance = balanceOf(sender);
       uint256 tokenAmountAllowed = senderBalance.convertibleTokenProvided(senderExchangeRate.intrinsicValue);
 
-      IERC20 token = IERC20(sender);
+      IERC20Upgradeable token = IERC20Upgradeable(sender);
       require(token.totalSupply() <= tokenAmountAllowed, 'ConsumableExchange: not enough left to cover exchange');
     }
   }
@@ -142,7 +142,7 @@ abstract contract ConsumableExchange is IConsumableExchange, Consumable {
   }
 
   function _updateExchangeRate(IConvertibleConsumable token, ExchangeRate memory exchangeRate) internal onlyEnabled {
-    require(token != IConvertibleConsumable(0), 'ConsumableExchange: updateExchangeRate for the zero address');
+    require(token != IConvertibleConsumable(address(0)), 'ConsumableExchange: updateExchangeRate for the zero address');
 
     if (exchangeRate.purchasePrice != 0 && exchangeRate.intrinsicValue != 0) {
       _convertibles.add(address(token));

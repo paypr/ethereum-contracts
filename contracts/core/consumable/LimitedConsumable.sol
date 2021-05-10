@@ -19,16 +19,16 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './Consumable.sol';
 import './LimitedConsumableInterfaceSupport.sol';
 import './ILimitedConsumable.sol';
 
 abstract contract LimitedConsumable is ILimitedConsumable, Consumable {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
 
   mapping(address => uint256) private _limits;
 
@@ -37,11 +37,11 @@ abstract contract LimitedConsumable is ILimitedConsumable, Consumable {
     _registerInterface(LimitedConsumableInterfaceSupport.LIMITED_CONSUMABLE_INTERFACE_ID);
   }
 
-  function limitOf(address account) external override view returns (uint256) {
+  function limitOf(address account) external view override returns (uint256) {
     return _limits[account];
   }
 
-  function myLimit() external override view returns (uint256) {
+  function myLimit() external view override returns (uint256) {
     return _limits[_msgSender()];
   }
 

@@ -19,12 +19,12 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
 
-interface ISkill is IERC165 {
+interface ISkill is IERC165Upgradeable {
   /**
    * Emitted when a skill level is acquired
    *

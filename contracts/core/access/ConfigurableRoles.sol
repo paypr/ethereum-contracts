@@ -19,15 +19,15 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
 import './Roles.sol';
 import './RoleDelegateInterfaceSupport.sol';
 
-contract ConfigurableRoles is Initializable, ContextUpgradeSafe, ERC165UpgradeSafe, Roles {
+contract ConfigurableRoles is Initializable, ContextUpgradeable, ERC165StorageUpgradeable, Roles {
   function initializeRoles(IRoleDelegate roleDelegate) public initializer {
     __ERC165_init();
     _registerInterface(RoleDelegateInterfaceSupport.ROLE_DELEGATE_INTERFACE_ID);
@@ -47,5 +47,15 @@ contract ConfigurableRoles is Initializable, ContextUpgradeSafe, ERC165UpgradeSa
    */
   function removeRoleDelegate(IRoleDelegate roleDelegate) public onlySuperAdmin {
     _removeRoleDelegate(roleDelegate);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(AccessControlUpgradeable, ERC165StorageUpgradeable)
+    returns (bool)
+  {
+    return ERC165StorageUpgradeable.supportsInterface(interfaceId);
   }
 }

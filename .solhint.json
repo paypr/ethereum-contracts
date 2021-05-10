@@ -24,7 +24,7 @@
     "avoid-throw": "error",
     "avoid-tx-origin": "error",
     "check-send-result": "error",
-    "compiler-version": ["error", "^0.6.0"],
+    "compiler-version": ["error", "^0.8.0"],
     "func-visibility": "error",
     "multiple-sends": "error",
     "no-complex-fallback": "error",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,23 +17,45 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { accounts } from '@openzeppelin/test-environment';
-import { constants } from '@openzeppelin/test-helpers';
-import ContractAddress from '../../src/contracts/ContractAddress';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ethers } from 'hardhat';
 
-export const [
-  INITIALIZER,
-  CONSUMABLE_MINTER,
-  ARTIFACT_MINTER,
-  PLAYER_ADMIN,
-  PLAYER1,
-  PLAYER2,
-  PLAYER3,
-  HELPER1,
-  HELPER2,
-] = accounts;
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-export const ZERO_ADDRESS = constants.ZERO_ADDRESS;
+export let accounts: SignerWithAddress[] = [];
 
-export const getContractAddress = async (contract: any | Promise<any>): Promise<ContractAddress> =>
-  (await contract).address;
+export let INITIALIZER: SignerWithAddress;
+export let CONSUMABLE_MINTER: SignerWithAddress;
+export let ARTIFACT_MINTER: SignerWithAddress;
+export let PLAYER_ADMIN: SignerWithAddress;
+export let PLAYER1: SignerWithAddress;
+export let PLAYER2: SignerWithAddress;
+export let PLAYER3: SignerWithAddress;
+export let HELPER1: SignerWithAddress;
+export let HELPER2: SignerWithAddress;
+
+export type OnInitAccountsHandler = (accounts: SignerWithAddress[]) => void | Promise<void>;
+
+const onInitAccountsHandlers: OnInitAccountsHandler[] = [];
+
+export const onInitAccounts = (handler: OnInitAccountsHandler) => {
+  onInitAccountsHandlers.push(handler);
+};
+
+export const initAccounts = async () => {
+  accounts = await ethers.getSigners();
+
+  [
+    INITIALIZER,
+    CONSUMABLE_MINTER,
+    ARTIFACT_MINTER,
+    PLAYER_ADMIN,
+    PLAYER1,
+    PLAYER2,
+    PLAYER3,
+    HELPER1,
+    HELPER2,
+  ] = accounts;
+
+  await Promise.all(onInitAccountsHandlers.map(async (handler) => await handler(accounts)));
+};

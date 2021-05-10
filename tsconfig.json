@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
+    "incremental": true,
     "sourceMap": true,
     "declaration": true,
+    "declarationMap": true,
     "pretty": true,
     "module": "commonjs",
     "target": "es5",
@@ -18,5 +20,5 @@
     "outDir": "dist"
   },
   "include": ["./src/**/*.ts"],
-  "exclude": ["dist", "node_modules", "examples", "spec"]
+  "exclude": ["dist", "node_modules", "examples", "spec", "test"]
 }

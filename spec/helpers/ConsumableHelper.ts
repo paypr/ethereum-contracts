@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,52 +17,63 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Provider } from '@ethersproject/providers';
+import { BigNumber, BigNumberish, ContractTransaction, Overrides, Signer } from 'ethers';
 import { ConsumableAmount, ExchangeRate } from '../../src/contracts/core/consumables';
 import { ContractInfo, withDefaultContractInfo } from '../../src/contracts/core/contractInfo';
+import {
+  ConfigurableConsumable__factory,
+  ConfigurableConvertibleConsumable__factory,
+  ConfigurableLimitedConsumable,
+  ConfigurableLimitedConsumable__factory,
+  Paypr__factory,
+  TestConsumableConsumer__factory,
+  TestConsumableExchange__factory,
+  TestConsumableProvider__factory,
+} from '../../types/contracts';
 import { getOrDefaultRoleDelegate } from './AccessHelper';
-import { CONSUMABLE_MINTER } from './Accounts';
-import { getContract, toNumber, toNumberAsync } from './ContractHelper';
+import { CONSUMABLE_MINTER, INITIALIZER } from './Accounts';
 
-export const ConsumableContract = getContract('ConfigurableConsumable');
-export const ConsumableConsumerContract = getContract('TestConsumableConsumer');
-export const ConsumableProviderContract = getContract('TestConsumableProvider');
-export const ConsumableExchangeContract = getContract('TestConsumableExchange');
-export const ConvertibleConsumableContract = getContract('ConfigurableConvertibleConsumable');
-export const LimitedConsumableContract = getContract('ConfigurableLimitedConsumable');
-export const PayprContract = getContract('Paypr');
+export const deployConsumableContract = () => new ConfigurableConsumable__factory(INITIALIZER).deploy();
+export const deployConsumableConsumerContract = () => new TestConsumableConsumer__factory(INITIALIZER).deploy();
+export const deployConsumableProviderContract = () => new TestConsumableProvider__factory(INITIALIZER).deploy();
+export const deployConsumableExchangeContract = () => new TestConsumableExchange__factory(INITIALIZER).deploy();
+export const deployConvertibleConsumableContract = () =>
+  new ConfigurableConvertibleConsumable__factory(INITIALIZER).deploy();
+export const deployLimitedConsumableContract = () => new ConfigurableLimitedConsumable__factory(INITIALIZER).deploy();
+export const deployPayprContract = () => new Paypr__factory(INITIALIZER).deploy();
 
 export const createConsumable = async (
   info: Partial<ContractInfo> = {},
   symbol: string = info.name || '',
   roleDelegate?: string,
 ) => {
-  const consumable = await ConsumableContract.new();
-  await consumable.initializeConsumable(
-    withDefaultContractInfo(info),
-    symbol,
-    await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
-    { from: CONSUMABLE_MINTER },
-  );
+  const consumable = await deployConsumableContract();
+  await consumable
+    .connect(CONSUMABLE_MINTER)
+    .initializeConsumable(
+      withDefaultContractInfo(info),
+      symbol,
+      await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
+    );
   return consumable;
 };
 
 export const createConsumableConsumer = async (amountsToConsume: ConsumableAmount[] = []) => {
-  const consumer = await ConsumableConsumerContract.new();
-  await consumer.initializeConsumableConsumer(amountsToConsume, { from: CONSUMABLE_MINTER });
+  const consumer = await deployConsumableConsumerContract();
+  await consumer.connect(CONSUMABLE_MINTER).initializeConsumableConsumer(amountsToConsume);
   return consumer;
 };
 
 export const createConsumableProvider = async (amountsToProvide: ConsumableAmount[] = []) => {
-  const provider = await ConsumableProviderContract.new();
-  await provider.initializeConsumableProvider(amountsToProvide, { from: CONSUMABLE_MINTER });
+  const provider = await deployConsumableProviderContract();
+  await provider.connect(CONSUMABLE_MINTER).initializeConsumableProvider(amountsToProvide);
   return provider;
 };
 
 export const createConsumableExchange = async (info: Partial<ContractInfo> = {}, symbol: string = '') => {
-  const exchange = await ConsumableExchangeContract.new();
-  await exchange.initializeConsumableExchange(withDefaultContractInfo(info), symbol, {
-    from: CONSUMABLE_MINTER,
-  });
+  const exchange = await deployConsumableExchangeContract();
+  await exchange.connect(CONSUMABLE_MINTER).initializeConsumableExchange(withDefaultContractInfo(info), symbol);
   return exchange;
 };
 
@@ -75,17 +86,18 @@ export const createConvertibleConsumable = async (
   registerWithExchange: boolean = true,
   roleDelegate?: string,
 ) => {
-  const consumable = await ConvertibleConsumableContract.new();
-  await consumable.initializeConvertibleConsumable(
-    withDefaultContractInfo(info),
-    symbol,
-    exchangeToken,
-    purchasePriceExchangeRate,
-    intrinsicValueExchangeRate,
-    registerWithExchange,
-    await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
-    { from: CONSUMABLE_MINTER },
-  );
+  const consumable = await deployConvertibleConsumableContract();
+  await consumable
+    .connect(CONSUMABLE_MINTER)
+    .initializeConvertibleConsumable(
+      withDefaultContractInfo(info),
+      symbol,
+      exchangeToken,
+      purchasePriceExchangeRate,
+      intrinsicValueExchangeRate,
+      registerWithExchange,
+      await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
+    );
   return consumable;
 };
 
@@ -94,13 +106,14 @@ export const createLimitedConsumable = async (
   symbol: string = '',
   roleDelegate?: string,
 ) => {
-  const consumable = await LimitedConsumableContract.new();
-  await consumable.initializeLimitedConsumable(
-    withDefaultContractInfo(info),
-    symbol,
-    await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
-    { from: CONSUMABLE_MINTER },
-  );
+  const consumable = await deployLimitedConsumableContract();
+  await consumable
+    .connect(CONSUMABLE_MINTER)
+    .initializeLimitedConsumable(
+      withDefaultContractInfo(info),
+      symbol,
+      await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
+    );
   return consumable;
 };
 
@@ -110,45 +123,57 @@ export const createPaypr = async (
   baseIntrinsicValueExchangeRate: number = basePurchasePriceExchangeRate,
   roleDelegate?: string,
 ) => {
-  const consumable = await PayprContract.new();
-  await consumable.initializePaypr(
-    baseToken,
-    basePurchasePriceExchangeRate,
-    baseIntrinsicValueExchangeRate,
-    await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
-    {
-      from: CONSUMABLE_MINTER,
-    },
-  );
+  const consumable = await deployPayprContract();
+  await consumable
+    .connect(CONSUMABLE_MINTER)
+    .initializePaypr(
+      baseToken,
+      basePurchasePriceExchangeRate,
+      baseIntrinsicValueExchangeRate,
+      await getOrDefaultRoleDelegate(roleDelegate, CONSUMABLE_MINTER),
+    );
   return consumable;
 };
 
-export const getBalance = async (consumable: any, account: string) => toNumberAsync(consumable.balanceOf(account));
+type MintableAndBurnableConsumable = {
+  connect(signerOrProvider: Signer | Provider | string): MintableAndBurnableConsumable;
 
-export const getAllowance = async (consumable: any, sender: string, receiver: string) =>
-  toNumberAsync(consumable.allowance(sender, receiver));
+  mint(
+    account: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
-export const increaseAllowance = async (consumable: any, sender: string, receiver: string, amount: number) =>
-  consumable.increaseAllowance(receiver, amount, { from: sender });
+  burn(
+    account: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+};
 
-export const transferFrom = async (consumable: any, sender: string, receiver: string, amount: number) =>
-  consumable.transferFrom(sender, receiver, amount, { from: receiver });
+export const mintConsumable = async (consumable: MintableAndBurnableConsumable, receiver: string, amount: number) =>
+  consumable.connect(CONSUMABLE_MINTER).mint(receiver, amount);
 
-export const mintConsumable = async (consumable: any, receiver: string, amount: number) =>
-  consumable.mint(receiver, amount, { from: CONSUMABLE_MINTER });
+export const burnConsumable = async (consumable: MintableAndBurnableConsumable, receiver: string, amount: number) =>
+  consumable.connect(CONSUMABLE_MINTER).burn(receiver, amount);
 
-export const burnConsumable = async (consumable: any, receiver: string, amount: number) =>
-  consumable.burn(receiver, amount, { from: CONSUMABLE_MINTER });
+export const increaseLimit = async (consumable: ConfigurableLimitedConsumable, account: string, amount: number) =>
+  consumable.connect(CONSUMABLE_MINTER).increaseLimit(account, amount);
 
-export const getLimit = async (consumable: any, account: string) => toNumberAsync(consumable.limitOf(account));
+export const decreaseLimit = async (consumable: ConfigurableLimitedConsumable, account: string, amount: number) =>
+  consumable.connect(CONSUMABLE_MINTER).decreaseLimit(account, amount);
 
-export const increaseLimit = async (consumable: any, account: string, amount: number) =>
-  consumable.increaseLimit(account, amount, { from: CONSUMABLE_MINTER });
-
-export const decreaseLimit = async (consumable: any, account: string, amount: number) =>
-  consumable.decreaseLimit(account, amount, { from: CONSUMABLE_MINTER });
-
-export const toExchangeRateAsync = async (exchangeRatePromise: Promise<ExchangeRate> | ExchangeRate) => {
+export const toExchangeRateAsync = async (
+  exchangeRatePromise:
+    | Promise<{
+        purchasePrice: BigNumber;
+        intrinsicValue: BigNumber;
+      }>
+    | {
+        purchasePrice: BigNumber;
+        intrinsicValue: BigNumber;
+      },
+): Promise<ExchangeRate> => {
   const { purchasePrice, intrinsicValue } = await exchangeRatePromise;
-  return { purchasePrice: toNumber(purchasePrice), intrinsicValue: toNumber(intrinsicValue) };
+  return { purchasePrice: purchasePrice.toNumber(), intrinsicValue: intrinsicValue.toNumber() };
 };

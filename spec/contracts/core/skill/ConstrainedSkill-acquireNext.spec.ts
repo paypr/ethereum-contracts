@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,10 +17,10 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { BN, expectEvent, expectRevert } from '@openzeppelin/test-helpers';
-import { createConstrainedSkill, createSkill, getSkilllevel } from '../../../helpers/SkillHelper';
-import { PLAYER1, PLAYER2, HELPER1, HELPER2 } from '../../../helpers/Accounts';
-import { createConsumable, getAllowance, getBalance, mintConsumable } from '../../../helpers/ConsumableHelper';
+import { BigNumber, ContractTransaction } from 'ethers';
+import { HELPER1, HELPER2, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
+import { createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
+import { createConstrainedSkill, createSkill } from '../../../helpers/SkillHelper';
 
 it('should get the first level when no levels found', async () => {
   const basicSkill1 = await createSkill({ name: 'Basic 1' });
@@ -41,20 +41,20 @@ it('should get the first level when no levels found', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(1);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(1);
 });
 
 it('should send Acquired event when no levels found', async () => {
@@ -76,21 +76,20 @@ it('should send Acquired event when no levels found', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  expectEvent(await constrainedSkill.acquireNext([], { from: PLAYER1 }), 'Acquired', {
-    player: PLAYER1,
-    level: new BN(1),
-  });
+  await expect<ContractTransaction>(
+    await constrainedSkill.connect(PLAYER1).acquireNext([]),
+  ).toHaveEmittedWith(constrainedSkill, 'Acquired', [PLAYER1.address, '1']);
 });
 
 it('should get the first level when no level found for player', async () => {
@@ -112,31 +111,31 @@ it('should get the first level when no level found for player', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER2)).toEqual(1);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER2.address)).toEqBN(1);
 });
 
 it('should get the next level when level found for player', async () => {
@@ -158,47 +157,47 @@ it('should get the next level when level found for player', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(3);
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER2)).toEqual(2);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(3);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER2.address)).toEqBN(2);
 });
 
 it('should get the next level when helpers used by player', async () => {
@@ -220,82 +219,82 @@ it('should get the next level when helpers used by player', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await mintConsumable(consumable1, HELPER1, 1000);
-  await mintConsumable(consumable2, HELPER1, 1000);
+  await mintConsumable(consumable1, HELPER1.address, 1000);
+  await mintConsumable(consumable2, HELPER1.address, 1000);
 
-  await mintConsumable(consumable1, HELPER2, 1000);
-  await mintConsumable(consumable2, HELPER2, 1000);
+  await mintConsumable(consumable1, HELPER2.address, 1000);
+  await mintConsumable(consumable2, HELPER2.address, 1000);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: PLAYER1 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: PLAYER1 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: PLAYER2 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 50);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([HELPER1.address, HELPER2.address]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: PLAYER1 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: PLAYER2 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 50);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([HELPER1.address, HELPER2.address]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(3);
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER2)).toEqual(2);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(3);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER2.address)).toEqBN(2);
 
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, PLAYER2)).toEqual(900);
-  expect<number>(await getBalance(consumable2, PLAYER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER1)).toEqual(750);
-  expect<number>(await getBalance(consumable2, HELPER1)).toEqual(500);
-  expect<number>(await getBalance(consumable1, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER2)).toEqual(500);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(500);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(1000);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, PLAYER2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, HELPER2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER2, constrainedSkill.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER2.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER1.address)).toEqBN(750);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER1.address)).toEqBN(500);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER2.address)).toEqBN(500);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(500);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER2.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(PLAYER2.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
 });
 
 it('should send Acquired event for advanced level', async () => {
@@ -317,42 +316,41 @@ it('should send Acquired event for advanced level', async () => {
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER1 });
+  await constrainedSkill.connect(PLAYER1).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await constrainedSkill.acquireNext([], { from: PLAYER2 });
+  await constrainedSkill.connect(PLAYER2).acquireNext([]);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  expectEvent(await constrainedSkill.acquireNext([], { from: PLAYER1 }), 'Acquired', {
-    player: PLAYER1,
-    level: new BN(3),
-  });
+  await expect<ContractTransaction>(
+    await constrainedSkill.connect(PLAYER1).acquireNext([]),
+  ).toHaveEmittedWith(constrainedSkill, 'Acquired', [PLAYER1.address, '3']);
 });
 
 it('should revert when any dependent skill level not found for player', async () => {
@@ -374,67 +372,75 @@ it('should revert when any dependent skill level not found for player', async ()
     ],
   );
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 200);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await expectRevert(constrainedSkill.acquireNext([], { from: PLAYER1 }), 'missing required skill');
+  await expect<Promise<ContractTransaction>>(constrainedSkill.connect(PLAYER1).acquireNext([])).toBeRevertedWith(
+    'missing required skill',
+  );
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(200);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
 
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await expectRevert(constrainedSkill.acquireNext([], { from: PLAYER1 }), 'missing required skill');
+  await expect<Promise<ContractTransaction>>(constrainedSkill.connect(PLAYER1).acquireNext([])).toBeRevertedWith(
+    'missing required skill',
+  );
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(200);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
 
-  await expectRevert(constrainedSkill.acquireNext([], { from: PLAYER1 }), 'missing required skill');
+  await expect<Promise<ContractTransaction>>(constrainedSkill.connect(PLAYER1).acquireNext([])).toBeRevertedWith(
+    'missing required skill',
+  );
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(200);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
 
-  await expectRevert(constrainedSkill.acquireNext([], { from: PLAYER1 }), 'missing required skill');
+  await expect<Promise<ContractTransaction>>(constrainedSkill.connect(PLAYER1).acquireNext([])).toBeRevertedWith(
+    'missing required skill',
+  );
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(200);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
 });
 
 it('should revert when any consumables not provided by player / helpers', async () => {
@@ -456,119 +462,118 @@ it('should revert when any consumables not provided by player / helpers', async 
     ],
   );
 
-  await basicSkill1.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
-  await basicSkill2.acquireNext([], { from: PLAYER1 });
+  await basicSkill1.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
+  await basicSkill2.connect(PLAYER1).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER1, 1000);
-  await mintConsumable(consumable2, PLAYER1, 1000);
+  await mintConsumable(consumable1, PLAYER1.address, 1000);
+  await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-  await mintConsumable(consumable1, HELPER1, 1000);
-  await mintConsumable(consumable2, HELPER1, 1000);
+  await mintConsumable(consumable1, HELPER1.address, 1000);
+  await mintConsumable(consumable2, HELPER1.address, 1000);
 
-  await mintConsumable(consumable1, HELPER2, 1000);
-  await mintConsumable(consumable2, HELPER2, 1000);
+  await mintConsumable(consumable1, HELPER2.address, 1000);
+  await mintConsumable(consumable2, HELPER2.address, 1000);
 
-  await basicSkill1.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
-  await basicSkill2.acquireNext([], { from: PLAYER2 });
+  await basicSkill1.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
+  await basicSkill2.connect(PLAYER2).acquireNext([]);
 
-  await mintConsumable(consumable1, PLAYER2, 1000);
-  await mintConsumable(consumable2, PLAYER2, 1000);
+  await mintConsumable(consumable1, PLAYER2.address, 1000);
+  await mintConsumable(consumable2, PLAYER2.address, 1000);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER2 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 200, { from: PLAYER2 });
+  await consumable1.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 100);
+  await consumable2.connect(PLAYER2).increaseAllowance(constrainedSkill.address, 200);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 99, { from: PLAYER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 99);
+  await consumable2.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
 
-  await expectRevert(constrainedSkill.acquireNext([], { from: PLAYER1 }), 'Not enough consumable to transfer');
-
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(99);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable1, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, HELPER2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER2, constrainedSkill.address)).toEqual(0);
-
-  await consumable1.increaseAllowance(constrainedSkill.address, 1, { from: PLAYER1 });
-
-  await expectRevert(
-    constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 }),
+  await expect<Promise<ContractTransaction>>(constrainedSkill.connect(PLAYER1).acquireNext([])).toBeRevertedWith(
     'Not enough consumable to transfer',
   );
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable1, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, HELPER2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, HELPER2, constrainedSkill.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(99);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable1.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
 
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: PLAYER1 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: HELPER1 });
-  await consumable1.increaseAllowance(constrainedSkill.address, 100, { from: HELPER2 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 1);
 
-  await expectRevert(
-    constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 }),
-    'Not enough consumable to transfer',
-  );
+  await expect<Promise<ContractTransaction>>(
+    constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]),
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable1, HELPER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, HELPER1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, HELPER2, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, HELPER2, constrainedSkill.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable1.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
 
-  await consumable2.increaseAllowance(constrainedSkill.address, 50, { from: HELPER1 });
-  await consumable2.increaseAllowance(constrainedSkill.address, 49, { from: HELPER2 });
+  await consumable1.connect(PLAYER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable1.connect(HELPER1).increaseAllowance(constrainedSkill.address, 100);
+  await consumable1.connect(HELPER2).increaseAllowance(constrainedSkill.address, 100);
 
-  await expectRevert(
-    constrainedSkill.acquireNext([HELPER1, HELPER2], { from: PLAYER1 }),
-    'Not enough consumable to transfer',
-  );
+  await expect<Promise<ContractTransaction>>(
+    constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]),
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getSkilllevel(constrainedSkill, PLAYER1)).toEqual(0);
-  expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER1)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, HELPER2)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, PLAYER1, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getAllowance(consumable2, PLAYER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable1, HELPER1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, HELPER1, constrainedSkill.address)).toEqual(50);
-  expect<number>(await getAllowance(consumable1, HELPER2, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getAllowance(consumable2, HELPER2, constrainedSkill.address)).toEqual(49);
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable1.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(0);
+
+  await consumable2.connect(HELPER1).increaseAllowance(constrainedSkill.address, 50);
+  await consumable2.connect(HELPER2).increaseAllowance(constrainedSkill.address, 49);
+
+  await expect<Promise<ContractTransaction>>(
+    constrainedSkill.connect(PLAYER1).acquireNext([HELPER1.address, HELPER2.address]),
+  ).toBeRevertedWith('Not enough consumable to transfer');
+
+  expect<BigNumber>(await constrainedSkill.currentLevel(PLAYER1.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER1.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(HELPER2.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable2.allowance(PLAYER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable1.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(HELPER1.address, constrainedSkill.address)).toEqBN(50);
+  expect<BigNumber>(await consumable1.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.allowance(HELPER2.address, constrainedSkill.address)).toEqBN(49);
 });

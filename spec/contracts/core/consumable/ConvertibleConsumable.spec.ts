@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,18 +17,14 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { CONSUMABLE_MINTER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import {
   createConsumable,
   createConsumableExchange,
   createConvertibleConsumable,
-  getAllowance,
-  getBalance,
-  increaseAllowance,
   mintConsumable,
 } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
 import {
   BASE_CONTRACT_ID,
   CONSUMABLE_ID,
@@ -182,8 +178,8 @@ describe('exchangeRate', () => {
       false,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.purchasePriceExchangeRate())).toEqual(92);
-    expect<number>(await toNumberAsync(convertibleConsumable.intrinsicValueExchangeRate())).toEqual(132);
+    expect<BigNumber>(await convertibleConsumable.purchasePriceExchangeRate()).toEqBN(92);
+    expect<BigNumber>(await convertibleConsumable.intrinsicValueExchangeRate()).toEqBN(132);
   });
 });
 
@@ -192,19 +188,19 @@ describe('amountExchangeTokenAvailable', () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
     const convertibleConsumable = await createConvertibleConsumable(exchange.address, { name: 'Convertible' }, '', 1);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
 
     await mintConsumable(exchange, convertibleConsumable.address, 10);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(10);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 5);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 5);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(5);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(5);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 5);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 5);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
   });
 
   it('should return the amount available when exchange rate is large', async () => {
@@ -216,19 +212,19 @@ describe('amountExchangeTokenAvailable', () => {
       1000,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
 
     await mintConsumable(exchange, convertibleConsumable.address, 10);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(10);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 5000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 5000);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(5);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(5);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 5000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 5000);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
   });
 
   it('should return the amount available when exchange rates are asymmetrical', async () => {
@@ -241,23 +237,23 @@ describe('amountExchangeTokenAvailable', () => {
       100,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
 
     await mintConsumable(exchange, convertibleConsumable.address, 10);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(10);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 50);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 50);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(9);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(9);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 50);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 50);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(9);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(9);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 900);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 900);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenAvailable())).toEqual(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenAvailable()).toEqBN(0);
   });
 });
 
@@ -266,9 +262,9 @@ describe('amountExchangeTokenNeeded', () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
     const convertibleConsumable = await createConvertibleConsumable(exchange.address, { name: 'Convertible' }, '', 1);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(100))).toEqual(100);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(1)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(100)).toEqBN(100);
   });
 
   it('should return the amount needed when exchange rate is large', async () => {
@@ -280,13 +276,13 @@ describe('amountExchangeTokenNeeded', () => {
       1000,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(999))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1000))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1001))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(2000))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(10000))).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(1)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(999)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(1000)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(1001)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(2000)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(10000)).toEqBN(10);
   });
 
   it('should return the amount needed when exchange rates are asymmetrical', async () => {
@@ -299,13 +295,13 @@ describe('amountExchangeTokenNeeded', () => {
       100,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(1))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(9))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(10))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(11))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(20))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenNeeded(100))).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(1)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(9)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(10)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(11)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(20)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenNeeded(100)).toEqBN(10);
   });
 });
 
@@ -314,9 +310,9 @@ describe('amountExchangeTokenProvided', () => {
     const exchange = await createConsumableExchange({ name: 'Exchange' });
     const convertibleConsumable = await createConvertibleConsumable(exchange.address, { name: 'Convertible' }, '', 1);
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(100))).toEqual(100);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(100)).toEqBN(100);
   });
 
   it('should return the amount provided when exchange rate is large', async () => {
@@ -328,13 +324,13 @@ describe('amountExchangeTokenProvided', () => {
       1000,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(999))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1000))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1001))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(2000))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(10000))).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(999)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1000)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1001)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(2000)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(10000)).toEqBN(10);
   });
 
   it('should return the amount provided when exchange rates are asymmetrical', async () => {
@@ -347,13 +343,13 @@ describe('amountExchangeTokenProvided', () => {
       100,
     );
 
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(0))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(99))).toEqual(0);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(100))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(101))).toEqual(1);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(200))).toEqual(2);
-    expect<number>(await toNumberAsync(convertibleConsumable.amountExchangeTokenProvided(1000))).toEqual(10);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(0)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(99)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(100)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(101)).toEqBN(1);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(200)).toEqBN(2);
+    expect<BigNumber>(await convertibleConsumable.amountExchangeTokenProvided(1000)).toEqBN(10);
   });
 });
 
@@ -370,28 +366,28 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 100);
 
-    await convertibleConsumable.mintByExchange(100, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(100);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(100);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 50);
 
-    await convertibleConsumable.mintByExchange(50, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(50);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(150);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(150);
   });
 
   it('should exchange proper amount when the exchange rate is large', async () => {
@@ -406,28 +402,28 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 100);
 
-    await convertibleConsumable.mintByExchange(100_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(100_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(100_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(100_000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 50);
 
-    await convertibleConsumable.mintByExchange(50_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(50_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(150_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(150_000);
   });
 
   it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
@@ -442,28 +438,28 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 100);
 
-    await convertibleConsumable.mintByExchange(1000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(1000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 50);
 
-    await convertibleConsumable.mintByExchange(500, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).mintByExchange(500);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(1500);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(1500);
   });
 
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is 1', async () => {
@@ -478,32 +474,30 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(100, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(100),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 99);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 99);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(100, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(100),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
   });
 
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is large', async () => {
@@ -518,32 +512,30 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(100000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(100000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 99);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 99);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(100000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(100000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
   });
 
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rates are asymmetrical', async () => {
@@ -558,32 +550,30 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(1000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(1000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 99);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 99);
 
-    await expectRevert(
-      convertibleConsumable.mintByExchange(1000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(1000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, convertibleConsumable.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
   });
 
   it('should not exchange if disabled', async () => {
@@ -598,14 +588,16 @@ describe('mintByExchange', () => {
       false,
     );
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, convertibleConsumable.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 100);
 
     await disableContract(convertibleConsumable, CONSUMABLE_MINTER);
 
-    await expectRevert(convertibleConsumable.mintByExchange(100, { from: PLAYER1 }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).mintByExchange(100),
+    ).toBeRevertedWith('Contract is disabled');
   });
 });
 
@@ -624,29 +616,29 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, convertibleConsumable.address, 1000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1000);
-    await mintConsumable(convertibleConsumable, PLAYER1, 1000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 1000);
 
-    await convertibleConsumable.burnByExchange(100, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(100);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(900);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(900);
 
-    await consumable1.transferFrom(convertibleConsumable.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(convertibleConsumable.address, PLAYER1.address, 100);
 
-    await convertibleConsumable.burnByExchange(50, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(50);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(850);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(850);
   });
 
   it('should exchange proper amount when the exchange rate is large', async () => {
@@ -663,29 +655,29 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, convertibleConsumable.address, 1000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1000);
-    await mintConsumable(convertibleConsumable, PLAYER1, 1_000_000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 1_000_000);
 
-    await convertibleConsumable.burnByExchange(100_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(100_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(900_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(900_000);
 
-    await consumable1.transferFrom(convertibleConsumable.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(convertibleConsumable.address, PLAYER1.address, 100);
 
-    await convertibleConsumable.burnByExchange(50_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(50_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(850_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(850_000);
   });
 
   it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
@@ -702,29 +694,29 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, convertibleConsumable.address, 1000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1000);
-    await mintConsumable(convertibleConsumable, PLAYER1, 100_000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 100_000);
 
-    await convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(10_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(90_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(90_000);
 
-    await consumable1.transferFrom(convertibleConsumable.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(convertibleConsumable.address, PLAYER1.address, 100);
 
-    await convertibleConsumable.burnByExchange(5_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).burnByExchange(5_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(85_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(85_000);
   });
 
   it('should revert if the sender does not have enough token to burn when the exchange rate is 1', async () => {
@@ -742,27 +734,31 @@ describe('burnByExchange', () => {
     await mintConsumable(consumable1, convertibleConsumable.address, 1000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1000);
 
-    await expectRevert(convertibleConsumable.burnByExchange(100, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(100),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 99);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 99);
 
-    await expectRevert(convertibleConsumable.burnByExchange(100, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(100),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(99);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(99);
   });
 
   it('should revert if the sender does not have enough token to burn when the exchange rate is large', async () => {
@@ -780,27 +776,31 @@ describe('burnByExchange', () => {
     await mintConsumable(consumable1, convertibleConsumable.address, 1_000_000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1_000_000);
 
-    await expectRevert(convertibleConsumable.burnByExchange(100_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(100_000),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1_000_000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1_000_000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 99_999);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 99_999);
 
-    await expectRevert(convertibleConsumable.burnByExchange(100_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(100_000),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(1_000_000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(1_000_000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(99_999);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(99_999);
   });
 
   // tslint:disable-next-line:max-line-length
@@ -819,27 +819,31 @@ describe('burnByExchange', () => {
     await mintConsumable(consumable1, convertibleConsumable.address, 100_000);
     await mintConsumable(consumable2, convertibleConsumable.address, 100_000);
 
-    await expectRevert(convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(10_000),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(100_000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(100_000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(100_000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(100_000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await mintConsumable(convertibleConsumable, PLAYER1, 9_999);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 9_999);
 
-    await expectRevert(convertibleConsumable.burnByExchange(10_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(10_000),
+    ).toBeRevertedWith('burn amount exceeds balance');
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, convertibleConsumable.address)).toEqual(100_000);
-    expect<number>(await getBalance(consumable2, convertibleConsumable.address)).toEqual(100_000);
-    expect<number>(await getAllowance(consumable1, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, convertibleConsumable.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(9_999);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleConsumable.address)).toEqBN(100_000);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleConsumable.address)).toEqBN(100_000);
+    expect<BigNumber>(await consumable1.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(convertibleConsumable.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(9_999);
   });
 
   it('should not exchange if disabled', async () => {
@@ -856,11 +860,13 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, convertibleConsumable.address, 1000);
     await mintConsumable(consumable2, convertibleConsumable.address, 1000);
-    await mintConsumable(convertibleConsumable, PLAYER1, 1000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 1000);
 
     await disableContract(convertibleConsumable, CONSUMABLE_MINTER);
 
-    await expectRevert(convertibleConsumable.burnByExchange(100, { from: PLAYER1 }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).burnByExchange(100),
+    ).toBeRevertedWith('Contract is disabled');
   });
 });
 
@@ -876,32 +882,32 @@ describe('transfer', () => {
       false,
     );
 
-    await mintConsumable(consumable, PLAYER1, 1000);
+    await mintConsumable(consumable, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable, PLAYER1, convertibleConsumable.address, 100);
+    await consumable.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 100);
 
-    await convertibleConsumable.transfer(PLAYER2, 100_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 100_000);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(100);
-    expect<number>(await getAllowance(consumable, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(100_000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(100);
+    expect<BigNumber>(await consumable.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(100_000);
 
-    await increaseAllowance(consumable, PLAYER1, convertibleConsumable.address, 25);
+    await consumable.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 25);
 
     await mintConsumable(consumable, convertibleConsumable.address, 25);
-    await mintConsumable(convertibleConsumable, PLAYER1, 25_000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 25_000);
 
-    await convertibleConsumable.transfer(PLAYER2, 50_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 50_000);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(875);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(150);
-    expect<number>(await getAllowance(consumable, PLAYER1, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(150_000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(875);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(150);
+    expect<BigNumber>(await consumable.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(150_000);
   });
 
   it('should not mint tokens when not needed', async () => {
@@ -915,26 +921,26 @@ describe('transfer', () => {
       false,
     );
 
-    await mintConsumable(consumable, PLAYER1, 1000);
+    await mintConsumable(consumable, PLAYER1.address, 1000);
 
     await mintConsumable(consumable, convertibleConsumable.address, 1000);
-    await mintConsumable(convertibleConsumable, PLAYER1, 1_000_000);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 1_000_000);
 
-    await convertibleConsumable.transfer(PLAYER2, 100_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 100_000);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(900_000);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(100_000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(900_000);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(100_000);
 
-    await convertibleConsumable.transfer(PLAYER2, 50_000, { from: PLAYER1 });
+    await convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 50_000);
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(1000);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(850_000);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(150_000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(1000);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(850_000);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(150_000);
   });
 
   it('should revert if there are not enough tokens or exchange tokens', async () => {
@@ -948,46 +954,43 @@ describe('transfer', () => {
       false,
     );
 
-    await mintConsumable(consumable, PLAYER1, 1000);
+    await mintConsumable(consumable, PLAYER1.address, 1000);
 
-    await expectRevert(
-      convertibleConsumable.transfer(PLAYER2, 100_000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 100_000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(0);
 
-    await increaseAllowance(consumable, PLAYER1, convertibleConsumable.address, 99);
+    await consumable.connect(PLAYER1).increaseAllowance(convertibleConsumable.address, 99);
 
-    await expectRevert(
-      convertibleConsumable.transfer(PLAYER2, 100_000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 100_000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable, PLAYER1, convertibleConsumable.address)).toEqual(99);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(99);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(0);
 
     await mintConsumable(consumable, convertibleConsumable.address, 1);
-    await mintConsumable(convertibleConsumable, PLAYER1, 999);
+    await mintConsumable(convertibleConsumable, PLAYER1.address, 999);
 
-    await expectRevert(
-      convertibleConsumable.transfer(PLAYER2, 100_000, { from: PLAYER1 }),
-      'transfer amount exceeds allowance',
-    );
+    await expect<Promise<ContractTransaction>>(
+      convertibleConsumable.connect(PLAYER1).transfer(PLAYER2.address, 100_000),
+    ).toBeRevertedWith('transfer amount exceeds allowance');
 
-    expect<number>(await getBalance(consumable, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable, PLAYER2)).toEqual(0);
-    expect<number>(await getBalance(consumable, convertibleConsumable.address)).toEqual(1);
-    expect<number>(await getAllowance(consumable, PLAYER1, convertibleConsumable.address)).toEqual(99);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER1)).toEqual(999);
-    expect<number>(await getBalance(convertibleConsumable, PLAYER2)).toEqual(0);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER2.address)).toEqBN(0);
+    expect<BigNumber>(await consumable.balanceOf(convertibleConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable.allowance(PLAYER1.address, convertibleConsumable.address)).toEqBN(99);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER1.address)).toEqBN(999);
+    expect<BigNumber>(await convertibleConsumable.balanceOf(PLAYER2.address)).toEqBN(0);
   });
 });

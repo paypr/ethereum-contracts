@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,14 +17,14 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { Item } from '../../../../src/contracts/core/activities';
 import { PLAYER1, PLAYER_ADMIN } from '../../../helpers/Accounts';
-import { createArtifact, getItemUsesLeft, mintItem } from '../../../helpers/ArtifactHelper';
-import { createConsumable, getAllowance, getBalance, mintConsumable } from '../../../helpers/ConsumableHelper';
+import { createArtifact, mintItem } from '../../../helpers/ArtifactHelper';
+import { createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
 import { disableContract } from '../../../helpers/DisableableHelper';
 import { createPlayer } from '../../../helpers/PlayerHelper';
-import { createConstrainedSkill, createSkill, getSkilllevel } from '../../../helpers/SkillHelper';
+import { createConstrainedSkill, createSkill } from '../../../helpers/SkillHelper';
 
 it('should acquire a simple skill', async () => {
   const player = await createPlayer();
@@ -32,21 +32,21 @@ it('should acquire a simple skill', async () => {
   const skill1 = await createSkill({ name: 'Skill 1' });
   const skill2 = await createSkill({ name: 'Skill 2' });
 
-  await player.acquireNext(skill1.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(skill1.address, [], []);
 
-  expect<number>(await getSkilllevel(skill1, player.address)).toEqual(1);
+  expect<BigNumber>(await skill1.currentLevel(player.address)).toEqBN(1);
 
-  await player.acquireNext(skill1.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(skill1.address, [], []);
 
-  expect<number>(await getSkilllevel(skill1, player.address)).toEqual(2);
+  expect<BigNumber>(await skill1.currentLevel(player.address)).toEqBN(2);
 
-  await player.acquireNext(skill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(skill2.address, [], []);
 
-  expect<number>(await getSkilllevel(skill2, player.address)).toEqual(1);
+  expect<BigNumber>(await skill2.currentLevel(player.address)).toEqBN(1);
 
-  await player.acquireNext(skill1.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(skill1.address, [], []);
 
-  expect<number>(await getSkilllevel(skill1, player.address)).toEqual(3);
+  expect<BigNumber>(await skill1.currentLevel(player.address)).toEqBN(3);
 });
 
 it('should acquire a constrained skill', async () => {
@@ -73,47 +73,45 @@ it('should acquire a constrained skill', async () => {
   await mintConsumable(consumable1, player.address, 1000);
   await mintConsumable(consumable2, player.address, 1000);
 
-  await player.acquireNext(basicSkill1.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
 
-  await player.acquireNext(
+  await player.connect(PLAYER_ADMIN).acquireNext(
     constrainedSkill.address,
     [],
     [
       { consumable: consumable1.address, amount: 100 },
       { consumable: consumable2.address, amount: 200 },
     ],
-    { from: PLAYER_ADMIN },
   );
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(1);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(800);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(800);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
 
-  await player.acquireNext(
+  await player.connect(PLAYER_ADMIN).acquireNext(
     constrainedSkill.address,
     [],
     [
       { consumable: consumable1.address, amount: 100 },
       { consumable: consumable2.address, amount: 200 },
     ],
-    { from: PLAYER_ADMIN },
   );
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(2);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(2);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(800);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(600);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(400);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(800);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(600);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(400);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
 });
 
 it('should use the items', async () => {
@@ -168,51 +166,41 @@ it('should use the items', async () => {
   await mintItem(artifact2, player.address);
   const item3: Item = { artifact: artifact2.address, itemId: '2' };
 
-  await player.acquireNext(basicSkill1.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
 
-  await player.acquireNext(
-    constrainedSkill.address,
-    [item1, item2],
-    [{ consumable: consumable1.address, amount: 50 }],
-    {
-      from: PLAYER_ADMIN,
-    },
-  );
+  await player
+    .connect(PLAYER_ADMIN)
+    .acquireNext(constrainedSkill.address, [item1, item2], [{ consumable: consumable1.address, amount: 50 }]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(1);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(1);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(950);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(100);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(1);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(950);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(100);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(1);
 
-  await player.acquireNext(
-    constrainedSkill.address,
-    [item3, item1],
-    [{ consumable: consumable1.address, amount: 50 }],
-    {
-      from: PLAYER_ADMIN,
-    },
-  );
+  await player
+    .connect(PLAYER_ADMIN)
+    .acquireNext(constrainedSkill.address, [item3, item1], [{ consumable: consumable1.address, amount: 50 }]);
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(2);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(2);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(900);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(200);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(400);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(0);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(900);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(200);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(400);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(0);
 });
 
 it('should not use the items or consumables if not enough uses', async () => {
@@ -261,63 +249,57 @@ it('should not use the items or consumables if not enough uses', async () => {
   await mintItem(artifact2, player.address);
   const item3: Item = { artifact: artifact2.address, itemId: '2' };
 
-  await player.acquireNext(basicSkill1.address, [item1], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [item1], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       constrainedSkill.address,
       [item1, item2, item3],
       [
         { consumable: consumable1.address, amount: 100 },
         { consumable: consumable2.address, amount: 200 },
       ],
-      {
-        from: PLAYER_ADMIN,
-      },
     ),
-    'no uses left for item',
-  );
+  ).toBeRevertedWith('no uses left for item');
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(1);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(1);
 
-  await player.acquireNext(basicSkill1.address, [item3], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [item3], []);
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       constrainedSkill.address,
       [item2, item3],
       [
         { consumable: consumable1.address, amount: 100 },
         { consumable: consumable2.address, amount: 200 },
       ],
-      { from: PLAYER_ADMIN },
     ),
-    'no uses left for item',
-  );
+  ).toBeRevertedWith('no uses left for item');
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(0);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(0);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(0);
 });
 
 it('should not use the items or consumables if not enough of any consumables provided', async () => {
@@ -366,50 +348,59 @@ it('should not use the items or consumables if not enough of any consumables pro
   await mintItem(artifact2, player.address);
   const item3: Item = { artifact: artifact2.address, itemId: '2' };
 
-  await player.acquireNext(basicSkill1.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       constrainedSkill.address,
       [item1, item2, item3],
-      [{ consumable: consumable1.address, amount: 1 }],
-      { from: PLAYER_ADMIN },
+      [
+        {
+          consumable: consumable1.address,
+          amount: 1,
+        },
+      ],
     ),
-    'Not enough consumable to transfer',
-  );
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(1);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(1);
 
-  await expectRevert(
-    player.acquireNext(constrainedSkill.address, [item1], [{ consumable: consumable1.address, amount: 100 }], {
-      from: PLAYER_ADMIN,
-    }),
-    'Not enough consumable to transfer',
-  );
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
+      constrainedSkill.address,
+      [item1],
+      [
+        {
+          consumable: consumable1.address,
+          amount: 100,
+        },
+      ],
+    ),
+  ).toBeRevertedWith('Not enough consumable to transfer');
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(1);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(1);
 });
 
 it('should not use the items or consumables if not enough of any consumables to provide', async () => {
@@ -458,31 +449,31 @@ it('should not use the items or consumables if not enough of any consumables to 
   await mintItem(artifact2, player.address);
   const item3: Item = { artifact: artifact2.address, itemId: '2' };
 
-  await player.acquireNext(basicSkill1.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
-  await player.acquireNext(basicSkill2.address, [], [], { from: PLAYER_ADMIN });
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill1.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
+  await player.connect(PLAYER_ADMIN).acquireNext(basicSkill2.address, [], []);
 
-  await expectRevert(
-    player.acquireNext(
-      constrainedSkill.address,
-      [item1, item2, item3],
-      [{ consumable: consumable1.address, amount: 10000 }],
-      { from: PLAYER_ADMIN },
-    ),
-    'transfer amount exceeds balance',
-  );
+  await expect<Promise<ContractTransaction>>(
+    player
+      .connect(PLAYER_ADMIN)
+      .acquireNext(
+        constrainedSkill.address,
+        [item1, item2, item3],
+        [{ consumable: consumable1.address, amount: 10000 }],
+      ),
+  ).toBeRevertedWith('transfer amount exceeds balance');
 
-  expect<number>(await getSkilllevel(constrainedSkill, player.address)).toEqual(0);
+  expect<BigNumber>(await constrainedSkill.currentLevel(player.address)).toEqBN(0);
 
-  expect<number>(await getBalance(consumable1, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable2, player.address)).toEqual(1000);
-  expect<number>(await getBalance(consumable1, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getBalance(consumable2, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable1, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getAllowance(consumable2, player.address, constrainedSkill.address)).toEqual(0);
-  expect<number>(await getItemUsesLeft(artifact1, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '1')).toEqual(1);
-  expect<number>(await getItemUsesLeft(artifact2, '2')).toEqual(1);
+  expect<BigNumber>(await consumable1.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable2.balanceOf(player.address)).toEqBN(1000);
+  expect<BigNumber>(await consumable1.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.balanceOf(constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable1.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await consumable2.allowance(player.address, constrainedSkill.address)).toEqBN(0);
+  expect<BigNumber>(await artifact1.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('1')).toEqBN(1);
+  expect<BigNumber>(await artifact2.usesLeft('2')).toEqBN(1);
 });
 
 it('should revert when skill address is not a skill', async () => {
@@ -490,10 +481,9 @@ it('should revert when skill address is not a skill', async () => {
 
   const notASkill = await createConsumable({ name: 'Not a skill' });
 
-  await expectRevert(
-    player.acquireNext(notASkill.address, [], [], { from: PLAYER_ADMIN }),
-    'skill address must support ISkill',
-  );
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(notASkill.address, [], []),
+  ).toBeRevertedWith('skill address must support ISkill');
 });
 
 it('should revert when any item is not an artifact', async () => {
@@ -507,18 +497,16 @@ it('should revert when any item is not an artifact', async () => {
 
   const notAnArtifact = await createConsumable({ name: 'Not an artifact' });
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       skill.address,
       [
         { artifact: artifact.address, itemId: 1 },
         { artifact: notAnArtifact.address, itemId: 1 },
       ],
       [],
-      { from: PLAYER_ADMIN },
     ),
-    'item address must support IArtifact',
-  );
+  ).toBeRevertedWith('item address must support IArtifact');
 });
 
 it('should revert when any item is not owned by the player', async () => {
@@ -530,33 +518,29 @@ it('should revert when any item is not owned by the player', async () => {
   await mintItem(artifact1, player.address);
 
   const artifact2 = await createArtifact({ name: 'Artifact 2' });
-  await mintItem(artifact2, PLAYER1);
+  await mintItem(artifact2, PLAYER1.address);
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       skill.address,
       [
         { artifact: artifact1.address, itemId: 1 },
         { artifact: artifact2.address, itemId: 1 },
       ],
       [],
-      { from: PLAYER_ADMIN },
     ),
-    'must be used by the owner',
-  );
+  ).toBeRevertedWith('must be used by the owner');
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       skill.address,
       [
         { artifact: artifact1.address, itemId: 1 },
         { artifact: artifact2.address, itemId: 2 },
       ],
       [],
-      { from: PLAYER_ADMIN },
     ),
-    'owner query for nonexistent token',
-  );
+  ).toBeRevertedWith('owner query for nonexistent token');
 });
 
 it('should revert when called with non-consumables to provide', async () => {
@@ -569,18 +553,16 @@ it('should revert when called with non-consumables to provide', async () => {
 
   await mintConsumable(consumable, player.address, 1000);
 
-  await expectRevert(
-    player.acquireNext(
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(
       skill.address,
       [],
       [
         { consumable: consumable.address, amount: 100 },
         { consumable: notAConsumable.address, amount: 200 },
       ],
-      { from: PLAYER_ADMIN },
     ),
-    'Consumable must support interface when providing',
-  );
+  ).toBeRevertedWith('Consumable must support interface when providing');
 });
 
 it('should revert when not called by owner', async () => {
@@ -588,10 +570,9 @@ it('should revert when not called by owner', async () => {
 
   const skill = await createSkill({ name: 'Skill' });
 
-  await expectRevert(
-    player.acquireNext(skill.address, [], [], { from: PLAYER1 }),
-    'Caller does not have the Admin role',
-  );
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER1).acquireNext(skill.address, [], []),
+  ).toBeRevertedWith('Caller does not have the Admin role');
 });
 
 it('should not acquire the skill if disabled', async () => {
@@ -601,5 +582,7 @@ it('should not acquire the skill if disabled', async () => {
 
   await disableContract(player, PLAYER_ADMIN);
 
-  await expectRevert(player.acquireNext(skill.address, [], [], { from: PLAYER_ADMIN }), 'Contract is disabled');
+  await expect<Promise<ContractTransaction>>(
+    player.connect(PLAYER_ADMIN).acquireNext(skill.address, [], []),
+  ).toBeRevertedWith('Contract is disabled');
 });

@@ -19,13 +19,12 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import '../consumable/IConsumableProvider.sol';
 
-interface IArtifact is IERC165, IERC721, IConsumableProvider {
+interface IArtifact is IERC165Upgradeable, IERC721Upgradeable, IConsumableProvider {
   struct Item {
     IArtifact artifact;
     uint256 itemId;

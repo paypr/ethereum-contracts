@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,13 +17,13 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { withDefaultContractInfo } from '../../../../src/contracts/core/contractInfo';
 import { createRolesWithAllSameRole } from '../../../helpers/AccessHelper';
-import { ARTIFACT_MINTER, getContractAddress, PLAYER1, PLAYER3 } from '../../../helpers/Accounts';
-import { ArtifactContract, createArtifact, mintItem } from '../../../helpers/ArtifactHelper';
-import { createConsumable, getBalance, mintConsumable } from '../../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../../helpers/ContractHelper';
+import { ARTIFACT_MINTER, PLAYER1, PLAYER3 } from '../../../helpers/Accounts';
+import { createArtifact, deployArtifactContract, mintItem } from '../../../helpers/ArtifactHelper';
+import { createConsumable, mintConsumable } from '../../../helpers/ConsumableHelper';
+import { getContractAddress } from '../../../helpers/ContractHelper';
 import { disableContract, shouldRestrictEnableAndDisable } from '../../../helpers/DisableableHelper';
 import { shouldTransferItem, shouldTransferToken } from '../../../helpers/TransferringHelper';
 
@@ -31,10 +31,10 @@ describe('initializeArtifact', () => {
   it('should set the name', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(withDefaultContractInfo({ name: 'the name' }), '', '', [], 1, roleDelegate, {
-      from: ARTIFACT_MINTER,
-    });
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({ name: 'the name' }), '', '', [], 1, roleDelegate);
 
     expect<string>(await artifact.name()).toEqual('the name');
     expect<string>(await artifact.contractName()).toEqual('the name');
@@ -43,18 +43,10 @@ describe('initializeArtifact', () => {
   it('should set the description', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(
-      withDefaultContractInfo({ description: 'the description' }),
-      '',
-      '',
-      [],
-      1,
-      roleDelegate,
-      {
-        from: ARTIFACT_MINTER,
-      },
-    );
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({ description: 'the description' }), '', '', [], 1, roleDelegate);
 
     expect<string>(await artifact.contractDescription()).toEqual('the description');
   });
@@ -62,10 +54,10 @@ describe('initializeArtifact', () => {
   it('should set the uri', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(withDefaultContractInfo({ uri: 'the uri' }), '', '', [], 1, roleDelegate, {
-      from: ARTIFACT_MINTER,
-    });
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({ uri: 'the uri' }), '', '', [], 1, roleDelegate);
 
     expect<string>(await artifact.contractUri()).toEqual('the uri');
   });
@@ -73,21 +65,23 @@ describe('initializeArtifact', () => {
   it('should set the base token uri', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(withDefaultContractInfo({}), 'the base token uri', '', [], 1, roleDelegate, {
-      from: ARTIFACT_MINTER,
-    });
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({}), 'the base token uri', '', [], 1, roleDelegate);
 
-    expect<string>(await artifact.baseURI()).toEqual('the base token uri');
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
+
+    expect<string>(await artifact.tokenURI(1)).toEqual('the base token uri1');
   });
 
   it('should set the symbol', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(withDefaultContractInfo({}), '', 'the symbol', [], 1, roleDelegate, {
-      from: ARTIFACT_MINTER,
-    });
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({}), '', 'the symbol', [], 1, roleDelegate);
 
     expect<string>(await artifact.symbol()).toEqual('the symbol');
   });
@@ -99,8 +93,8 @@ describe('initializeArtifact', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const consumable3 = await createConsumable({ name: 'Consumable 3' });
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(
+    const artifact = await deployArtifactContract();
+    await artifact.connect(ARTIFACT_MINTER).initializeArtifact(
       withDefaultContractInfo({}),
       '',
       '',
@@ -110,28 +104,26 @@ describe('initializeArtifact', () => {
       ],
       1,
       roleDelegate,
-      { from: ARTIFACT_MINTER },
     );
 
-    expect<number>(await toNumberAsync(artifact.amountProvided(consumable1.address))).toEqual(100);
-    expect<number>(await toNumberAsync(artifact.amountProvided(consumable2.address))).toEqual(200);
-    expect<number>(await toNumberAsync(artifact.amountProvided(consumable3.address))).toEqual(0);
+    expect<BigNumber>(await artifact.amountProvided(consumable1.address)).toEqBN(100);
+    expect<BigNumber>(await artifact.amountProvided(consumable2.address)).toEqBN(200);
+    expect<BigNumber>(await artifact.amountProvided(consumable3.address)).toEqBN(0);
   });
 
   it('should revert if called twice', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(ARTIFACT_MINTER));
 
-    const artifact = await ArtifactContract.new();
-    await artifact.initializeArtifact(withDefaultContractInfo({ name: 'the name' }), '', '', [], 1, roleDelegate, {
-      from: ARTIFACT_MINTER,
-    });
+    const artifact = await deployArtifactContract();
+    await artifact
+      .connect(ARTIFACT_MINTER)
+      .initializeArtifact(withDefaultContractInfo({ name: 'the name' }), '', '', [], 1, roleDelegate);
 
-    await expectRevert(
-      artifact.initializeArtifact(withDefaultContractInfo({ name: 'the new name' }), '', '', [], 1, roleDelegate, {
-        from: ARTIFACT_MINTER,
-      }),
-      'Contract instance has already been initialized',
-    );
+    await expect<Promise<ContractTransaction>>(
+      artifact
+        .connect(ARTIFACT_MINTER)
+        .initializeArtifact(withDefaultContractInfo({ name: 'the new name' }), '', '', [], 1, roleDelegate),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await artifact.name()).toEqual('the name');
   });
@@ -141,15 +133,15 @@ describe('mint', () => {
   it('should give a new item to the player', async () => {
     const artifact = await createArtifact();
 
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
 
-    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1);
+    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1.address);
   });
 
   it('should set up the token uri', async () => {
     const artifact = await createArtifact({}, 'the base token uri');
 
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
 
     expect<string>(await artifact.tokenURI(1)).toEqual('the base token uri1');
   });
@@ -166,14 +158,14 @@ describe('mint', () => {
     await mintConsumable(consumable1, artifact.address, 1000);
     await mintConsumable(consumable2, artifact.address, 1000);
 
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
 
-    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1);
+    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1.address);
 
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
   });
 
   it('should not mint a new item if not enough consumables', async () => {
@@ -191,36 +183,46 @@ describe('mint', () => {
       2,
     );
 
-    await expectRevert(artifact.mint(PLAYER1, { from: ARTIFACT_MINTER }), 'not enough consumable for items');
-    await expectRevert(artifact.ownerOf(1), 'ERC721: owner query for nonexistent token');
+    await expect<Promise<ContractTransaction>>(
+      artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address),
+    ).toBeRevertedWith('not enough consumable for items');
+    await expect<Promise<string>>(artifact.ownerOf(1)).toBeRevertedWith('ERC721: owner query for nonexistent token');
 
     await mintConsumable(consumable1, artifact.address, 100);
     await mintConsumable(consumable2, artifact.address, 200);
 
-    await expectRevert(artifact.mint(PLAYER1, { from: ARTIFACT_MINTER }), 'not enough consumable for items');
-    await expectRevert(artifact.ownerOf(1), 'ERC721: owner query for nonexistent token');
+    await expect<Promise<ContractTransaction>>(
+      artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address),
+    ).toBeRevertedWith('not enough consumable for items');
+    await expect<Promise<string>>(artifact.ownerOf(1)).toBeRevertedWith('ERC721: owner query for nonexistent token');
 
     await mintConsumable(consumable1, artifact.address, 100);
 
-    await expectRevert(artifact.mint(PLAYER1, { from: ARTIFACT_MINTER }), 'not enough consumable for items');
-    await expectRevert(artifact.ownerOf(1), 'ERC721: owner query for nonexistent token');
+    await expect<Promise<ContractTransaction>>(
+      artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address),
+    ).toBeRevertedWith('not enough consumable for items');
+    await expect<Promise<string>>(artifact.ownerOf(1)).toBeRevertedWith('ERC721: owner query for nonexistent token');
 
     // finally show it works
     await mintConsumable(consumable2, artifact.address, 200);
 
-    await artifact.mint(PLAYER1, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address);
 
-    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1);
+    expect<string>(await artifact.ownerOf(1)).toEqual(PLAYER1.address);
   });
 
   it('should not mint a new item if not the minter', async () => {
     const artifact = await createArtifact();
 
-    await expectRevert(artifact.mint(PLAYER1), 'Caller does not have the Minter role');
-    await expectRevert(artifact.ownerOf(1), 'ERC721: owner query for nonexistent token');
+    await expect<Promise<ContractTransaction>>(artifact.mint(PLAYER1.address)).toBeRevertedWith(
+      'Caller does not have the Minter role',
+    );
+    await expect<Promise<string>>(artifact.ownerOf(1)).toBeRevertedWith('ERC721: owner query for nonexistent token');
 
-    await expectRevert(artifact.mint(PLAYER1, { from: PLAYER1 }), 'Caller does not have the Minter role');
-    await expectRevert(artifact.ownerOf(1), 'ERC721: owner query for nonexistent token');
+    await expect<Promise<ContractTransaction>>(artifact.connect(PLAYER1).mint(PLAYER1.address)).toBeRevertedWith(
+      'Caller does not have the Minter role',
+    );
+    await expect<Promise<string>>(artifact.ownerOf(1)).toBeRevertedWith('ERC721: owner query for nonexistent token');
   });
 
   it('should not mint if disabled', async () => {
@@ -228,16 +230,18 @@ describe('mint', () => {
 
     await disableContract(artifact, ARTIFACT_MINTER);
 
-    await expectRevert(artifact.mint(PLAYER1, { from: ARTIFACT_MINTER }), 'Contract is disabled');
+    await expect<Promise<ContractTransaction>>(
+      artifact.connect(ARTIFACT_MINTER).mint(PLAYER1.address),
+    ).toBeRevertedWith('Contract is disabled');
   });
 });
 
 describe('Enable/Disable', () => {
-  shouldRestrictEnableAndDisable(createArtifact, ARTIFACT_MINTER);
+  shouldRestrictEnableAndDisable(createArtifact, { getAdmin: () => ARTIFACT_MINTER });
 });
 
 describe('transferToken', () => {
-  shouldTransferToken(createArtifact, { superAdmin: ARTIFACT_MINTER });
+  shouldTransferToken(createArtifact, { getSuperAdmin: () => ARTIFACT_MINTER });
 
   it('should transfer token if enough to satisfy total uses', async () => {
     const consumable = await createConsumable({ name: 'Consumable' });
@@ -250,13 +254,13 @@ describe('transferToken', () => {
     );
 
     await mintConsumable(consumable, artifact.address, 1000);
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER1);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER1.address);
 
-    await artifact.transferToken(consumable.address, 10, PLAYER3, { from: ARTIFACT_MINTER });
+    await artifact.connect(ARTIFACT_MINTER).transferToken(consumable.address, 10, PLAYER3.address);
 
-    expect(await getBalance(consumable, artifact.address)).toEqual(990);
-    expect(await getBalance(consumable, PLAYER3)).toEqual(10);
+    expect<BigNumber>(await consumable.balanceOf(artifact.address)).toEqBN(990);
+    expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(10);
   });
 
   it('should not transfer token if not enough to satisfy total uses', async () => {
@@ -270,16 +274,15 @@ describe('transferToken', () => {
     );
 
     await mintConsumable(consumable, artifact.address, 200);
-    await mintItem(artifact, PLAYER1);
-    await mintItem(artifact, PLAYER1);
+    await mintItem(artifact, PLAYER1.address);
+    await mintItem(artifact, PLAYER1.address);
 
-    await expectRevert(
-      artifact.transferToken(consumable.address, 1, PLAYER3, { from: ARTIFACT_MINTER }),
-      'not enough consumable for items',
-    );
+    await expect<Promise<ContractTransaction>>(
+      artifact.connect(ARTIFACT_MINTER).transferToken(consumable.address, 1, PLAYER3.address),
+    ).toBeRevertedWith('not enough consumable for items');
   });
 });
 
 describe('transferItem', () => {
-  shouldTransferItem(createArtifact, { superAdmin: ARTIFACT_MINTER });
+  shouldTransferItem(createArtifact, { getSuperAdmin: () => ARTIFACT_MINTER });
 });

@@ -17,13 +17,37 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// SPDX-License-Identifier: GPL-3.0-only
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+import 'hardhat-typechain';
 
-pragma solidity ^0.8.3;
+import { ITypeChainCfg } from 'typechain/dist/TypeChain';
 
-library RoleSupport {
-  bytes32 public constant SUPER_ADMIN_ROLE = 0x00;
-  bytes32 public constant MINTER_ROLE = keccak256('Minter');
-  bytes32 public constant ADMIN_ROLE = keccak256('Admin');
-  bytes32 public constant TRANSFER_AGENT_ROLE = keccak256('Transfer');
-}
+type HardhatConfig = HardhatUserConfig & {
+  typechain: TypeChainConfig;
+};
+
+type TypeChainConfig = ITypeChainCfg & {
+  runOnCompile?: boolean;
+};
+
+const hardhatConfig: HardhatConfig = {
+  solidity: {
+    version: '0.8.3',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
+
+  typechain: {
+    outDir: 'types/contracts',
+    target: 'ethers-v5',
+    runOnCompile: true,
+  },
+};
+
+export default hardhatConfig;

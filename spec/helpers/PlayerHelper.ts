@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,23 +17,24 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Item } from '../../src/contracts/core/activities';
 import { ConsumableAmount } from '../../src/contracts/core/consumables';
-import { PLAYER_ADMIN, ZERO_ADDRESS } from './Accounts';
-import { getContract } from './ContractHelper';
+import { IPlayer, Player__factory } from '../../types/contracts';
+import { INITIALIZER, PLAYER_ADMIN, ZERO_ADDRESS } from './Accounts';
 
-export const PlayerContract = getContract('Player');
+export const deployPlayer = (deployer: SignerWithAddress = INITIALIZER) => new Player__factory(deployer).deploy();
 
 export const createPlayer = async (roleDelegateAddress: string = ZERO_ADDRESS) => {
-  const player = await PlayerContract.new();
-  player.initializePlayer(roleDelegateAddress, { from: PLAYER_ADMIN });
+  const player = await deployPlayer();
+  await player.connect(PLAYER_ADMIN).initializePlayer(roleDelegateAddress);
   return player;
 };
 
 export const executeActivity = async (
-  player: any,
+  player: IPlayer,
   activityAddress: string,
   useItems: Item[] = [],
   amountsToProvide: ConsumableAmount[] = [],
   amountsToConsume: ConsumableAmount[] = [],
-) => player.execute(activityAddress, useItems, amountsToProvide, amountsToConsume, { from: PLAYER_ADMIN });
+) => player.connect(PLAYER_ADMIN).execute(activityAddress, useItems, amountsToProvide, amountsToConsume);

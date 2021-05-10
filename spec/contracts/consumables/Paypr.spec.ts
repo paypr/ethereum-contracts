@@ -1,22 +1,14 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is NOT part of Paypr Ethereum Contracts and CANNOT be redistributed.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
+import { BigNumber, ContractTransaction } from 'ethers';
 import { createRolesWithAllSameRole } from '../../helpers/AccessHelper';
-import { CONSUMABLE_MINTER, getContractAddress, PLAYER1, PLAYER2, PLAYER3 } from '../../helpers/Accounts';
-import {
-  createConsumable,
-  createPaypr,
-  getAllowance,
-  getBalance,
-  increaseAllowance,
-  mintConsumable,
-  PayprContract,
-} from '../../helpers/ConsumableHelper';
-import { toNumberAsync } from '../../helpers/ContractHelper';
+import { CONSUMABLE_MINTER, PLAYER1, PLAYER2, PLAYER3 } from '../../helpers/Accounts';
+import { createConsumable, createPaypr, deployPayprContract, mintConsumable } from '../../helpers/ConsumableHelper';
+import { getContractAddress } from '../../helpers/ContractHelper';
 import {
   BASE_CONTRACT_ID,
   CONSUMABLE_EXCHANGE_ID,
@@ -48,8 +40,8 @@ describe('initializePaypr', () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
     const consumable = await createConsumable();
 
-    const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 1, 1, roleDelegate, { from: CONSUMABLE_MINTER });
+    const paypr = await deployPayprContract();
+    await paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable.address, 1, 1, roleDelegate);
 
     expect<string>(await paypr.contractName()).toEqual('Paypr');
     expect<string>(await paypr.contractDescription()).toEqual('Paypr exchange token');
@@ -60,41 +52,39 @@ describe('initializePaypr', () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
     const consumable = await createConsumable();
 
-    const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 1, 1, roleDelegate, { from: CONSUMABLE_MINTER });
+    const paypr = await deployPayprContract();
+    await paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable.address, 1, 1, roleDelegate);
 
     expect<string>(await paypr.contractName()).toEqual('Paypr');
     expect<string>(await paypr.symbol()).toEqual('ℙ');
-    expect<number>(await toNumberAsync(paypr.decimals())).toEqual(18);
+    expect<number>(await paypr.decimals()).toEqual(18);
   });
 
   it('should set the base token and base exchange rates', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
     const consumable = await createConsumable();
 
-    const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable.address, 100, 200, roleDelegate, { from: CONSUMABLE_MINTER });
+    const paypr = await deployPayprContract();
+    await paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable.address, 100, 200, roleDelegate);
 
     expect<string>(await paypr.exchangeToken()).toEqual(consumable.address);
-    expect<number>(await toNumberAsync(paypr.purchasePriceExchangeRate())).toEqual(100);
-    expect<number>(await toNumberAsync(paypr.intrinsicValueExchangeRate())).toEqual(200);
+    expect<BigNumber>(await paypr.purchasePriceExchangeRate()).toEqBN(100);
+    expect<BigNumber>(await paypr.intrinsicValueExchangeRate()).toEqBN(200);
   });
 
   it('should revert if the base exchange rate == 0', async () => {
     const roleDelegate = await getContractAddress(createRolesWithAllSameRole(CONSUMABLE_MINTER));
     const consumable = await createConsumable();
 
-    const paypr = await PayprContract.new();
+    const paypr = await deployPayprContract();
 
-    await expectRevert(
-      paypr.initializePaypr(consumable.address, 0, 1, roleDelegate, { from: CONSUMABLE_MINTER }),
-      'purchase price exchange rate must be > 0',
-    );
+    await expect<Promise<ContractTransaction>>(
+      paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable.address, 0, 1, roleDelegate),
+    ).toBeRevertedWith('purchase price exchange rate must be > 0');
 
-    await expectRevert(
-      paypr.initializePaypr(consumable.address, 1, 0, roleDelegate, { from: CONSUMABLE_MINTER }),
-      'intrinsic value exchange rate must be > 0',
-    );
+    await expect<Promise<ContractTransaction>>(
+      paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable.address, 1, 0, roleDelegate),
+    ).toBeRevertedWith('intrinsic value exchange rate must be > 0');
   });
 
   it('should revert if called twice', async () => {
@@ -103,17 +93,16 @@ describe('initializePaypr', () => {
     const consumable1 = await createConsumable();
     const consumable2 = await createConsumable();
 
-    const paypr = await PayprContract.new();
-    await paypr.initializePaypr(consumable1.address, 1, 2, roleDelegate, { from: CONSUMABLE_MINTER });
+    const paypr = await deployPayprContract();
+    await paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable1.address, 1, 2, roleDelegate);
 
-    await expectRevert(
-      paypr.initializePaypr(consumable2.address, 100, 200, roleDelegate, { from: CONSUMABLE_MINTER }),
-      'Contract instance has already been initialized',
-    );
+    await expect<Promise<ContractTransaction>>(
+      paypr.connect(CONSUMABLE_MINTER).initializePaypr(consumable2.address, 100, 200, roleDelegate),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await paypr.exchangeToken()).toEqual(consumable1.address);
-    expect<number>(await toNumberAsync(paypr.purchasePriceExchangeRate())).toEqual(1);
-    expect<number>(await toNumberAsync(paypr.intrinsicValueExchangeRate())).toEqual(2);
+    expect<BigNumber>(await paypr.purchasePriceExchangeRate()).toEqBN(1);
+    expect<BigNumber>(await paypr.intrinsicValueExchangeRate()).toEqBN(2);
   });
 });
 
@@ -123,17 +112,12 @@ describe('mint', () => {
 
     const paypr = await createPaypr(consumable.address);
 
-    await paypr.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER });
-    await paypr.mint(PLAYER2, 50, { from: CONSUMABLE_MINTER });
+    await paypr.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100);
+    await paypr.connect(CONSUMABLE_MINTER).mint(PLAYER2.address, 50);
 
-    const result1 = await getBalance(paypr, PLAYER1);
-    expect<number>(result1).toEqual(100);
-
-    const result2 = await getBalance(paypr, PLAYER2);
-    expect<number>(result2).toEqual(50);
-
-    const result3 = await getBalance(paypr, PLAYER3);
-    expect<number>(result3).toEqual(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER2.address)).toEqBN(50);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER3.address)).toEqBN(0);
   });
 
   it('should increase total supply', async () => {
@@ -141,11 +125,10 @@ describe('mint', () => {
 
     const paypr = await createPaypr(consumable.address);
 
-    await paypr.mint(PLAYER1, 100, { from: CONSUMABLE_MINTER });
-    await paypr.mint(PLAYER2, 50, { from: CONSUMABLE_MINTER });
+    await paypr.connect(CONSUMABLE_MINTER).mint(PLAYER1.address, 100);
+    await paypr.connect(CONSUMABLE_MINTER).mint(PLAYER2.address, 50);
 
-    const result1 = await toNumberAsync(paypr.totalSupply());
-    expect<number>(result1).toEqual(150);
+    expect<BigNumber>(await paypr.totalSupply()).toEqBN(150);
   });
 
   it('should not mint coins if not the minter', async () => {
@@ -153,13 +136,12 @@ describe('mint', () => {
 
     const paypr = await createPaypr(consumable.address);
 
-    await expectRevert(paypr.mint(PLAYER1, 100, { from: PLAYER2 }), 'Caller does not have the Minter role');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER2).mint(PLAYER1.address, 100)).toBeRevertedWith(
+      'Caller does not have the Minter role',
+    );
 
-    const result1 = await getBalance(paypr, PLAYER1);
-    expect<number>(result1).toEqual(0);
-
-    const result2 = await getBalance(paypr, PLAYER2);
-    expect<number>(result2).toEqual(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER2.address)).toEqBN(0);
   });
 });
 
@@ -169,28 +151,28 @@ describe('mintByExchange', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const paypr = await createPaypr(consumable1.address, 1);
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 100);
 
-    await paypr.mintByExchange(100, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(100);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(100);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(100);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 50);
 
-    await paypr.mintByExchange(50, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(50);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(150);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(150);
   });
 
   it('should exchange proper amount when the exchange rate is large', async () => {
@@ -198,28 +180,28 @@ describe('mintByExchange', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const paypr = await createPaypr(consumable1.address, 1000);
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 100);
 
-    await paypr.mintByExchange(100_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(100_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(100_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(100_000);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 50);
 
-    await paypr.mintByExchange(50_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(50_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(150_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(150_000);
   });
 
   it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
@@ -227,28 +209,28 @@ describe('mintByExchange', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const paypr = await createPaypr(consumable1.address, 10, 100);
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 100);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 100);
 
-    await paypr.mintByExchange(1000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(1000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(900);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(1000);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 50);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 50);
 
-    await paypr.mintByExchange(500, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).mintByExchange(500);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(850);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(1500);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(850);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(1500);
   });
 
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is 1', async () => {
@@ -256,26 +238,30 @@ describe('mintByExchange', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const paypr = await createPaypr(consumable1.address, 1);
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await expectRevert(paypr.mintByExchange(100, { from: PLAYER1 }), 'transfer amount exceeds allowance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).mintByExchange(100)).toBeRevertedWith(
+      'transfer amount exceeds allowance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 99);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 99);
 
-    await expectRevert(paypr.mintByExchange(100, { from: PLAYER1 }), 'transfer amount exceeds allowance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).mintByExchange(100)).toBeRevertedWith(
+      'transfer amount exceeds allowance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
   });
 
   it('should revert if the sender does not allow the correct exchangeToken balance of the sender when the exchange rate is large', async () => {
@@ -283,33 +269,37 @@ describe('mintByExchange', () => {
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
     const paypr = await createPaypr(consumable1.address, 1000);
 
-    await mintConsumable(consumable1, PLAYER1, 1000);
-    await mintConsumable(consumable2, PLAYER1, 1000);
+    await mintConsumable(consumable1, PLAYER1.address, 1000);
+    await mintConsumable(consumable2, PLAYER1.address, 1000);
 
-    await expectRevert(paypr.mintByExchange(100000, { from: PLAYER1 }), 'transfer amount exceeds allowance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).mintByExchange(100000)).toBeRevertedWith(
+      'transfer amount exceeds allowance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await increaseAllowance(consumable1, PLAYER1, paypr.address, 99);
+    await consumable1.connect(PLAYER1).increaseAllowance(paypr.address, 99);
 
-    await expectRevert(paypr.mintByExchange(100000, { from: PLAYER1 }), 'transfer amount exceeds allowance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).mintByExchange(100000)).toBeRevertedWith(
+      'transfer amount exceeds allowance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, PLAYER1, paypr.address)).toEqual(99);
-    expect<number>(await getAllowance(consumable2, PLAYER1, paypr.address)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, paypr.address)).toEqBN(99);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, paypr.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
   });
 });
 
 describe('burnByExchange', () => {
   it('should exchange proper amount when the exchange rate is 1', async () => {
     const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
-    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+    await roleDelegate.connect(CONSUMABLE_MINTER).addMinter(PLAYER1.address);
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -317,34 +307,34 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
-    await mintConsumable(paypr, PLAYER1, 1000);
+    await mintConsumable(paypr, PLAYER1.address, 1000);
 
-    await paypr.burnByExchange(100, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(100);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(900);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(900);
 
-    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(paypr.address, PLAYER1.address, 100);
 
-    await paypr.burnByExchange(50, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(50);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(850);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(850);
   });
 
   it('should exchange proper amount when the exchange rate is large', async () => {
     const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
-    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+    await roleDelegate.connect(CONSUMABLE_MINTER).addMinter(PLAYER1.address);
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -352,34 +342,34 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
-    await mintConsumable(paypr, PLAYER1, 1_000_000);
+    await mintConsumable(paypr, PLAYER1.address, 1_000_000);
 
-    await paypr.burnByExchange(100_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(100_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(900_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(900_000);
 
-    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(paypr.address, PLAYER1.address, 100);
 
-    await paypr.burnByExchange(50_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(50_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(850_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(850_000);
   });
 
   it('should exchange proper amount when the exchange rates are asymmetrical', async () => {
     const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
-    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+    await roleDelegate.connect(CONSUMABLE_MINTER).addMinter(PLAYER1.address);
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -387,29 +377,29 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
-    await mintConsumable(paypr, PLAYER1, 100_000);
+    await mintConsumable(paypr, PLAYER1.address, 100_000);
 
-    await paypr.burnByExchange(10_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(10_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(100);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(90_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(90_000);
 
-    await consumable1.transferFrom(paypr.address, PLAYER1, 100, { from: PLAYER1 });
+    await consumable1.connect(PLAYER1).transferFrom(paypr.address, PLAYER1.address, 100);
 
-    await paypr.burnByExchange(5_000, { from: PLAYER1 });
+    await paypr.connect(PLAYER1).burnByExchange(5_000);
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(100);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(900);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(50);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(85_000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(100);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(900);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(50);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(85_000);
   });
 
   it('should revert if sender is not minter', async () => {
@@ -419,23 +409,25 @@ describe('burnByExchange', () => {
 
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
-    await mintConsumable(paypr, PLAYER1, 1000);
+    await mintConsumable(paypr, PLAYER1.address, 1000);
 
-    await expectRevert(paypr.burnByExchange(200, { from: PLAYER1 }), 'Caller does not have the Minter role');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).burnByExchange(200)).toBeRevertedWith(
+      'Caller does not have the Minter role',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(1000);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(1000);
   });
 
   it('should revert if the sender does not have enough token to burn when the exchange rate is 1', async () => {
     // TODO: remove when ready to exchange
     const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
-    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+    await roleDelegate.connect(CONSUMABLE_MINTER).addMinter(PLAYER1.address);
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -444,33 +436,37 @@ describe('burnByExchange', () => {
     await mintConsumable(consumable1, paypr.address, 1000);
     await mintConsumable(consumable2, paypr.address, 1000);
 
-    await expectRevert(paypr.burnByExchange(100, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).burnByExchange(100)).toBeRevertedWith(
+      'burn amount exceeds balance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await mintConsumable(paypr, PLAYER1, 99);
+    await mintConsumable(paypr, PLAYER1.address, 99);
 
-    await expectRevert(paypr.burnByExchange(100, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).burnByExchange(100)).toBeRevertedWith(
+      'burn amount exceeds balance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(99);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(99);
   });
 
   it('should revert if the sender does not have enough token to burn when the exchange rate is large', async () => {
     // TODO: remove when ready to exchange
     const roleDelegate = await createRolesWithAllSameRole(CONSUMABLE_MINTER);
-    await roleDelegate.addMinter(PLAYER1, { from: CONSUMABLE_MINTER });
+    await roleDelegate.connect(CONSUMABLE_MINTER).addMinter(PLAYER1.address);
 
     const consumable1 = await createConsumable({ name: 'Consumable 1' });
     const consumable2 = await createConsumable({ name: 'Consumable 2' });
@@ -479,27 +475,31 @@ describe('burnByExchange', () => {
     await mintConsumable(consumable1, paypr.address, 1_000_000);
     await mintConsumable(consumable2, paypr.address, 1_000_000);
 
-    await expectRevert(paypr.burnByExchange(100_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).burnByExchange(100_000)).toBeRevertedWith(
+      'burn amount exceeds balance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1_000_000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1_000_000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(0);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await mintConsumable(paypr, PLAYER1, 99_999);
+    await mintConsumable(paypr, PLAYER1.address, 99_999);
 
-    await expectRevert(paypr.burnByExchange(100_000, { from: PLAYER1 }), 'burn amount exceeds balance');
+    await expect<Promise<ContractTransaction>>(paypr.connect(PLAYER1).burnByExchange(100_000)).toBeRevertedWith(
+      'burn amount exceeds balance',
+    );
 
-    expect<number>(await getBalance(consumable1, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable2, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(consumable1, paypr.address)).toEqual(1_000_000);
-    expect<number>(await getBalance(consumable2, paypr.address)).toEqual(1_000_000);
-    expect<number>(await getAllowance(consumable1, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getAllowance(consumable2, paypr.address, PLAYER1)).toEqual(0);
-    expect<number>(await getBalance(paypr, PLAYER1)).toEqual(99_999);
+    expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(paypr.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable2.balanceOf(paypr.address)).toEqBN(1_000_000);
+    expect<BigNumber>(await consumable1.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(paypr.address, PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await paypr.balanceOf(PLAYER1.address)).toEqBN(99_999);
   });
 });
 
@@ -509,7 +509,7 @@ describe('Enable/Disable', () => {
     return createPaypr(consumable.address);
   };
 
-  shouldRestrictEnableAndDisable(create, CONSUMABLE_MINTER);
+  shouldRestrictEnableAndDisable(create, { getAdmin: () => CONSUMABLE_MINTER });
 });
 
 describe('transferToken', () => {
@@ -518,7 +518,7 @@ describe('transferToken', () => {
     return createPaypr(consumable.address);
   };
 
-  shouldTransferToken(create, { superAdmin: CONSUMABLE_MINTER });
+  shouldTransferToken(create, { getSuperAdmin: () => CONSUMABLE_MINTER });
 });
 
 describe('transferItem', () => {
@@ -527,5 +527,5 @@ describe('transferItem', () => {
     return createPaypr(consumable.address);
   };
 
-  shouldTransferItem(create, { superAdmin: CONSUMABLE_MINTER });
+  shouldTransferItem(create, { getSuperAdmin: () => CONSUMABLE_MINTER });
 });

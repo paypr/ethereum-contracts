@@ -19,14 +19,14 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/ERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165StorageUpgradeable.sol';
 import './IBaseContract.sol';
 import './BaseContractInterfaceSupport.sol';
 
-contract BaseContract is Initializable, IBaseContract, ERC165UpgradeSafe {
+contract BaseContract is Initializable, IBaseContract, ERC165StorageUpgradeable {
   struct ContractInfo {
     string name;
     string description;
@@ -42,15 +42,15 @@ contract BaseContract is Initializable, IBaseContract, ERC165UpgradeSafe {
     _info = info;
   }
 
-  function contractName() external override view returns (string memory) {
+  function contractName() external view override returns (string memory) {
     return _info.name;
   }
 
-  function contractDescription() external override view returns (string memory) {
+  function contractDescription() external view override returns (string memory) {
     return _info.description;
   }
 
-  function contractUri() external override view returns (string memory) {
+  function contractUri() external view override returns (string memory) {
     return _info.uri;
   }
 

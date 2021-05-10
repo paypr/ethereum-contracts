@@ -19,20 +19,20 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
 import './Artifact.sol';
 import '../access/DelegatingRoles.sol';
 import '../Disableable.sol';
 
-contract ConfigurableArtifact is Initializable, ContextUpgradeSafe, Artifact, Disableable, DelegatingRoles {
+contract ConfigurableArtifact is Initializable, ContextUpgradeable, Artifact, Disableable, DelegatingRoles {
   using TransferLogic for address;
 
-  using Counters for Counters.Counter;
+  using CountersUpgradeable for CountersUpgradeable.Counter;
 
-  Counters.Counter private _lastItemId;
+  CountersUpgradeable.Counter private _lastItemId;
 
   function initializeArtifact(
     ContractInfo memory info,
@@ -57,7 +57,7 @@ contract ConfigurableArtifact is Initializable, ContextUpgradeSafe, Artifact, Di
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -66,7 +66,7 @@ contract ConfigurableArtifact is Initializable, ContextUpgradeSafe, Artifact, Di
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

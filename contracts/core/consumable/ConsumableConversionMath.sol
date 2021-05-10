@@ -19,15 +19,15 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './IConvertibleConsumable.sol';
 import './ConvertibleConsumableInterfaceSupport.sol';
 import './IConsumableExchange.sol';
 
 library ConsumableConversionMath {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using ConvertibleConsumableInterfaceSupport for IConvertibleConsumable;
 
   function exchangeTokenNeeded(IConsumable.ConsumableAmount memory consumableAmount) internal view returns (uint256) {

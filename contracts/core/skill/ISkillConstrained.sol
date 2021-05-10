@@ -19,12 +19,12 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
 import './ISkill.sol';
 
-interface ISkillConstrained is IERC165 {
+interface ISkillConstrained is IERC165Upgradeable {
   /**
    * @dev Returns the list of required skills
    */

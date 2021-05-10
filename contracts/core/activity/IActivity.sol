@@ -19,14 +19,14 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/introspection/IERC165.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol';
 import '../consumable/IConsumableConsumer.sol';
 import '../consumable/IConsumableProvider.sol';
 
-interface IActivity is IERC165, IConsumableConsumer, IConsumableProvider {
+interface IActivity is IERC165Upgradeable, IConsumableConsumer, IConsumableProvider {
   /**
    * Emitted when an item is used
    *

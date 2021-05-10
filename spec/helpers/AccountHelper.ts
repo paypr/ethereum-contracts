@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,14 +17,14 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Account__factory } from '../../types/contracts';
 import { SUPER_ADMIN } from './AccessHelper';
-import { ZERO_ADDRESS } from './Accounts';
-import { getContract } from './ContractHelper';
+import { INITIALIZER, ZERO_ADDRESS } from './Accounts';
 
-export const AccountContract = getContract('Account');
+export const deployAccountContract = () => new Account__factory(INITIALIZER).deploy();
 
 export const createAccount = async (roleDelegateAddress: string = ZERO_ADDRESS) => {
-  const account = await AccountContract.new();
-  await account.initializeAccount(roleDelegateAddress, { from: SUPER_ADMIN });
+  const account = await deployAccountContract();
+  await account.connect(SUPER_ADMIN).initializeAccount(roleDelegateAddress);
   return account;
 };

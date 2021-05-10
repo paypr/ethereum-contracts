@@ -6,18 +6,18 @@
 
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import '../core/consumable/ConsumableExchange.sol';
 import '../core/consumable/ConvertibleConsumable.sol';
 import '../core/access/DelegatingRoles.sol';
 
 contract Paypr is
   Initializable,
-  ContextUpgradeSafe,
-  ERC165UpgradeSafe,
+  ContextUpgradeable,
+  ERC165StorageUpgradeable,
   BaseContract,
   Consumable,
   ConvertibleConsumable,
@@ -25,7 +25,7 @@ contract Paypr is
   Disableable,
   DelegatingRoles
 {
-  using SafeMath for uint256;
+  using SafeMathUpgradeable for uint256;
   using TransferLogic for address;
 
   function initializePaypr(
@@ -34,13 +34,10 @@ contract Paypr is
     uint256 baseIntrinsicValueExchangeRate,
     IRoleDelegate roleDelegate
   ) public initializer {
-    ContractInfo memory info = ContractInfo({
-      name: 'Paypr',
-      description: 'Paypr exchange token',
-      uri: 'https://paypr.money/'
-    });
+    ContractInfo memory info =
+      ContractInfo({ name: 'Paypr', description: 'Paypr exchange token', uri: 'https://paypr.money/' });
 
-    string memory symbol = 'ℙ';
+    string memory symbol = unicode'ℙ';
 
     _initializeConvertibleConsumable(
       info,
@@ -65,8 +62,8 @@ contract Paypr is
     _mint(account, amount);
   }
 
-  function _mint(address account, uint256 amount) internal override(ERC20UpgradeSafe, ConvertibleConsumable) {
-    ERC20UpgradeSafe._mint(account, amount);
+  function _mint(address account, uint256 amount) internal override(ERC20Upgradeable, ConvertibleConsumable) {
+    ERC20Upgradeable._mint(account, amount);
   }
 
   /**
@@ -93,7 +90,7 @@ contract Paypr is
   }
 
   function transferToken(
-    IERC20 token,
+    IERC20Upgradeable token,
     uint256 amount,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {
@@ -101,7 +98,7 @@ contract Paypr is
   }
 
   function transferItem(
-    IERC721 artifact,
+    IERC721Upgradeable artifact,
     uint256 itemId,
     address recipient
   ) external override onlyTransferAgent onlyEnabled {

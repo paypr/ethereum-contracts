@@ -19,14 +19,14 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/access/AccessControl.sol';
+import '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
 import './DelegatingRoles.sol';
 import './IRoleDelegate.sol';
 import './RoleSupport.sol';
 
-contract Roles is IRoleDelegate, Initializable, ContextUpgradeSafe, AccessControlUpgradeSafe, DelegatingRoles {
+contract Roles is IRoleDelegate, Initializable, ContextUpgradeable, AccessControlUpgradeable, DelegatingRoles {
   function _initializeRoles(IRoleDelegate roleDelegate) public initializer {
     if (address(roleDelegate) != address(0)) {
       _addRoleDelegate(roleDelegate);
@@ -35,11 +35,11 @@ contract Roles is IRoleDelegate, Initializable, ContextUpgradeSafe, AccessContro
     }
   }
 
-  function isInRole(bytes32 role, address account) external override view returns (bool) {
+  function isInRole(bytes32 role, address account) external view override returns (bool) {
     return _hasRole(role, account);
   }
 
-  function _hasRole(bytes32 role, address account) internal override view returns (bool) {
+  function _hasRole(bytes32 role, address account) internal view override returns (bool) {
     if (hasRole(role, account)) {
       return true;
     }

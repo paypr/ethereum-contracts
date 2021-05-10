@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,10 +17,10 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { expectRevert } from '@openzeppelin/test-helpers';
-import { ERC165_ID, BASE_CONTRACT_ID } from '../../helpers/ContractIds';
-import { createBaseContract, BaseContractContract } from '../../helpers/BaseContractHelper';
-import { shouldSupportInterface } from '../../helpers/ERC165';
+import { ContractTransaction } from 'ethers';
+import { createBaseContract, deployBaseContract } from '../helpers/BaseContractHelper';
+import { BASE_CONTRACT_ID, ERC165_ID } from '../helpers/ContractIds';
+import { shouldSupportInterface } from '../helpers/ERC165';
 
 describe('supportsInterface', () => {
   shouldSupportInterface('ERC165', createBaseContract, ERC165_ID);
@@ -29,34 +29,37 @@ describe('supportsInterface', () => {
 
 describe('initialize', () => {
   it('should set the name', async () => {
-    const BaseContract = await BaseContractContract.new();
+    const BaseContract = await deployBaseContract();
     await BaseContract.initialize({ name: 'the name', description: '', uri: '' });
 
     expect<string>(await BaseContract.contractName()).toEqual('the name');
   });
 
   it('should set the description', async () => {
-    const BaseContract = await BaseContractContract.new();
+    const BaseContract = await deployBaseContract();
     await BaseContract.initialize({ name: '', description: 'the description', uri: '' });
 
     expect<string>(await BaseContract.contractDescription()).toEqual('the description');
   });
 
   it('should set the uri', async () => {
-    const BaseContract = await BaseContractContract.new();
+    const BaseContract = await deployBaseContract();
     await BaseContract.initialize({ name: '', description: '', uri: 'the uri' });
 
     expect<string>(await BaseContract.contractUri()).toEqual('the uri');
   });
 
   it('should revert if called twice', async () => {
-    const BaseContract = await BaseContractContract.new();
+    const BaseContract = await deployBaseContract();
     await BaseContract.initialize({ name: 'the name', description: '', uri: '' });
 
-    await expectRevert(
-      BaseContract.initialize({ name: 'the new name', description: '', uri: '' }),
-      'Contract instance has already been initialized',
-    );
+    await expect<Promise<ContractTransaction>>(
+      BaseContract.initialize({
+        name: 'the new name',
+        description: '',
+        uri: '',
+      }),
+    ).toBeRevertedWith('contract is already initialized');
 
     expect<string>(await BaseContract.contractName()).toEqual('the name');
   });

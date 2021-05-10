@@ -19,9 +19,9 @@
 
 // SPDX-License-Identifier: GPL-3.0-only
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.3;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '../BaseContract.sol';
 import './ArtifactInterfaceSupport.sol';
 import './IArtifact.sol';
@@ -35,17 +35,19 @@ import '../transfer/ITransferring.sol';
 abstract contract Artifact is
   IDisableable,
   Initializable,
-  ContextUpgradeSafe,
+  ContextUpgradeable,
   ITransferring,
-  ERC165UpgradeSafe,
+  ERC165StorageUpgradeable,
   IArtifact,
   BaseContract,
   ConsumableProvider,
-  ERC721UpgradeSafe
+  ERC721Upgradeable
 {
+  using SafeMathUpgradeable for uint256;
   using TransferLogic for address;
 
   uint256 private _initialUses;
+  string private _baseUri;
 
   mapping(uint256 => uint256) private _usesLeft;
   uint256 private _totalUsesLeft;
@@ -64,20 +66,27 @@ abstract contract Artifact is
 
     __ERC721_init(info.name, symbol);
     _registerInterface(TransferringInterfaceSupport.TRANSFERRING_INTERFACE_ID);
-    _setBaseURI(baseUri);
+    _baseUri = baseUri;
 
     _initialUses = initialUses;
   }
 
-  function initialUses() external override view returns (uint256) {
+  /**
+   * @dev Base URI for computing {tokenURI}.
+   */
+  function _baseURI() internal view virtual override returns (string memory) {
+    return _baseUri;
+  }
+
+  function initialUses() external view override returns (uint256) {
     return _initialUses;
   }
 
-  function usesLeft(uint256 itemId) external override view returns (uint256) {
+  function usesLeft(uint256 itemId) external view override returns (uint256) {
     return _usesLeft[itemId];
   }
 
-  function totalUsesLeft() external override view returns (uint256) {
+  function totalUsesLeft() external view override returns (uint256) {
     return _totalUsesLeft;
   }
 
@@ -115,6 +124,16 @@ abstract contract Artifact is
     bytes calldata data
   ) external virtual override returns (bytes4) {
     return TransferLogic.onERC721Received(operator, from, tokenId, data);
+  }
+
+  function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(IERC165Upgradeable, ERC721Upgradeable, ERC165StorageUpgradeable)
+    returns (bool)
+  {
+    return ERC165StorageUpgradeable.supportsInterface(interfaceId);
   }
 
   uint256[50] private ______gap;
