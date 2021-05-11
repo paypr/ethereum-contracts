@@ -20,12 +20,14 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 
-export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
 export let accounts: SignerWithAddress[] = [];
 
 export let INITIALIZER: SignerWithAddress;
+export let DIAMOND_CUTTER: SignerWithAddress;
+export let DISABLER: SignerWithAddress;
+export let TRANSFER_AGENT: SignerWithAddress;
 export let CONSUMABLE_MINTER: SignerWithAddress;
+export let CONSUMABLE_LIMITER: SignerWithAddress;
 export let ARTIFACT_MINTER: SignerWithAddress;
 export let PLAYER_ADMIN: SignerWithAddress;
 export let PLAYER1: SignerWithAddress;
@@ -47,6 +49,10 @@ export const initAccounts = async () => {
 
   [
     INITIALIZER,
+    DISABLER,
+    TRANSFER_AGENT,
+    DIAMOND_CUTTER,
+    CONSUMABLE_LIMITER,
     CONSUMABLE_MINTER,
     ARTIFACT_MINTER,
     PLAYER_ADMIN,
