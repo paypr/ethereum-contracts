@@ -20,28 +20,28 @@
     "rebuild": "npm run clean && npm run build",
     "test": "jest",
     "posttest": "npm run lint",
-    "lint": "tslint -c tslint.json --project tsconfig.json && tslint -c tslint.json --project spec/tsconfig.json",
+    "lint": "eslint",
     "pretty": "pretty-quick --stage"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "26.0.24",
-    "@types/node": "14.17.6",
+    "@types/node": "16.4.5",
+    "@typescript-eslint/eslint-plugin": "4.28.5",
+    "@typescript-eslint/parser": "4.28.5",
+    "eslint": "7.31.0",
+    "eslint-plugin-import": "2.23.4",
+    "eslint-plugin-prettier": "3.4.0",
     "jest": "27.0.6",
     "prettier": "2.3.2",
     "pretty-quick": "3.1.1",
     "ts-jest": "27.0.4",
     "ts-node": "10.1.0",
-    "tslint": "5.20.1",
-    "tslint-config-airbnb": "5.11.2",
-    "tslint-config-prettier": "1.18.0",
-    "tslint-react": "5.0.0",
     "tsutils": "3.21.0",
-    "typescript": "4.3.5"
+    "typescript": "4.3.5",
+    "typescript-eslint": "0.0.1-alpha.0"
   },
-  "optionalDependencies": {},
   "engines": {
-    "npm": ">=6.13",
-    "node": ">=12.16"
+    "npm": ">=7.20",
+    "node": ">=16.5"
   }
 }
