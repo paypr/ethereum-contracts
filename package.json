@@ -21,7 +21,7 @@
     "test": "jest",
     "posttest": "npm run lint",
     "lint": "eslint",
-    "pretty": "pretty-quick --stage"
+    "pretty": "pretty-quick"
   },
   "devDependencies": {
     "@types/jest": "26.0.24",
