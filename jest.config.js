@@ -20,7 +20,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testTimeout: 60000,
+  testTimeout: 120_000,
   cacheDirectory: './tmp/',
   setupFilesAfterEnv: ['./spec/setup/WaffleSetup.ts', './spec/setup/EthersSetup.ts'],
   globals: {

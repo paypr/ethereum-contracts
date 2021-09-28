@@ -17,24 +17,14 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { HardhatUserConfig } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
-import 'hardhat-typechain';
+import '@typechain/hardhat';
+import { HardhatUserConfig } from 'hardhat/config';
 
-import { ITypeChainCfg } from 'typechain/dist/TypeChain';
-
-type HardhatConfig = HardhatUserConfig & {
-  typechain: TypeChainConfig;
-};
-
-type TypeChainConfig = ITypeChainCfg & {
-  runOnCompile?: boolean;
-};
-
-const hardhatConfig: HardhatConfig = {
+const hardhatConfig: HardhatUserConfig = {
   solidity: {
-    version: '0.8.3',
+    version: '0.8.8',
     settings: {
       optimizer: {
         enabled: true,
@@ -46,7 +36,6 @@ const hardhatConfig: HardhatConfig = {
   typechain: {
     outDir: 'types/contracts',
     target: 'ethers-v5',
-    runOnCompile: true,
   },
 };
 

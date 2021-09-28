@@ -17,57 +17,116 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Erc165InterfaceId } from '../../../src/contracts/erc165';
 import {
-  ACTIVITY_ID,
-  ARTIFACT_ID,
-  BASE_CONTRACT_ID,
-  Byte4String,
-  CONSUMABLE_CONSUMER_ID,
-  CONSUMABLE_EXCHANGE_ID,
-  CONSUMABLE_ID,
-  CONSUMABLE_PROVIDER_ID,
-  CONVERTIBLE_CONSUMABLE_ID,
-  LIMITED_CONSUMABLE_ID,
-  PLAYER_ID,
-  ROLE_DELEGATE_ID,
-  SKILL_CONSTRAINED_ID,
-  SKILL_ID,
-  TRANSFERRING_ID,
-} from '../../helpers/ContractIds';
-import { INITIALIZER } from '../../helpers/Accounts';
+  ACCESS_CONTROL_INTERFACE_ID,
+  ACCESS_DELEGATE_INTERFACE_ID,
+  ACTIVITY_EXECUTOR_INTERFACE_ID,
+  ACTIVITY_INTERFACE_ID,
+  ARTIFACT_INTERFACE_ID,
+  ARTIFACT_MINTABLE_INTERFACE_ID,
+  CONSUMABLE_CONSUMER_INTERFACE_ID,
+  CONSUMABLE_CONVERSION_INTERFACE_ID,
+  CONSUMABLE_EXCHANGE_INTERFACE_ID,
+  CONSUMABLE_EXCHANGING_INTERFACE_ID,
+  CONSUMABLE_INTERFACE_ID,
+  CONSUMABLE_LIMIT_INTERFACE_ID,
+  CONSUMABLE_LIMITER_INTERFACE_ID,
+  CONSUMABLE_MINT_INTERFACE_ID,
+  CONSUMABLE_PROVIDER_INTERFACE_ID,
+  CONTRACT_INFO_INTERFACE_ID,
+  DELEGATING_ACCESS_CONTROL_INTERFACE_ID,
+  DIAMOND_CUT_INTERFACE_ID,
+  DIAMOND_LOUPE_INTERFACE_ID,
+  DISABLEABLE_INTERFACE_ID,
+  ERC165_INTERFACE_ID,
+  ERC721_BURNABLE_INTERFACE_ID,
+  ERC721_INTERFACE_ID,
+  ERC721_METADATA_INTERFACE_ID,
+  ERC721_MINTABLE_INTERFACE_ID,
+  ERC721_TOKEN_INFO_INTERFACE_ID,
+  SKILL_ACQUIRER_INTERFACE_ID,
+  SKILL_CONSTRAINED_INTERFACE_ID,
+  SKILL_INTERFACE_ID,
+  SKILL_SELF_ACQUISITION_INTERFACE_ID,
+  TRANSFERRING_INTERFACE_ID,
+} from '../../../src/contracts/erc165InterfaceIds';
 import { ERC165IdCalc, ERC165IdCalc__factory } from '../../../types/contracts';
+import { INITIALIZER } from '../../helpers/Accounts';
 
 export const deployERC165IdCalcContract = () => new ERC165IdCalc__factory(INITIALIZER).deploy();
 
-const calcShouldMatch = (
-  interfaceName: string,
-  calcInterfaceId: (idCalc: ERC165IdCalc) => Promise<string>,
-  interfaceId: Byte4String,
-) => {
-  it(`calc${interfaceName}InterfaceId should match ${interfaceName} id`, async () => {
-    const idCalc = await deployERC165IdCalcContract();
+type InterfaceTest = [string, Erc165InterfaceId, (ERC165IdCalc) => Promise<Erc165InterfaceId>];
 
-    expect<string>(await calcInterfaceId(idCalc)).toEqual(interfaceId);
-  });
-};
+const interfaceTests: InterfaceTest[] = [
+  // facets
+  ['AccessControl', ACCESS_CONTROL_INTERFACE_ID, (idCalc) => idCalc.calcAccessControlInterfaceId()],
+  ['AccessDelegate', ACCESS_DELEGATE_INTERFACE_ID, (idCalc) => idCalc.calcAccessDelegateInterfaceId()],
+  ['Activity', ACTIVITY_INTERFACE_ID, (idCalc) => idCalc.calcActivityInterfaceId()],
+  ['ActivityExecutor', ACTIVITY_EXECUTOR_INTERFACE_ID, (idCalc) => idCalc.calcActivityExecutorInterfaceId()],
+  ['Artifact', ARTIFACT_INTERFACE_ID, (idCalc) => idCalc.calcArtifactInterfaceId()],
+  ['ArtifactMintable', ARTIFACT_MINTABLE_INTERFACE_ID, (idCalc) => idCalc.calcArtifactMintableInterfaceId()],
+  ['Consumable', CONSUMABLE_INTERFACE_ID, (idCalc) => idCalc.calcConsumableInterfaceId()],
+  ['ConsumableConsumer', CONSUMABLE_CONSUMER_INTERFACE_ID, (idCalc) => idCalc.calcConsumableConsumerInterfaceId()],
+  [
+    'ConsumableConversion',
+    CONSUMABLE_CONVERSION_INTERFACE_ID,
+    (idCalc) => idCalc.calcConsumableConversionInterfaceId(),
+  ],
+  ['ConsumableExchange', CONSUMABLE_EXCHANGE_INTERFACE_ID, (idCalc) => idCalc.calcConsumableExchangeInterfaceId()],
+  [
+    'ConsumableExchanging',
+    CONSUMABLE_EXCHANGING_INTERFACE_ID,
+    (idCalc) => idCalc.calcConsumableExchangingInterfaceId(),
+  ],
+  ['ConsumableLimit', CONSUMABLE_LIMIT_INTERFACE_ID, (idCalc) => idCalc.calcConsumableLimitInterfaceId()],
+  ['ConsumableLimiter', CONSUMABLE_LIMITER_INTERFACE_ID, (idCalc) => idCalc.calcConsumableLimiterInterfaceId()],
+  ['ConsumableMint', CONSUMABLE_MINT_INTERFACE_ID, (idCalc) => idCalc.calcConsumableMintInterfaceId()],
+  ['ConsumableProvider', CONSUMABLE_PROVIDER_INTERFACE_ID, (idCalc) => idCalc.calcConsumableProviderInterfaceId()],
+  ['ContractInfo', CONTRACT_INFO_INTERFACE_ID, (idCalc) => idCalc.calcContractInfoInterfaceId()],
+  [
+    'DelegatingAccessControl',
+    DELEGATING_ACCESS_CONTROL_INTERFACE_ID,
+    (idCalc) => idCalc.calcDelegatingAccessControlInterfaceId(),
+  ],
+  ['DiamondCut', DIAMOND_CUT_INTERFACE_ID, (idCalc) => idCalc.calcDiamondCutInterfaceId()],
+  ['DiamondLoupe', DIAMOND_LOUPE_INTERFACE_ID, (idCalc) => idCalc.calcDiamondLoupeInterfaceId()],
+  ['Disableable', DISABLEABLE_INTERFACE_ID, (idCalc) => idCalc.calcDisableableInterfaceId()],
+  ['ERC165', ERC165_INTERFACE_ID, (idCalc) => idCalc.calcERC165InterfaceId()],
+  ['ERC721', ERC721_INTERFACE_ID, (idCalc) => idCalc.calcERC721InterfaceId()],
+  ['ERC721Burnable', ERC721_BURNABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721BurnableInterfaceId()],
+  ['ERC721Metadata', ERC721_METADATA_INTERFACE_ID, (idCalc) => idCalc.calcERC721MetadataInterfaceId()],
+  ['ERC721Mintable', ERC721_MINTABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721MintableInterfaceId()],
+  ['ERC721TokenInfo', ERC721_TOKEN_INFO_INTERFACE_ID, (idCalc) => idCalc.calcERC721TokenInfoInterfaceId()],
+  ['Skill', SKILL_INTERFACE_ID, (idCalc) => idCalc.calcSkillInterfaceId()],
+  ['SkillAcquirer', SKILL_ACQUIRER_INTERFACE_ID, (idCalc) => idCalc.calcSkillAcquirerInterfaceId()],
+  ['SkillConstrained', SKILL_CONSTRAINED_INTERFACE_ID, (idCalc) => idCalc.calcSkillConstrainedInterfaceId()],
+  [
+    'SkillSelfAcquisition',
+    SKILL_SELF_ACQUISITION_INTERFACE_ID,
+    (idCalc) => idCalc.calcSkillSelfAcquisitionInterfaceId(),
+  ],
+  ['Transfer', TRANSFERRING_INTERFACE_ID, (idCalc) => idCalc.calcTransferInterfaceId()],
+];
 
 describe('calculations', () => {
-  calcShouldMatch('Activity', (idCalc) => idCalc.calcActivityInterfaceId(), ACTIVITY_ID);
-  calcShouldMatch('Artifact', (idCalc) => idCalc.calcArtifactInterfaceId(), ARTIFACT_ID);
-  calcShouldMatch('Consumable', (idCalc) => idCalc.calcConsumableInterfaceId(), CONSUMABLE_ID);
-  calcShouldMatch('ConsumableConsumer', (idCalc) => idCalc.calcConsumableConsumerInterfaceId(), CONSUMABLE_CONSUMER_ID);
-  calcShouldMatch('ConsumableProvider', (idCalc) => idCalc.calcConsumableProviderInterfaceId(), CONSUMABLE_PROVIDER_ID);
-  calcShouldMatch('ConsumableExchange', (idCalc) => idCalc.calcConsumableExchangeInterfaceId(), CONSUMABLE_EXCHANGE_ID);
-  calcShouldMatch(
-    'ConvertibleConsumable',
-    (idCalc) => idCalc.calcConvertibleConsumableInterfaceId(),
-    CONVERTIBLE_CONSUMABLE_ID,
+  test.each(interfaceTests)(
+    'should match %s interface id',
+    async (
+      interfaceName: string,
+      interfaceId: Erc165InterfaceId,
+      calcInterfaceId: (idCalc: ERC165IdCalc) => Promise<Erc165InterfaceId>,
+    ) => {
+      const idCalc = await deployERC165IdCalcContract();
+
+      expect<string>(await calcInterfaceId(idCalc)).toEqual(interfaceId);
+    },
   );
-  calcShouldMatch('LimitedConsumable', (idCalc) => idCalc.calcLimitedConsumableInterfaceId(), LIMITED_CONSUMABLE_ID);
-  calcShouldMatch('BaseContract', (idCalc) => idCalc.calcBaseContractInterfaceId(), BASE_CONTRACT_ID);
-  calcShouldMatch('Player', (idCalc) => idCalc.calcPlayerInterfaceId(), PLAYER_ID);
-  calcShouldMatch('RoleDelegate', (idCalc) => idCalc.calcRoleDelegateInterfaceId(), ROLE_DELEGATE_ID);
-  calcShouldMatch('Skill', (idCalc) => idCalc.calcSkillInterfaceId(), SKILL_ID);
-  calcShouldMatch('SkillConstrained', (idCalc) => idCalc.calcSkillConstrainedInterfaceId(), SKILL_CONSTRAINED_ID);
-  calcShouldMatch('Transfer', (idCalc) => idCalc.calcTransferInterfaceId(), TRANSFERRING_ID);
+
+  it('should not have any duplicates', () => {
+    const interfaceIds = interfaceTests.map((it) => it[1]);
+    const interfaceSet = new Set(interfaceIds);
+
+    expect<number>(interfaceIds.length).toEqual(interfaceSet.size);
+  });
 });
