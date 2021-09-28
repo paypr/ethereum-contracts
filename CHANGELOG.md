@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/paypr/ethereum-contracts/compare/v0.2.0...v0.3.0) (2021-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- any code accessing old contracts will break
+- Upgrades changed the contract base classes, which could cause storage changes
+
+- [[#16](https://github.com/paypr/CHANGEME/issues/16)] remove pragma experimental ABIEncoderV2 ([5ee184a](https://github.com/paypr/ethereum-contracts/commit/5ee184a28042a72aec23d54d98d5f7dee30a50f6))
+- [[#17](https://github.com/paypr/CHANGEME/issues/17)] upgrade to @openzeppelin/contracts-upgradeable:4.0.0 && convert to hardhat ([9b704d1](https://github.com/paypr/ethereum-contracts/commit/9b704d1de893c2e178d1cd50fcdc51efde0e905f))
+
 ## [0.2.0](https://github.com/paypr/ethereum-contracts/compare/v0.1.2...v0.2.0) (2020-10-22)
 
 ### ⚠ BREAKING CHANGES
