@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { SkillLevel, SkillLevelBN } from '../../../../../src/contracts/skills';
 import { SKILL_CONSTRAINED_INTERFACE_ID } from '../../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1, PLAYER2 } from '../../../../helpers/Accounts';

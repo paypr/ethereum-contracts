@@ -18,7 +18,7 @@
  */
 
 import { ContractTransaction } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import {
   ACCESS_DELEGATE_INTERFACE_ID,
   DELEGATING_ACCESS_CONTROL_INTERFACE_ID,

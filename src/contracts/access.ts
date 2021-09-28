@@ -20,7 +20,7 @@
 import { AccessControlInit, DelegatingAccessControlInit } from '../../types/contracts';
 import { AccountAddress } from './accounts';
 import ContractAddress from './ContractAddress';
-import { DiamondInitFunction } from './core/diamonds';
+import { DiamondInitFunction } from './diamonds';
 
 export type AccessRole = string;
 

@@ -20,7 +20,7 @@
 import { BigNumberish } from 'ethers';
 import { ConsumableConversionInit } from '../../../types/contracts';
 import { ConsumableHooksLike } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 import { TransferHooksLike } from '../transfer';
 import { ConsumableExchangeLike } from './exchange';
 

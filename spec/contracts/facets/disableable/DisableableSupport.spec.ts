@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { DISABLER } from '../../../helpers/Accounts';
 import { createDiamond } from '../../../helpers/DiamondHelper';
 import { asTestEnabled, createDisableable, deployTestEnabled } from '../../../helpers/facets/DisableableFacetHelper';

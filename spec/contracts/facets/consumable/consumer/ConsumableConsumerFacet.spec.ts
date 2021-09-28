@@ -19,7 +19,7 @@
 
 import { BigNumber, ContractTransaction } from 'ethers';
 import { ConsumableAmount, ConsumableAmountBN } from '../../../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { CONSUMABLE_CONSUMER_INTERFACE_ID } from '../../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1, PLAYER2, PLAYER3 } from '../../../../helpers/Accounts';
 import { deployDiamond } from '../../../../helpers/DiamondHelper';

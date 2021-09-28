@@ -18,7 +18,7 @@
  */
 
 import { SkillConstrainedSkillInit } from '../../../types/contracts';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 import { SkillHooksLike, SkillLevel } from '../skills';
 
 export interface SkillConstrainedSkillData {

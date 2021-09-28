@@ -19,7 +19,7 @@
 
 import { Contract, Signer } from 'ethers';
 import { buildArtifactInitFunction, Item, ItemBN } from '../../../src/contracts/artifacts';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { MINTER_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ArtifactERC721Hooks__factory,

@@ -20,7 +20,7 @@
 import { BigNumber } from 'ethers';
 import { ArtifactInit, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
 import ContractAddress from './ContractAddress';
-import { DiamondInitFunction } from './core/diamonds';
+import { DiamondInitFunction } from './diamonds';
 import { TransferHooksLike } from './transfer';
 
 export interface Item {

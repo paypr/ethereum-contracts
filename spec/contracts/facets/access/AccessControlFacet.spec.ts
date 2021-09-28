@@ -18,7 +18,7 @@
  */
 
 import { ContractTransaction } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ACCESS_CONTROL_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { ADMIN_ROLE, DIAMOND_CUTTER_ROLE, MINTER_ROLE, SUPER_ADMIN_ROLE } from '../../../../src/contracts/roles';
 import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';

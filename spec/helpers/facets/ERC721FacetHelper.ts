@@ -19,7 +19,7 @@
 
 import { Contract, Signer } from 'ethers';
 import { buildERC721TokenInfoSetBaseUriInitFunction } from '../../../src/contracts/artifacts';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { MINTER_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ERC721BurnFacet__factory,

@@ -19,7 +19,7 @@
 
 import { BigNumber, ContractTransaction } from 'ethers';
 import { buildArtifactInitFunction } from '../../../../src/contracts/artifacts';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ERC721_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';

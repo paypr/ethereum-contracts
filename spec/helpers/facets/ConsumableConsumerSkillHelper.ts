@@ -18,7 +18,7 @@
  */
 
 import { ConsumableAmount } from '../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { buildConsumableConsumerSkillInitFunction } from '../../../src/contracts/skills/consumableConsumerSkill';
 import { ConsumableConsumerSkillHooks__factory, ConsumableConsumerSkillInit__factory } from '../../../types/contracts';
 import { INITIALIZER } from '../Accounts';

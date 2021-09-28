@@ -19,7 +19,7 @@
 
 import { SkillConstrainedInit } from '../../../types/contracts';
 import { SkillLevel } from '../skills';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export const buildSetRequiredSkillsFunction = (
   skillConstrainedInit: SkillConstrainedInit,

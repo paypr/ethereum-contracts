@@ -19,7 +19,7 @@
 
 import { buildConsumableExchangingActivityInitFunction } from '../../../src/contracts/activities/consumableExchangingActivity';
 import { ConsumableAmount } from '../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import {
   ConsumableExchangingActivityHooks__factory,
   ConsumableExchangingActivityInit__factory,

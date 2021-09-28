@@ -20,10 +20,10 @@
 import { arrayify, BytesLike } from '@ethersproject/bytes';
 import { Contract } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
-import { DiamondInit } from '../../../types/contracts';
-import { ZERO_ADDRESS } from '../accounts';
-import ContractAddress from '../ContractAddress';
-import FunctionSelector from '../FunctionSelector';
+import { DiamondInit } from '../../types/contracts';
+import { ZERO_ADDRESS } from './accounts';
+import ContractAddress from './ContractAddress';
+import FunctionSelector from './FunctionSelector';
 
 export interface DiamondConstructorParams {
   diamondCuts: DiamondFacetCut[];

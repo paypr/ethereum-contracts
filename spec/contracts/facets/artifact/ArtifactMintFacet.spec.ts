@@ -18,7 +18,7 @@
  */
 
 import { ContractTransaction } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ARTIFACT_MINTABLE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { ARTIFACT_MINTER, INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import { deployDiamond } from '../../../helpers/DiamondHelper';

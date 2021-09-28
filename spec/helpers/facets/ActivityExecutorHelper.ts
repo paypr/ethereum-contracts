@@ -20,7 +20,7 @@
 import { Contract, Signer } from 'ethers';
 import { Item } from '../../../src/contracts/artifacts';
 import { ConsumableAmount } from '../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { ADMIN_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ActivityExecutorFacet__factory,

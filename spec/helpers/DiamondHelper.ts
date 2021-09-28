@@ -27,7 +27,7 @@ import {
   DiamondFacetCutAction,
   DiamondInitFunction,
   emptyDiamondInitFunction,
-} from '../../src/contracts/core/diamonds';
+} from '../../src/contracts/diamonds';
 import {
   buildErc165SetSupportedInterfacesDiamondInitFunction,
   Erc165InterfaceId,

@@ -20,7 +20,7 @@
 import { ContractTransaction } from 'ethers';
 import { ZERO_ADDRESS } from '../../../../../src/contracts/accounts';
 import { buildSetProvidedConsumablesFunction } from '../../../../../src/contracts/consumables/provider';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { PLAYER1 } from '../../../../helpers/Accounts';
 import { createDiamond } from '../../../../helpers/DiamondHelper';
 import {

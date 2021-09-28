@@ -1,5 +1,5 @@
 import { Contract, Signer } from 'ethers';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { TRANSFER_AGENT_ROLE } from '../../../src/contracts/roles';
 import { ITransferring__factory, TransferFacet__factory } from '../../../types/contracts';
 import { INITIALIZER, TRANSFER_AGENT } from '../Accounts';

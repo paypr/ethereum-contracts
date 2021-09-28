@@ -18,7 +18,7 @@
  */
 
 import { Contract, Signer } from 'ethers';
-import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/diamonds';
 import { DISABLER_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import { DisableableFacet__factory, IDisableable__factory, TestEnabled__factory } from '../../../types/contracts';
 import { DISABLER, INITIALIZER } from '../Accounts';

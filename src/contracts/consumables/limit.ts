@@ -19,7 +19,7 @@
 
 import { ConsumableLimitInit } from '../../../types/contracts';
 import { ConsumableHooksLike } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export interface ConsumableLimitInitData {
   limitConsumableHooks: ConsumableHooksLike;

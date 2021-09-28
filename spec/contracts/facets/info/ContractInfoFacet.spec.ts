@@ -24,7 +24,7 @@ import {
   buildContractInfoSetSymbolInitFunction,
   buildContractInfoSetUriInitFunction,
 } from '../../../../src/contracts/contractInfo';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { CONTRACT_INFO_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';

@@ -20,7 +20,7 @@
 import { BigNumber, ContractTransaction } from 'ethers';
 import { ConsumableAmount } from '../../../../../src/contracts/consumables';
 import { buildConsumableExchangingInitFunction } from '../../../../../src/contracts/consumables/exchanging';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { createDiamond } from '../../../../helpers/DiamondHelper';
 import { asConsumableConsumer } from '../../../../helpers/facets/ConsumableConsumerFacetHelper';
 import { createConvertibleConsumable } from '../../../../helpers/facets/ConsumableConversionFacetHelper';

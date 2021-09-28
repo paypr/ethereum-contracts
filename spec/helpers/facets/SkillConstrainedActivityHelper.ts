@@ -18,7 +18,7 @@
  */
 
 import { buildSkillConstrainedActivityInitFunction } from '../../../src/contracts/activities/skillConstrainedActivity';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { SkillLevel } from '../../../src/contracts/skills';
 import {
   SkillConstrainedActivityHooks__factory,

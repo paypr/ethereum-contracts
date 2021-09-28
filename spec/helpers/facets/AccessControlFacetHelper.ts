@@ -25,7 +25,7 @@ import {
   buildAccessControlInitAdminsInitFunction,
   buildDelegatingAccessControlAddDelegateInitFunction,
 } from '../../../src/contracts/access';
-import { DiamondInitFunction } from '../../../src/contracts/core/diamonds';
+import { DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   AccessControlFacet__factory,

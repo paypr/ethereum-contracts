@@ -19,7 +19,7 @@
 
 import { BigNumber, ContractTransaction } from 'ethers';
 import { Item } from '../../../../../src/contracts/artifacts';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { SKILL_ACQUIRER_INTERFACE_ID } from '../../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1 } from '../../../../helpers/Accounts';
 import { combineExtensibleDiamondOptions, deployDiamond } from '../../../../helpers/DiamondHelper';

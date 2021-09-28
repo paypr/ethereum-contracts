@@ -19,7 +19,7 @@
 
 import { ConsumableConsumerInit } from '../../../types/contracts';
 import { ConsumableAmount } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export const buildSetRequiredConsumablesFunction = (
   consumableConsumerInit: ConsumableConsumerInit,

@@ -18,7 +18,7 @@
  */
 
 import { ContractTransaction } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { DISABLEABLE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { DISABLER_ROLE } from '../../../../src/contracts/roles';
 import { DISABLER, PLAYER1 } from '../../../helpers/Accounts';

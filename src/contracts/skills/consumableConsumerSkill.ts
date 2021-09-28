@@ -19,7 +19,7 @@
 
 import { ConsumableConsumerSkillInit } from '../../../types/contracts';
 import { ConsumableAmount } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 import { SkillHooksLike } from '../skills';
 
 export interface ConsumableConsumerSkillData {

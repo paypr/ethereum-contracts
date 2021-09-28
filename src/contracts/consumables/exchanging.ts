@@ -19,7 +19,7 @@
 
 import { ConsumableExchangingInit, IConsumableExchange } from '../../../types/contracts';
 import { ConsumableAmount } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export interface ConsumableExchangingData {
   exchange: IConsumableExchange;

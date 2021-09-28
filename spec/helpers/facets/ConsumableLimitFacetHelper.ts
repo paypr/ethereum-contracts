@@ -20,7 +20,7 @@ import { Contract, Signer } from 'ethers';
 import { AccessRoleAdmins } from '../../../src/contracts/access';
 import { ConsumableHooksLike } from '../../../src/contracts/consumables';
 import { buildConsumableLimitInitFunction } from '../../../src/contracts/consumables/limit';
-import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { LIMITER_ROLE } from '../../../src/contracts/roles';
 import {
   ConsumableLimitConsumableHooks__factory,

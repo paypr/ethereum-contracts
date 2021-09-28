@@ -18,7 +18,7 @@
  */
 
 import { BigNumber } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { CONSUMABLE_EXCHANGING_INTERFACE_ID } from '../../../../../src/contracts/erc165InterfaceIds';
 import { deployDiamond } from '../../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../../helpers/ERC165Helper';

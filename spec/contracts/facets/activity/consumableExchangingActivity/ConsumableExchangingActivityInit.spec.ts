@@ -20,7 +20,7 @@
 import { BigNumber, ContractTransaction } from 'ethers';
 import { buildConsumableExchangingActivityInitFunction } from '../../../../../src/contracts/activities/consumableExchangingActivity';
 import { ConsumableAmount } from '../../../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../../src/contracts/diamonds';
 import { createDiamond } from '../../../../helpers/DiamondHelper';
 import { deployActivityFacet } from '../../../../helpers/facets/ActivityFacetHelper';
 import { asConsumableConsumer } from '../../../../helpers/facets/ConsumableConsumerFacetHelper';

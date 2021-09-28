@@ -20,7 +20,7 @@
 import { ConsumableProviderActivityInit } from '../../../types/contracts';
 import { ActivityHooksLike } from '../activities';
 import { ConsumableAmount } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export interface ConsumableProviderActivityData {
   providedConsumables: ConsumableAmount[];

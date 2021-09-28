@@ -20,7 +20,7 @@
 import { Contract, Signer } from 'ethers';
 import { AccessRoleAdmins } from '../../../src/contracts/access';
 import { ConsumableAmount, ConsumableAmountBN } from '../../../src/contracts/consumables';
-import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/diamonds';
 import { MINTER_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ConsumableFacet__factory,

@@ -25,7 +25,7 @@ import {
   buildDiamondFacetCut,
   DiamondFacetCutAction,
   emptyDiamondInitFunction,
-} from '../../../../src/contracts/core/diamonds';
+} from '../../../../src/contracts/diamonds';
 import { DIAMOND_LOUPE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { IAccessControl__factory, IDiamondLoupe__factory, IERC165__factory } from '../../../../types/contracts';
 import { DISABLER, INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';

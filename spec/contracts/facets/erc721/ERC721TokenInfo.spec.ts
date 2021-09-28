@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ERC721_TOKEN_INFO_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1 } from '../../../helpers/Accounts';
 import { deployDiamond } from '../../../helpers/DiamondHelper';

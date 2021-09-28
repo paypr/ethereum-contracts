@@ -24,7 +24,7 @@ import {
   ExchangeRate,
   ExchangeRateBN,
 } from '../../../src/contracts/consumables/exchange';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import {
   ConsumableExchangeConsumableHooks__factory,
   ConsumableExchangeFacet,

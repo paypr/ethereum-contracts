@@ -20,7 +20,7 @@
 import { Contract } from 'ethers';
 import { AccessRoleAdmins } from '../../../src/contracts/access';
 import { buildContractInfoInitializeInitFunction, ContractInfoInitOptions } from '../../../src/contracts/contractInfo';
-import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ContractInfoFacet__factory,

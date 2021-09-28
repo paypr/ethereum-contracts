@@ -21,7 +21,7 @@ import { BigNumberish, Contract, Signer } from 'ethers';
 import { ConsumableHooksLike } from '../../../src/contracts/consumables';
 import { buildConsumableConversionInitFunction } from '../../../src/contracts/consumables/conversion';
 import { ConsumableExchangeLike } from '../../../src/contracts/consumables/exchange';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { TransferHooksLike } from '../../../src/contracts/transfer';
 import {
   ConsumableConversionFacet,

@@ -24,7 +24,7 @@ import {
   buildDiamondFacetCut,
   DiamondFacetCutAction,
   emptyDiamondInitFunction,
-} from '../../../../../src/contracts/core/diamonds';
+} from '../../../../../src/contracts/diamonds';
 import { CONSUMABLE_EXCHANGE_INTERFACE_ID } from '../../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1, PLAYER2 } from '../../../../helpers/Accounts';
 import { deployDiamond } from '../../../../helpers/DiamondHelper';

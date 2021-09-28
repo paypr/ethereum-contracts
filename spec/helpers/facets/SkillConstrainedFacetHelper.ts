@@ -18,7 +18,7 @@
  */
 
 import { Contract, Signer } from 'ethers';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { SkillLevel } from '../../../src/contracts/skills';
 import { buildSetRequiredSkillsFunction } from '../../../src/contracts/skills/skillConstrained';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';

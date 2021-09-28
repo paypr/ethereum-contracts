@@ -20,7 +20,7 @@
 import { BigNumber } from 'ethers';
 import { ConsumableExchangeInit, IConsumableExchange } from '../../../types/contracts';
 import { ConsumableHooksLike, ERC20Like } from '../consumables';
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 
 export interface ExchangeRate {
   purchasePrice: number;

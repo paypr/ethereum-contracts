@@ -18,7 +18,7 @@
  */
 
 import { buildAccessControlAddAdminsInitFunction } from '../../../../src/contracts/access';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { IAccessControl__factory } from '../../../../types/contracts';
 import { INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import {

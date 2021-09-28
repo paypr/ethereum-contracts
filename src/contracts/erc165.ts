@@ -18,7 +18,7 @@
  */
 
 import { ERC165Init } from '../../types/contracts';
-import { DiamondInitFunction } from './core/diamonds';
+import { DiamondInitFunction } from './diamonds';
 
 export type Erc165InterfaceId = string;
 

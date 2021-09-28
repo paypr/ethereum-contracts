@@ -18,7 +18,7 @@
  */
 
 import { BigNumber, ContractTransaction } from 'ethers';
-import { buildDiamondFacetCut } from '../../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { TRANSFERRING_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { DISABLER_ROLE, SUPER_ADMIN_ROLE, TRANSFER_AGENT_ROLE } from '../../../../src/contracts/roles';
 import { DISABLER, INITIALIZER, PLAYER3, TRANSFER_AGENT } from '../../../helpers/Accounts';

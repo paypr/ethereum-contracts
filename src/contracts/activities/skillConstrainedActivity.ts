@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { DiamondInitFunction } from '../core/diamonds';
+import { DiamondInitFunction } from '../diamonds';
 import { ActivityHooksLike } from '../activities';
 import { SkillLevel } from '../skills';
 import { SkillConstrainedActivityInit } from '../../../types/contracts';

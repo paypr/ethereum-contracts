@@ -20,7 +20,7 @@
 import { Contract, Signer } from 'ethers';
 import { ConsumableAmount } from '../../../src/contracts/consumables';
 import { buildSetProvidedConsumablesFunction } from '../../../src/contracts/consumables/provider';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
   ConsumableProviderFacet,

@@ -19,7 +19,7 @@
 
 import { buildConsumableProviderActivityInitFunction } from '../../../src/contracts/activities/consumableProviderActivity';
 import { ConsumableAmount } from '../../../src/contracts/consumables';
-import { buildDiamondFacetCut } from '../../../src/contracts/core/diamonds';
+import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import {
   ConsumableProviderActivityHooks__factory,
   ConsumableProviderActivityInit__factory,

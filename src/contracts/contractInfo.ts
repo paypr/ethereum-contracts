@@ -18,7 +18,7 @@
  */
 
 import { ContractInfoInit } from '../../types/contracts';
-import { DiamondInitFunction } from './core/diamonds';
+import { DiamondInitFunction } from './diamonds';
 
 export interface ContractInfoInitData {
   name: string;
