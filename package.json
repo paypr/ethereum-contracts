@@ -15,15 +15,15 @@
   "files": [
     "artifacts",
     "dist",
-    "types",
     "CHANGELOG.md",
     "README.md"
   ],
   "scripts": {
     "clean": "rm -rf build && rm -rf dist && rm -rf out && rm -rf types && rm -rf artifacts && rm -rf cache",
     "compile:contracts": "hardhat compile && npm run pretty",
-    "build": "npm run compile:contracts && tsc",
+    "build": "npm run compile:contracts && tsc && npm run copy-declarations",
     "build:watch": "tsc --watch",
+    "copy-declarations": "cp -R types dist",
     "rebuild": "npm run clean && npm run build",
     "test": "jest",
     "posttest": "npm run lint",
