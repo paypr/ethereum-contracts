@@ -46,9 +46,9 @@ const createTransferring = async () =>
   asTransferring(
     await createDiamond({
       additionalCuts: [buildDiamondFacetCut(await deployTransferFacet())],
-      additionalRoleAdmins: [
-        { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-        { role: TRANSFER_AGENT_ROLE, admins: [TRANSFER_AGENT.address] },
+      additionalRoleMembers: [
+        { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+        { role: TRANSFER_AGENT_ROLE, members: [TRANSFER_AGENT.address] },
       ],
     }),
   );
@@ -60,10 +60,10 @@ const createDisableableTransferring = async () =>
         buildDiamondFacetCut(await deployTransferFacet()),
         buildDiamondFacetCut(await deployDisableableFacet()),
       ],
-      additionalRoleAdmins: [
-        { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-        { role: DISABLER_ROLE, admins: [DISABLER.address] },
-        { role: TRANSFER_AGENT_ROLE, admins: [TRANSFER_AGENT.address] },
+      additionalRoleMembers: [
+        { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+        { role: DISABLER_ROLE, members: [DISABLER.address] },
+        { role: TRANSFER_AGENT_ROLE, members: [TRANSFER_AGENT.address] },
       ],
     }),
   );

@@ -33,9 +33,9 @@ export const createDisableable = async (additionalCuts: DiamondFacetCut[] = []) 
   asDisableable(
     await createDiamond({
       additionalCuts: [buildDiamondFacetCut(await deployDisableableFacet()), ...additionalCuts],
-      additionalRoleAdmins: [
-        { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-        { role: DISABLER_ROLE, admins: [DISABLER.address] },
+      additionalRoleMembers: [
+        { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+        { role: DISABLER_ROLE, members: [DISABLER.address] },
       ],
     }),
   );
@@ -45,5 +45,5 @@ export const deployTestEnabled = () => new TestEnabled__factory(INITIALIZER).dep
 
 export const buildDisableableDiamondAdditions = async (): Promise<ExtensibleDiamondOptions> => ({
   additionalCuts: [buildDiamondFacetCut(await deployDisableableFacet())],
-  additionalRoleAdmins: [{ role: DISABLER_ROLE, admins: [DISABLER.address] }],
+  additionalRoleMembers: [{ role: DISABLER_ROLE, members: [DISABLER.address] }],
 });

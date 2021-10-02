@@ -48,7 +48,7 @@ export const createSkill = async (options: CreateSkillOptions = {}) =>
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deploySkillFacet())],
-          additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+          additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
         },
         options,
       ),

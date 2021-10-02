@@ -18,7 +18,7 @@
  */
 
 import { Contract } from 'ethers';
-import { AccessRoleAdmins } from '../../../src/contracts/access';
+import { AccessRoleMembers } from '../../../src/contracts/access';
 import { buildContractInfoInitializeInitFunction, ContractInfoInitOptions } from '../../../src/contracts/contractInfo';
 import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
@@ -34,7 +34,7 @@ export const asContractInfo = (contract: Contract) => IContractInfo__factory.con
 
 export interface ContractInfoCreateOptions extends ContractInfoInitOptions {
   additionalCuts?: DiamondFacetCut[];
-  additionalRoleAdmins?: AccessRoleAdmins[];
+  additionalRoleMembers?: AccessRoleMembers[];
   additionalInits?: DiamondInitFunction[];
 }
 
@@ -46,9 +46,9 @@ export const createContractInfo = async (options: ContractInfoCreateOptions = {}
         buildContractInfoInitializeInitFunction(await deployContractInfoInit(), options),
         ...(options.additionalInits || []),
       ],
-      additionalRoleAdmins: [
-        { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-        ...(options.additionalRoleAdmins || []),
+      additionalRoleMembers: [
+        { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+        ...(options.additionalRoleMembers || []),
       ],
     }),
   );

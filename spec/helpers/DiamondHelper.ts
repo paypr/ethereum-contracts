@@ -18,7 +18,7 @@
  */
 
 import { Interface } from 'ethers/lib/utils';
-import { AccessRoleAdmins } from '../../src/contracts/access';
+import { AccessRoleMembers } from '../../src/contracts/access';
 import { ZERO_ADDRESS } from '../../src/contracts/accounts';
 import {
   buildDiamondFacetCut,
@@ -156,7 +156,7 @@ export const combineDiamondInitFunctions = async (
 
 export interface ExtensibleDiamondOptions {
   additionalCuts?: DiamondFacetCut[];
-  additionalRoleAdmins?: AccessRoleAdmins[];
+  additionalRoleMembers?: AccessRoleMembers[];
   additionalInits?: DiamondInitFunction[];
 }
 
@@ -165,9 +165,9 @@ export const combineExtensibleDiamondOptions = (
   additionalOptions: ExtensibleDiamondOptions,
 ): ExtensibleDiamondOptions => ({
   additionalCuts: [...(baseOptions.additionalCuts || []), ...(additionalOptions.additionalCuts || [])],
-  additionalRoleAdmins: [
-    ...(baseOptions.additionalRoleAdmins || []),
-    ...(additionalOptions.additionalRoleAdmins || []),
+  additionalRoleMembers: [
+    ...(baseOptions.additionalRoleMembers || []),
+    ...(additionalOptions.additionalRoleMembers || []),
   ],
   additionalInits: [...(baseOptions.additionalInits || []), ...(additionalOptions.additionalInits || [])],
 });

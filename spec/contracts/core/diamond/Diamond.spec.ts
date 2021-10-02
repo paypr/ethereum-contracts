@@ -77,7 +77,7 @@ describe('constructor', () => {
 
     const diamond = await createDiamond({
       additionalInits: [
-        buildAccessControlAddAdminsInitFunction(accessControlInit, [{ role: ROLE1, admins: [PLAYER1.address] }]),
+        buildAccessControlAddAdminsInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
       ],
     });
 

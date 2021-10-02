@@ -48,7 +48,7 @@ export const createArtifact = async (initialUses: number = 1, options: CreateArt
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployArtifactFacet())],
-          additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+          additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
           additionalInits: [
             buildArtifactInitFunction(await deployArtifactInit(), {
               initialUses,
@@ -69,7 +69,7 @@ export const createMintableArtifact = async (initialUses: number = 1, options: E
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployArtifactMintFacet())],
-          additionalRoleAdmins: [{ role: MINTER_ROLE, admins: [ARTIFACT_MINTER.address] }],
+          additionalRoleMembers: [{ role: MINTER_ROLE, members: [ARTIFACT_MINTER.address] }],
         },
         options,
       ),

@@ -55,7 +55,7 @@ export const createERC721 = async (options: CreateERC721Options = {}) =>
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployERC721Facet())],
-          additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+          additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
         },
         options,
       ),
@@ -68,7 +68,7 @@ export const createMintableERC721 = async (options: ExtensibleDiamondOptions = {
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployERC721MintFacet())],
-          additionalRoleAdmins: [{ role: MINTER_ROLE, admins: [ARTIFACT_MINTER.address] }],
+          additionalRoleMembers: [{ role: MINTER_ROLE, members: [ARTIFACT_MINTER.address] }],
         },
         options,
       ),

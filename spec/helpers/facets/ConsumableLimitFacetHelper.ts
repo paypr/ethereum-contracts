@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { Contract, Signer } from 'ethers';
-import { AccessRoleAdmins } from '../../../src/contracts/access';
+import { AccessRoleMembers } from '../../../src/contracts/access';
 import { ConsumableHooksLike } from '../../../src/contracts/consumables';
 import { buildConsumableLimitInitFunction } from '../../../src/contracts/consumables/limit';
 import { buildDiamondFacetCut, DiamondFacetCut, DiamondInitFunction } from '../../../src/contracts/diamonds';
@@ -47,7 +47,7 @@ export interface CreateLimitConsumableOptions {
   limitInit?: ConsumableLimitInit;
   limitConsumableHooks?: ConsumableHooksLike;
   additionalCuts?: DiamondFacetCut[];
-  additionalRoleAdmins?: AccessRoleAdmins[];
+  additionalRoleMembers?: AccessRoleMembers[];
   additionalInits?: DiamondInitFunction[];
 }
 
@@ -71,7 +71,7 @@ export const createLimitedConsumable = async (options: CreateLimitConsumableOpti
 
 export const buildLimiterConsumableAdditions = async (): Promise<ExtensibleDiamondOptions> => ({
   additionalCuts: [buildDiamondFacetCut(await deployConsumableLimiterFacet())],
-  additionalRoleAdmins: [{ role: LIMITER_ROLE, admins: [CONSUMABLE_LIMITER.address] }],
+  additionalRoleMembers: [{ role: LIMITER_ROLE, members: [CONSUMABLE_LIMITER.address] }],
 });
 
 export const deployConsumableLimitFacet = () => new ConsumableLimitFacet__factory(INITIALIZER).deploy();

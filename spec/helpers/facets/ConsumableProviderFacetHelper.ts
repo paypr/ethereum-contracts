@@ -62,7 +62,7 @@ export const buildConsumableProviderDiamondAdditions = async (
   return combineExtensibleDiamondOptions(
     {
       additionalCuts: [buildDiamondFacetCut(providerFacet)],
-      additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+      additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
       additionalInits: [buildSetProvidedConsumablesFunction(providerInit, requiredConsumables)],
     },
     options,

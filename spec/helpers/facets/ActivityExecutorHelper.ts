@@ -41,9 +41,9 @@ export const createActivityExecutor = async (options: CreateActivityExecutorOpti
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployActivityExecutorFacet())],
-          additionalRoleAdmins: [
-            { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-            { role: ADMIN_ROLE, admins: [PLAYER_ADMIN.address] },
+          additionalRoleMembers: [
+            { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+            { role: ADMIN_ROLE, members: [PLAYER_ADMIN.address] },
           ],
         },
         options,

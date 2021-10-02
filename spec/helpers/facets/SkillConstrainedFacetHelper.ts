@@ -56,7 +56,7 @@ export const createSkillConstrained = async (
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(skillConstrainedFacet)],
-          additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+          additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
           additionalInits: [buildSetRequiredSkillsFunction(skillConstrainedInit, requiredSkills)],
         },
         options,
