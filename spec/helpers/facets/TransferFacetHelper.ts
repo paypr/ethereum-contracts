@@ -10,7 +10,7 @@ export const asTransferring = (contract: Contract, signer: Signer = TRANSFER_AGE
 
 export const buildTransferringDiamondAdditions = async (): Promise<ExtensibleDiamondOptions> => ({
   additionalCuts: [buildDiamondFacetCut(await deployTransferFacet())],
-  additionalRoleAdmins: [{ role: TRANSFER_AGENT_ROLE, admins: [TRANSFER_AGENT.address] }],
+  additionalRoleMembers: [{ role: TRANSFER_AGENT_ROLE, members: [TRANSFER_AGENT.address] }],
 });
 
 export const deployTransferFacet = () => new TransferFacet__factory(INITIALIZER).deploy();

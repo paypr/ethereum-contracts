@@ -35,7 +35,7 @@ export const createActivity = async (options: CreateActivityOptions = {}) =>
       combineExtensibleDiamondOptions(
         {
           additionalCuts: [buildDiamondFacetCut(await deployActivityFacet())],
-          additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+          additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
         },
         options,
       ),

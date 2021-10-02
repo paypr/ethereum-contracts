@@ -26,9 +26,9 @@ export type AccessRole = string;
 
 export const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
-export interface AccessRoleAdmins {
+export interface AccessRoleMembers {
   role: AccessRole;
-  admins: AccountAddress[];
+  members: AccountAddress[];
 }
 
 export const buildAccessControlInitAdminsInitFunction = (
@@ -40,11 +40,11 @@ export const buildAccessControlInitAdminsInitFunction = (
 });
 
 export const encodeAccessControlInitAdminsCallData = (accessControlInit: AccessControlInit, roles: AccessRole[]) =>
-  accessControlInit.interface.encodeFunctionData('initializeAdmins', [roles]);
+  accessControlInit.interface.encodeFunctionData('addRoles', [roles]);
 
 export const buildAccessControlAddAdminsInitFunction = (
   accessControlInit: AccessControlInit,
-  roleAdmins: AccessRoleAdmins[],
+  roleAdmins: AccessRoleMembers[],
 ): DiamondInitFunction => ({
   initAddress: accessControlInit.address,
   callData: encodeAccessControlAddAdminsCallData(accessControlInit, roleAdmins),
@@ -52,8 +52,8 @@ export const buildAccessControlAddAdminsInitFunction = (
 
 export const encodeAccessControlAddAdminsCallData = (
   accessControlInit: AccessControlInit,
-  roleAdmins: AccessRoleAdmins[],
-) => accessControlInit.interface.encodeFunctionData('addAdmins', [roleAdmins]);
+  roleAdmins: AccessRoleMembers[],
+) => accessControlInit.interface.encodeFunctionData('addMembers', [roleAdmins]);
 
 export const buildDelegatingAccessControlAddDelegateInitFunction = (
   delegatingAccessControlInit: DelegatingAccessControlInit,

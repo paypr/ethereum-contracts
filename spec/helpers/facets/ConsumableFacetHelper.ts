@@ -18,7 +18,7 @@
  */
 
 import { Contract, Signer } from 'ethers';
-import { AccessRoleAdmins } from '../../../src/contracts/access';
+import { AccessRoleMembers } from '../../../src/contracts/access';
 import { ConsumableAmount, ConsumableAmountBN } from '../../../src/contracts/consumables';
 import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/diamonds';
 import { MINTER_ROLE, SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
@@ -49,9 +49,9 @@ export const createConsumable = async (options: CreateConsumableOptions = {}) =>
             buildDiamondFacetCut(await deployConsumableFacet()),
             buildDiamondFacetCut(await deployConsumableMintFacet()),
           ],
-          additionalRoleAdmins: [
-            { role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] },
-            { role: MINTER_ROLE, admins: [CONSUMABLE_MINTER.address] },
+          additionalRoleMembers: [
+            { role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] },
+            { role: MINTER_ROLE, members: [CONSUMABLE_MINTER.address] },
           ],
         },
         options,
@@ -63,14 +63,14 @@ export const createDisableableConsumable = async () => await createConsumable(aw
 
 export const combineConsumableAdditions = (...additions: ExtensibleDiamondOptions[]): ExtensibleDiamondOptions => {
   const additionalCuts: DiamondFacetCut[] = [];
-  const additionalRoleAdmins: AccessRoleAdmins[] = [];
+  const additionalRoleMembers: AccessRoleMembers[] = [];
 
   additions.forEach((addition) => {
     addition.additionalCuts?.forEach((cut) => additionalCuts.push(cut));
-    addition.additionalRoleAdmins?.forEach((admins) => additionalRoleAdmins.push(admins));
+    addition.additionalRoleMembers?.forEach((admins) => additionalRoleMembers.push(admins));
   });
 
-  return { additionalCuts, additionalRoleAdmins };
+  return { additionalCuts, additionalRoleMembers: additionalRoleMembers };
 };
 
 export const deployConsumableFacet = () => new ConsumableFacet__factory(INITIALIZER).deploy();

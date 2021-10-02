@@ -35,10 +35,10 @@ describe('initializeDiamond', () => {
     const diamond = await createDiamond();
 
     const init1 = buildAccessControlAddAdminsInitFunction(accessControlInit, [
-      { role: ROLE1, admins: [PLAYER1.address] },
+      { role: ROLE1, members: [PLAYER1.address] },
     ]);
     const init2 = buildAccessControlAddAdminsInitFunction(accessControlInit, [
-      { role: ROLE2, admins: [PLAYER2.address] },
+      { role: ROLE2, members: [PLAYER2.address] },
     ]);
 
     await asDiamondCut(diamond).diamondCut(

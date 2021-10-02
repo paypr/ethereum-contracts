@@ -63,7 +63,7 @@ export const buildConsumableExchangingDiamondAdditions = async function (
         buildDiamondFacetCut(await deployConsumableConsumerFacet()),
         buildDiamondFacetCut(await deployConsumableProviderFacet()),
       ],
-      additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+      additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
       additionalInits: [
         buildConsumableExchangingInitFunction(await deployConsumableExchangingInit(), {
           exchange,

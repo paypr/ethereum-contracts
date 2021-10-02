@@ -25,7 +25,7 @@ import './AccessControlImpl.sol';
 import '../context/ContextSupport.sol';
 
 contract AccessControlInit {
-  function initializeAdmins(bytes32[] calldata roles) external {
+  function addRoles(bytes32[] calldata roles) external {
     address account = ContextSupport.msgSender();
 
     for (uint256 index = 0; index < roles.length; index++) {
@@ -34,15 +34,15 @@ contract AccessControlInit {
     }
   }
 
-  struct RoleAdmins {
+  struct RoleMembers {
     bytes32 role;
-    address[] admins;
+    address[] members;
   }
 
-  function addAdmins(RoleAdmins[] calldata roleAdmins) external {
-    for (uint256 index = 0; index < roleAdmins.length; index++) {
-      bytes32 role = roleAdmins[index].role;
-      address[] calldata admins = roleAdmins[index].admins;
+  function addMembers(RoleMembers[] calldata roleMembers) external {
+    for (uint256 index = 0; index < roleMembers.length; index++) {
+      bytes32 role = roleMembers[index].role;
+      address[] calldata admins = roleMembers[index].members;
 
       for (uint256 adminIndex = 0; adminIndex < admins.length; adminIndex++) {
         AccessControlImpl.grantRole(role, admins[adminIndex]);

@@ -62,7 +62,7 @@ export const buildConsumableConsumerDiamondAdditions = async function (
   return combineExtensibleDiamondOptions(
     {
       additionalCuts: [buildDiamondFacetCut(consumerFacet)],
-      additionalRoleAdmins: [{ role: SUPER_ADMIN_ROLE, admins: [INITIALIZER.address] }],
+      additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
       additionalInits: [buildSetRequiredConsumablesFunction(consumerInit, requiredConsumables)],
     },
     options,
