@@ -27,9 +27,22 @@ import '../context/ContextSupport.sol';
 
 library AccessControlSupport {
   /**
+   * @dev Revert with a standard message if message sender is missing the admin role for `role`.
+   *
+   * See {buildMissingRoleMessage(bytes32, address)} for the revert reason format
+   */
+  function checkAdminRole(bytes32 role) internal view {
+    address account = ContextSupport.msgSender();
+
+    bytes32 adminRole = (IAccessControl(address(this)).getRoleAdmin(role));
+
+    checkRole(adminRole);
+  }
+
+  /**
    * @dev Revert with a standard message if message sender is missing `role`.
    *
-   * See {AccessControlImpl.checkRole(bytes32, address)} for the revert reason format
+   * See {buildMissingRoleMessage(bytes32, address)} for the revert reason format
    */
   function checkRole(bytes32 role) internal view {
     address account = ContextSupport.msgSender();
@@ -41,6 +54,10 @@ library AccessControlSupport {
     revert(buildMissingRoleMessage(role, account));
   }
 
+  /**
+   * Builds a revert reason in the following format:
+   *   AccessControl: account {account} is missing role {role}
+   */
   function buildMissingRoleMessage(bytes32 role, address account) internal pure returns (string memory) {
     return
       string(

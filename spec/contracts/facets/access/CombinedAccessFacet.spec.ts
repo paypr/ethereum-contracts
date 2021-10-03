@@ -19,7 +19,8 @@
 
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ACCESS_DELEGATE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
-import { PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
+import { SUPER_ADMIN_ROLE } from '../../../../src/contracts/roles';
+import { PLAYER1, PLAYER2, PLAYER3 } from '../../../helpers/Accounts';
 import { createDiamondWithCombinedAccess, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import {
@@ -32,7 +33,7 @@ import {
   deployTestCheckRole,
 } from '../../../helpers/facets/AccessControlFacetHelper';
 import { asErc165, deployErc165Facet } from '../../../helpers/facets/ERC165FacetHelper';
-import { ROLE1, ROLE2 } from '../../../helpers/RoleIds';
+import { ROLE1, ROLE2, ROLE3 } from '../../../helpers/RoleIds';
 
 describe('supportsInterface', () => {
   const createContract = async () =>
@@ -44,6 +45,44 @@ describe('supportsInterface', () => {
     );
 
   shouldSupportInterface('AccessDelegate', createContract, ACCESS_DELEGATE_INTERFACE_ID);
+});
+
+describe('grantRole', () => {
+  it('should succeed for user with admin role in access delegate', async () => {
+    const accessControl = await createAccessControl();
+
+    const combinedAccess = asAccessDelegate(
+      await createDiamondWithCombinedAccess({
+        additionalInits: [await buildDelegatingAccessControlInitFunction({ delegate: accessControl })],
+      }),
+    );
+
+    await asAccessControl(combinedAccess).setRoleAdmin(ROLE2, ROLE1);
+
+    await accessControl.grantRole(ROLE1, PLAYER1.address);
+
+    await asAccessControl(combinedAccess, PLAYER1).grantRole(ROLE2, PLAYER2.address);
+
+    await accessControl.grantRole(SUPER_ADMIN_ROLE, PLAYER2.address);
+
+    await asAccessControl(combinedAccess, PLAYER2).grantRole(ROLE3, PLAYER3.address);
+  });
+
+  it('should succeed for user with admin role in contract', async () => {
+    const combinedAccess = asAccessDelegate(await createDiamondWithCombinedAccess());
+
+    const accessControl = asAccessControl(combinedAccess);
+
+    await accessControl.setRoleAdmin(ROLE2, ROLE1);
+
+    await accessControl.grantRole(ROLE1, PLAYER1.address);
+
+    await asAccessControl(combinedAccess, PLAYER1).grantRole(ROLE2, PLAYER2.address);
+
+    await accessControl.grantRole(SUPER_ADMIN_ROLE, PLAYER2.address);
+
+    await asAccessControl(combinedAccess, PLAYER2).grantRole(ROLE3, PLAYER3.address);
+  });
 });
 
 describe('hasRole', () => {

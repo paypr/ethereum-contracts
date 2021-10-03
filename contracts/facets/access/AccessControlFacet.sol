@@ -25,6 +25,7 @@ pragma solidity ^0.8.4;
 import '../disableable/DisableableSupport.sol';
 import './IAccessControl.sol';
 import './AccessControlImpl.sol';
+import './AccessControlSupport.sol';
 
 contract AccessControlFacet is IAccessControl {
   function hasRole(bytes32 role, address account) external view override returns (bool) {
@@ -36,14 +37,14 @@ contract AccessControlFacet is IAccessControl {
   }
 
   function grantRole(bytes32 role, address account) external virtual override {
-    AccessControlImpl.checkAdminRole(role);
+    AccessControlSupport.checkAdminRole(role);
     DisableableSupport.checkEnabled();
 
     AccessControlImpl.grantRole(role, account);
   }
 
   function revokeRole(bytes32 role, address account) external virtual override {
-    AccessControlImpl.checkAdminRole(role);
+    AccessControlSupport.checkAdminRole(role);
     DisableableSupport.checkEnabled();
 
     AccessControlImpl.revokeRole(role, account);
@@ -57,7 +58,7 @@ contract AccessControlFacet is IAccessControl {
   }
 
   function setRoleAdmin(bytes32 role, bytes32 adminRole) external virtual override {
-    AccessControlImpl.checkAdminRole(role);
+    AccessControlSupport.checkAdminRole(role);
     DisableableSupport.checkEnabled();
 
     AccessControlImpl.setRoleAdmin(role, adminRole);

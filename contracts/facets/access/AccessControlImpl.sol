@@ -66,31 +66,9 @@ library AccessControlImpl {
   }
 
   /**
-   * @dev Revert with a standard message if message sender is missing the admin role for `role`.
-   *
-   * See {checkRole(bytes32, address)} for the revert reason format
-   */
-  function checkAdminRole(bytes32 role) internal view {
-    address account = ContextSupport.msgSender();
-
-    checkAdminRole(role, account);
-  }
-
-  /**
-   * @dev Revert with a standard message if `account` is missing the admin role for `role`.
-   *
-   * See {checkRole(bytes32, address)} for the revert reason format
-   */
-  function checkAdminRole(bytes32 role, address account) internal view {
-    bytes32 adminRole = getRoleAdmin(role);
-
-    checkRole(adminRole, account);
-  }
-
-  /**
    * @dev Revert with a standard message if message sender is missing `role`.
    *
-   * See {checkRole(bytes32, address)} for the revert reason format
+   * See {AccessControlSupport.buildMissingRoleMessage(bytes32, address)} for the revert reason format
    */
   function checkRole(bytes32 role) internal view {
     address account = ContextSupport.msgSender();
@@ -101,8 +79,7 @@ library AccessControlImpl {
   /**
    * @dev Revert with a standard message if `account` is missing `role`.
    *
-   * The revert reason is in the following format:
-   *   AccessControl: account {account} is missing role {role}
+   * See {AccessControlSupport.buildMissingRoleMessage(bytes32, address)} for the revert reason format
    */
   function checkRole(bytes32 role, address account) internal view {
     if (hasRole(role, account)) {

@@ -50,10 +50,12 @@ export const createAccessControl = async (additionalRoles: AccessRole[] = []) =>
 export const createDelegatingAccessControl = async (accessControl: IAccessControl) =>
   asDelegatingAccessControl(await createDiamond({ delegate: accessControl }));
 
-export const asAccessControl = (contract: Contract) => IAccessControl__factory.connect(contract.address, INITIALIZER);
-export const asAccessDelegate = (contract: Contract) => IAccessDelegate__factory.connect(contract.address, INITIALIZER);
-export const asDelegatingAccessControl = (contract: Contract) =>
-  IDelegatingAccessControl__factory.connect(contract.address, INITIALIZER);
+export const asAccessControl = (contract: Contract, signer: Signer = INITIALIZER) =>
+  IAccessControl__factory.connect(contract.address, signer);
+export const asAccessDelegate = (contract: Contract, signer: Signer = INITIALIZER) =>
+  IAccessDelegate__factory.connect(contract.address, signer);
+export const asDelegatingAccessControl = (contract: Contract, signer: Signer = INITIALIZER) =>
+  IDelegatingAccessControl__factory.connect(contract.address, signer);
 export const asTestCheckRole = (contract: Contract, signer: Signer = INITIALIZER) =>
   TestCheckRole__factory.connect(contract.address, signer);
 
