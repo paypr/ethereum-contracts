@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.5](https://github.com/paypr/ethereum-contracts/compare/v0.3.4...v0.3.5) (2021-10-03)
+
+### Bug Fixes
+
+- [[#16](https://github.com/paypr/CHANGEME/issues/16)] Fixed issue with CombinedAccess granting roles ([f484172](https://github.com/paypr/ethereum-contracts/commit/f484172bac7f0cc7eef98fed936a7149c558aed1))
+
 ### [0.3.4](https://github.com/paypr/ethereum-contracts/compare/v0.3.3...v0.3.4) (2021-10-02)
 
 ### [0.3.3](https://github.com/paypr/ethereum-contracts/compare/v0.3.2...v0.3.3) (2021-09-28)
