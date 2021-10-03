@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { buildAccessControlAddAdminsInitFunction } from '../../../../src/contracts/access';
+import { buildAccessControlAddMembersInitFunction } from '../../../../src/contracts/access';
 import { buildDiamondFacetCut, buildDiamondInitFunction } from '../../../../src/contracts/diamonds';
 import { IAccessControl__factory } from '../../../../types/contracts';
 import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
@@ -34,10 +34,10 @@ describe('initializeDiamond', () => {
 
     const diamond = await createDiamond();
 
-    const init1 = buildAccessControlAddAdminsInitFunction(accessControlInit, [
+    const init1 = buildAccessControlAddMembersInitFunction(accessControlInit, [
       { role: ROLE1, members: [PLAYER1.address] },
     ]);
-    const init2 = buildAccessControlAddAdminsInitFunction(accessControlInit, [
+    const init2 = buildAccessControlAddMembersInitFunction(accessControlInit, [
       { role: ROLE2, members: [PLAYER2.address] },
     ]);
 

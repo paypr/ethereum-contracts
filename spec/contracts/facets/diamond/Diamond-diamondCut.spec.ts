@@ -19,7 +19,7 @@
 
 import { ContractTransaction } from 'ethers';
 import { hexlify, Interface } from 'ethers/lib/utils';
-import { buildAccessControlAddAdminsInitFunction } from '../../../../src/contracts/access';
+import { buildAccessControlAddMembersInitFunction } from '../../../../src/contracts/access';
 import { ZERO_ADDRESS } from '../../../../src/contracts/accounts';
 import {
   buildDiamondFacetCut,
@@ -59,7 +59,7 @@ describe('add', () => {
 
     await asDiamondCut(diamond).diamondCut(
       [buildDiamondFacetCut(loupeFacet)],
-      buildAccessControlAddAdminsInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
+      buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
     const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
@@ -150,7 +150,7 @@ describe('replace', () => {
 
     await asDiamondCut(diamond).diamondCut(
       [buildDiamondFacetCut(loupeFacet2, DiamondFacetCutAction.Replace)],
-      buildAccessControlAddAdminsInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
+      buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
     const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
@@ -285,7 +285,7 @@ describe('remove', () => {
 
     await asDiamondCut(diamond).diamondCut(
       [buildDiamondFacetCut(loupeFacet, DiamondFacetCutAction.Remove)],
-      buildAccessControlAddAdminsInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
+      buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
     const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);

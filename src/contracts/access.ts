@@ -36,13 +36,13 @@ export const buildAccessControlInitAdminsInitFunction = (
   roles: AccessRole[],
 ): DiamondInitFunction => ({
   initAddress: accessControlInit.address,
-  callData: encodeAccessControlInitAdminsCallData(accessControlInit, roles),
+  callData: encodeAccessControlAddRolesCallData(accessControlInit, roles),
 });
 
-export const encodeAccessControlInitAdminsCallData = (accessControlInit: AccessControlInit, roles: AccessRole[]) =>
+export const encodeAccessControlAddRolesCallData = (accessControlInit: AccessControlInit, roles: AccessRole[]) =>
   accessControlInit.interface.encodeFunctionData('addRoles', [roles]);
 
-export const buildAccessControlAddAdminsInitFunction = (
+export const buildAccessControlAddMembersInitFunction = (
   accessControlInit: AccessControlInit,
   roleAdmins: AccessRoleMembers[],
 ): DiamondInitFunction => ({

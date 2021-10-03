@@ -21,7 +21,7 @@ import { Contract, Signer } from 'ethers';
 import {
   AccessRole,
   AccessRoleMembers,
-  buildAccessControlAddAdminsInitFunction,
+  buildAccessControlAddMembersInitFunction,
   buildAccessControlInitAdminsInitFunction,
   buildDelegatingAccessControlAddDelegateInitFunction,
 } from '../../../src/contracts/access';
@@ -98,7 +98,7 @@ export const buildAccessControlInitFunction = async (
 ): Promise<DiamondInitFunction> => {
   const accessControlInit = options.accessControlInit || (await deployAccessControlInit());
   if ('additionalRoleMembers' in options && options.additionalRoleMembers) {
-    return buildAccessControlAddAdminsInitFunction(accessControlInit, options.additionalRoleMembers);
+    return buildAccessControlAddMembersInitFunction(accessControlInit, options.additionalRoleMembers);
   }
 
   const initRoles = [SUPER_ADMIN_ROLE, ...(('additionalRoles' in options && options.additionalRoles) || [])];
