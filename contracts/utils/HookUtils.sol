@@ -22,6 +22,7 @@
 pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 
 library HookUtils {
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -45,7 +46,7 @@ library HookUtils {
             revert(ptr, size)
           }
         } else {
-          revert('Hook function failed');
+          revert(string(abi.encodePacked('Hook function failed: ', Strings.toHexString(uint160(hook)))));
         }
       }
     }

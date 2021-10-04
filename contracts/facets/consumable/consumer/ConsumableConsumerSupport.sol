@@ -22,6 +22,7 @@
 pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '../../erc165/ERC165Support.sol';
 import '../IConsumable.sol';
 import './IConsumableConsumer.sol';
@@ -76,7 +77,15 @@ library ConsumableConsumerSupport {
         uint256 amountToConsume = consumable.allowance(provider, address(this));
 
         bool success = consumable.transferFrom(provider, address(this), amountToConsume);
-        require(success, 'ConsumableConsumer: Consumable failed to transfer');
+        require(
+          success,
+          string(
+            abi.encodePacked(
+              'ConsumableConsumer: Consumable failed to transfer: ',
+              Strings.toHexString(uint160(address(consumable)), 20)
+            )
+          )
+        );
 
         if (amount > amountToConsume) {
           amount = amount.sub(amountToConsume);
@@ -85,7 +94,15 @@ library ConsumableConsumerSupport {
         }
       }
 
-      require(amount == 0, 'ConsumableConsumer: Not enough consumable to transfer');
+      require(
+        amount == 0,
+        string(
+          abi.encodePacked(
+            'ConsumableConsumer: Not enough consumable to transfer: ',
+            Strings.toHexString(uint160(address(consumable)), 20)
+          )
+        )
+      );
     }
   }
 
@@ -97,7 +114,12 @@ library ConsumableConsumerSupport {
 
       require(
         IERC165(address(consumable)).supportsInterface(type(IConsumableConversion).interfaceId),
-        'Consumer: Consumable is not convertible'
+        string(
+          abi.encodePacked(
+            'ConsumableConsumer: Consumable is not convertible: ',
+            Strings.toHexString(uint160(address(consumable)), 20)
+          )
+        )
       );
 
       IConsumableConversion convertibleConsumable = IConsumableConversion(address(consumable));
