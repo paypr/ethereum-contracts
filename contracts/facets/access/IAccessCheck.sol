@@ -21,10 +21,9 @@
 
 pragma solidity ^0.8.4;
 
-import '../AccessCheckSupport.sol';
-
-contract TestCheckRole {
-  function needsRole(bytes32 role) external view {
-    AccessCheckSupport.checkRole(role);
-  }
+interface IAccessCheck {
+  /**
+   * @notice Returns `true` if `account` has been granted `role`.
+   */
+  function hasRole(bytes32 role, address account) external view returns (bool);
 }

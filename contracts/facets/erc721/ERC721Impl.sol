@@ -31,7 +31,7 @@ import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '../../utils/HookUtils.sol';
-import '../access/AccessControlSupport.sol';
+import '../access/AccessCheckSupport.sol';
 import '../access/RoleSupport.sol';
 import '../context/ContextSupport.sol';
 import './IERC721Hooks.sol';
@@ -67,7 +67,7 @@ library ERC721Impl {
   }
 
   function checkMinter() internal view {
-    AccessControlSupport.checkRole(RoleSupport.MINTER_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.MINTER_ROLE);
   }
 
   function balanceOf(address owner) internal view returns (uint256) {

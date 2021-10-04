@@ -19,15 +19,15 @@
 
 import { buildAccessControlAddMembersInitFunction } from '../../../../src/contracts/access';
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
-import { IAccessControl__factory } from '../../../../types/contracts';
-import { INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import {
+  ACCESS_CHECK_INTERFACE_ID,
   ACCESS_CONTROL_INTERFACE_ID,
-  ACCESS_DELEGATE_INTERFACE_ID,
   DIAMOND_CUT_INTERFACE_ID,
   DIAMOND_LOUPE_INTERFACE_ID,
   ERC165_INTERFACE_ID,
 } from '../../../../src/contracts/erc165InterfaceIds';
+import { IAccessCheck__factory } from '../../../../types/contracts';
+import { INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import { deployAccessControlInit } from '../../../helpers/facets/AccessControlFacetHelper';
@@ -65,7 +65,7 @@ describe('supportsInterface', () => {
 
     shouldSupportInterface('ERC165', create, ERC165_INTERFACE_ID);
     shouldSupportInterface('AccessControl', create, ACCESS_CONTROL_INTERFACE_ID);
-    shouldSupportInterface('AccessDelegate', create, ACCESS_DELEGATE_INTERFACE_ID);
+    shouldSupportInterface('AccessDelegate', create, ACCESS_CHECK_INTERFACE_ID);
     shouldSupportInterface('DiamondCut', create, DIAMOND_CUT_INTERFACE_ID);
     shouldSupportInterface('DiamondLoupe', create, DIAMOND_LOUPE_INTERFACE_ID);
   });
@@ -81,8 +81,8 @@ describe('constructor', () => {
       ],
     });
 
-    const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
+    const accessCheck = IAccessCheck__factory.connect(diamond.address, INITIALIZER);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 });

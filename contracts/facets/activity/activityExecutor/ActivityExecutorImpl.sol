@@ -22,7 +22,7 @@
 pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
-import '../../access/AccessControlSupport.sol';
+import '../../access/AccessCheckSupport.sol';
 import '../../access/RoleSupport.sol';
 import '../../consumable/consumer/ConsumableConsumerSupport.sol';
 import '../../consumable/provider/ConsumableProviderSupport.sol';
@@ -32,7 +32,7 @@ import '../IActivity.sol';
 
 library ActivityExecutorImpl {
   function checkAdmin() internal view {
-    AccessControlSupport.checkRole(RoleSupport.ADMIN_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.ADMIN_ROLE);
   }
 
   function execute(

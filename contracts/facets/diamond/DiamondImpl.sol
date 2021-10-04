@@ -29,7 +29,7 @@ pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '../access/RoleSupport.sol';
-import '../access/AccessControlSupport.sol';
+import '../access/AccessCheckSupport.sol';
 import '../diamond/IDiamondCut.sol';
 import '../erc165/ERC165Impl.sol';
 
@@ -57,7 +57,7 @@ library DiamondImpl {
   }
 
   function checkDiamondCutter() internal view {
-    AccessControlSupport.checkRole(RoleSupport.DIAMOND_CUTTER_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.DIAMOND_CUTTER_ROLE);
   }
 
   function facetAddress(bytes4 functionSelector) internal view returns (address) {

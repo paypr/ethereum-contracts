@@ -23,9 +23,10 @@ pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/Strings.sol';
 import './IAccessControl.sol';
+import './IAccessCheck.sol';
 import '../context/ContextSupport.sol';
 
-library AccessControlSupport {
+library AccessCheckSupport {
   /**
    * @dev Revert with a standard message if message sender is missing the admin role for `role`.
    *
@@ -47,7 +48,7 @@ library AccessControlSupport {
   function checkRole(bytes32 role) internal view {
     address account = ContextSupport.msgSender();
 
-    if (IAccessControl(address(this)).hasRole(role, account)) {
+    if (IAccessCheck(address(this)).hasRole(role, account)) {
       return;
     }
 
@@ -62,7 +63,7 @@ library AccessControlSupport {
     return
       string(
         abi.encodePacked(
-          'AccessControl: account ',
+          'AccessCheck: account ',
           Strings.toHexString(uint160(account), 20),
           ' is missing role ',
           Strings.toHexString(uint256(role), 32)

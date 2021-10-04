@@ -27,7 +27,7 @@
 pragma solidity ^0.8.4;
 
 import './RoleSupport.sol';
-import './AccessControlSupport.sol';
+import './AccessCheckSupport.sol';
 
 /**
  * @dev Implementation of Access Roles
@@ -86,7 +86,7 @@ library AccessControlImpl {
       return;
     }
 
-    revert(AccessControlSupport.buildMissingRoleMessage(role, account));
+    revert(AccessCheckSupport.buildMissingRoleMessage(role, account));
   }
 
   /**

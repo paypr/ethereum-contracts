@@ -23,7 +23,7 @@ pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../context/ContextSupport.sol';
-import '../../access/AccessControlSupport.sol';
+import '../../access/AccessCheckSupport.sol';
 import '../../access/RoleSupport.sol';
 import '../IConsumable.sol';
 
@@ -46,7 +46,7 @@ library ConsumableLimitImpl {
   }
 
   function checkLimiter() internal view {
-    AccessControlSupport.checkRole(RoleSupport.LIMITER_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.LIMITER_ROLE);
   }
 
   function limitOf(address account) internal view returns (uint256) {

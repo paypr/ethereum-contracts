@@ -24,48 +24,25 @@ import { ADMIN_ROLE, DIAMOND_CUTTER_ROLE, MINTER_ROLE, SUPER_ADMIN_ROLE } from '
 import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
-import { asAccessControl, deployAccessControlFacet } from '../../../helpers/facets/AccessControlFacetHelper';
+import {
+  asAccessCheck,
+  asAccessControl,
+  deployAccessControlFacet,
+} from '../../../helpers/facets/AccessControlFacetHelper';
 import { asDisableable, createDisableable } from '../../../helpers/facets/DisableableFacetHelper';
 import { asErc165, deployErc165Facet } from '../../../helpers/facets/ERC165FacetHelper';
 import { ROLE1, ROLE2 } from '../../../helpers/RoleIds';
 
 describe('supportsInterface', () => {
-  const createDiamondForErc165 = async () => {
-    const erc165Facet = await deployErc165Facet();
-    const accessControlFacet = await deployAccessControlFacet();
+  const createContract = async () =>
+    asErc165(
+      await deployDiamond([
+        buildDiamondFacetCut(await deployErc165Facet()),
+        buildDiamondFacetCut(await deployAccessControlFacet()),
+      ]),
+    );
 
-    return asErc165(await deployDiamond([buildDiamondFacetCut(erc165Facet), buildDiamondFacetCut(accessControlFacet)]));
-  };
-
-  shouldSupportInterface('AccessControl', createDiamondForErc165, ACCESS_CONTROL_INTERFACE_ID);
-});
-
-describe('hasRole', () => {
-  it('should return false for any random role and user', async () => {
-    const diamond = await createDiamond();
-    const accessControl = asAccessControl(diamond);
-
-    expect<boolean>(await accessControl.hasRole(SUPER_ADMIN_ROLE, PLAYER1.address)).toBe(false);
-
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-
-    await accessControl.grantRole(ROLE1, PLAYER1.address);
-
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-  });
-
-  it('should return true for specific roles and users', async () => {
-    const diamond = await createDiamond();
-    const accessControl = asAccessControl(diamond);
-
-    expect<boolean>(await accessControl.hasRole(SUPER_ADMIN_ROLE, INITIALIZER.address)).toBe(true);
-
-    await accessControl.grantRole(ROLE1, PLAYER1.address);
-
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-  });
+  shouldSupportInterface('AccessControl', createContract, ACCESS_CONTROL_INTERFACE_ID);
 });
 
 describe('getRoleAdmin', () => {
@@ -99,24 +76,25 @@ describe('grantRole', () => {
   it('should grant the role to only that user', async () => {
     const diamond = await createDiamond();
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.setRoleAdmin(ROLE2, ROLE1);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
 
     await accessControl.connect(PLAYER1).grantRole(ROLE2, PLAYER2.address);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(true);
 
     await accessControl.connect(PLAYER1).grantRole(ROLE2, PLAYER2.address);
   });
@@ -150,6 +128,7 @@ describe('grantRole', () => {
   it('should revert if not called by the role admin', async () => {
     const diamond = await createDiamond();
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.setRoleAdmin(ROLE2, ROLE1);
     await accessControl.grantRole(ROLE1, PLAYER1.address);
@@ -158,19 +137,20 @@ describe('grantRole', () => {
       accessControl.connect(PLAYER1).grantRole(ROLE1, PLAYER2.address),
     ).toBeRevertedWith('missing role');
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
 
     await expect<Promise<ContractTransaction>>(
       accessControl.connect(INITIALIZER).grantRole(ROLE2, PLAYER2.address),
     ).toBeRevertedWith('missing role');
 
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
   });
 
   it('should revert if disabled', async () => {
     const diamond = await createDisableable();
     const disableable = asDisableable(diamond);
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await disableable.disable();
 
@@ -178,7 +158,7 @@ describe('grantRole', () => {
       'Contract is disabled',
     );
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(false);
   });
 });
 
@@ -186,6 +166,7 @@ describe('revokeRole', () => {
   it('should remove the role from only that user', async () => {
     const diamond = await createDiamond();
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
     await accessControl.grantRole(ROLE2, PLAYER2.address);
@@ -194,19 +175,19 @@ describe('revokeRole', () => {
 
     await accessControl.connect(PLAYER1).revokeRole(ROLE2, PLAYER2.address);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
 
     await accessControl.connect(PLAYER1).revokeRole(ROLE2, PLAYER2.address);
 
     await accessControl.revokeRole(ROLE1, PLAYER1.address);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
 
     await accessControl.revokeRole(ROLE1, PLAYER1.address);
   });
@@ -243,6 +224,7 @@ describe('revokeRole', () => {
   it('should revert if not called by the role admin', async () => {
     const diamond = await createDiamond();
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
     await accessControl.grantRole(ROLE1, PLAYER2.address);
@@ -255,19 +237,20 @@ describe('revokeRole', () => {
       accessControl.connect(PLAYER1).revokeRole(ROLE1, PLAYER2.address),
     ).toBeRevertedWith('missing role');
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(true);
 
     await expect<Promise<ContractTransaction>>(
       accessControl.connect(INITIALIZER).grantRole(ROLE2, PLAYER2.address),
     ).toBeRevertedWith('missing role');
 
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(true);
   });
 
   it('should revert if disabled', async () => {
     const diamond = await createDisableable();
     const disableable = asDisableable(diamond);
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
 
@@ -277,7 +260,7 @@ describe('revokeRole', () => {
       'Contract is disabled',
     );
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 });
 
@@ -285,6 +268,7 @@ describe('renounceRole', () => {
   it('should remove the role from only the calling user', async () => {
     const diamond = await createDiamond();
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
     await accessControl.grantRole(ROLE2, PLAYER2.address);
@@ -293,19 +277,19 @@ describe('renounceRole', () => {
 
     await accessControl.connect(PLAYER2).renounceRole(ROLE2);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
 
     await accessControl.connect(PLAYER2).renounceRole(ROLE2);
 
     await accessControl.connect(PLAYER1).renounceRole(ROLE1);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER1.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER2.address)).toBe(false);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(false);
 
     await accessControl.connect(PLAYER1).renounceRole(ROLE1);
   });
@@ -346,6 +330,7 @@ describe('renounceRole', () => {
     const diamond = await createDisableable();
     const disableable = asDisableable(diamond);
     const accessControl = asAccessControl(diamond);
+    const accessCheck = asAccessCheck(accessControl);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
 
@@ -355,7 +340,7 @@ describe('renounceRole', () => {
       'Contract is disabled',
     );
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 });
 
@@ -434,7 +419,7 @@ describe('setRoleAdmin', () => {
   });
 
   it('should revert if disabled', async () => {
-    const diamond = await await createDisableable();
+    const diamond = await createDisableable();
     const disableable = asDisableable(diamond);
     const accessControl = asAccessControl(diamond);
 

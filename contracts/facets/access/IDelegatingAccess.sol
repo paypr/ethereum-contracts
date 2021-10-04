@@ -21,44 +21,39 @@
 
 pragma solidity ^0.8.4;
 
-import './IAccessDelegate.sol';
+import './IAccessCheck.sol';
 
-interface IDelegatingAccessControl {
+interface IDelegatingAccess {
   /**
-   * @notice Returns `true` if `account` has been granted `role`.
+   * @notice Returns `true` if `roleDelegate` is a role delegate.
    */
-  function hasRole(bytes32 role, address account) external view returns (bool);
-
-  /**
-   * @notice Returns `true` if `accessDelegate` is.
-   */
-  function isRoleDelegate(IAccessDelegate roleDelegate) external view returns (bool);
+  function isRoleDelegate(IAccessCheck roleDelegate) external view returns (bool);
 
   /**
    * @notice Adds the given role delegate
    *
    * Emits a {RoleDelegateAdded} event.
    */
-  function addRoleDelegate(IAccessDelegate roleDelegate) external;
+  function addRoleDelegate(IAccessCheck roleDelegate) external;
 
   /**
    * @notice Removes the given role delegate
    *
    * Emits a {RoleDelegateRemoved} event.
    */
-  function removeRoleDelegate(IAccessDelegate roleDelegate) external;
+  function removeRoleDelegate(IAccessCheck roleDelegate) external;
 
   /**
    * @notice Emitted when `roleDelegate` is added.
    *
    * `sender` is the account that originated the contract call
    */
-  event RoleDelegateAdded(IAccessDelegate indexed roleDelegate, address indexed sender);
+  event RoleDelegateAdded(IAccessCheck indexed roleDelegate, address indexed sender);
 
   /**
    * @notice Emitted when `roleDelegate` is removed.
    *
    * `sender` is the account that originated the contract call
    */
-  event RoleDelegateRemoved(IAccessDelegate indexed roleDelegate, address indexed sender);
+  event RoleDelegateRemoved(IAccessCheck indexed roleDelegate, address indexed sender);
 }

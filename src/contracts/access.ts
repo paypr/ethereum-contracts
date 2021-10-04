@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AccessControlInit, DelegatingAccessControlInit } from '../../types/contracts';
+import { AccessControlInit, DelegatingAccessInit } from '../../types/contracts';
 import { AccountAddress } from './accounts';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
@@ -55,15 +55,15 @@ export const encodeAccessControlAddAdminsCallData = (
   roleAdmins: AccessRoleMembers[],
 ) => accessControlInit.interface.encodeFunctionData('addMembers', [roleAdmins]);
 
-export const buildDelegatingAccessControlAddDelegateInitFunction = (
-  delegatingAccessControlInit: DelegatingAccessControlInit,
+export const buildDelegatingAccessAddDelegateInitFunction = (
+  delegatingAccessInit: DelegatingAccessInit,
   delegateAddress: ContractAddress,
 ): DiamondInitFunction => ({
-  initAddress: delegatingAccessControlInit.address,
-  callData: encodeDelegatingAccessControlAddDelegateCallData(delegatingAccessControlInit, delegateAddress),
+  initAddress: delegatingAccessInit.address,
+  callData: encodeDelegatingAccessAddDelegateCallData(delegatingAccessInit, delegateAddress),
 });
 
-export const encodeDelegatingAccessControlAddDelegateCallData = (
-  delegatingAccessControlInit: DelegatingAccessControlInit,
+export const encodeDelegatingAccessAddDelegateCallData = (
+  delegatingAccessInit: DelegatingAccessInit,
   delegateAddress: ContractAddress,
-) => delegatingAccessControlInit.interface.encodeFunctionData('addDelegate', [delegateAddress]);
+) => delegatingAccessInit.interface.encodeFunctionData('addDelegate', [delegateAddress]);

@@ -29,7 +29,9 @@ import { ADMIN_ROLE, DISABLER_ROLE, SUPER_ADMIN_ROLE } from '../../../../src/con
 import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { deployDiamond } from '../../../helpers/DiamondHelper';
 import {
+  asAccessCheck,
   asAccessControl,
+  deployAccessControlCheckFacet,
   deployAccessControlFacet,
   deployAccessControlInit,
 } from '../../../helpers/facets/AccessControlFacetHelper';
@@ -44,16 +46,18 @@ describe('isInterfaceSupported', () => {
         [
           buildDiamondFacetCut(await deployErc165Facet()),
           buildDiamondFacetCut(await deployAccessControlFacet()),
+          buildDiamondFacetCut(await deployAccessControlCheckFacet()),
           buildDiamondFacetCut(await deployDisableableFacet()),
         ],
         buildAccessControlInitAdminsInitFunction(await deployAccessControlInit(), [SUPER_ADMIN_ROLE, DISABLER_ROLE]),
       ),
     );
+    const accessCheck = asAccessCheck(accessControl);
 
     // this would succeed whether the disableable interface is implemented or not
     await accessControl.grantRole(ADMIN_ROLE, PLAYER1.address);
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(true);
 
     await asDisableable(accessControl, INITIALIZER).disable();
 
@@ -62,7 +66,7 @@ describe('isInterfaceSupported', () => {
       'Contract is disabled',
     );
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(false);
   });
 
   it('should return false when the interface is not supported', async () => {
@@ -73,6 +77,7 @@ describe('isInterfaceSupported', () => {
         [
           buildDiamondFacetCut(await deployErc165Facet()),
           buildDiamondFacetCut(await deployAccessControlFacet()),
+          buildDiamondFacetCut(await deployAccessControlCheckFacet()),
           {
             facetAddress: disableableFacet.address,
             functionSelectors: getAllFunctionSelectors(disableableFacet),
@@ -83,35 +88,41 @@ describe('isInterfaceSupported', () => {
         buildAccessControlInitAdminsInitFunction(await deployAccessControlInit(), [SUPER_ADMIN_ROLE, DISABLER_ROLE]),
       ),
     );
+    const accessCheck = asAccessCheck(accessControl);
 
     // this would succeed whether the disableable interface is implemented or not
     await accessControl.grantRole(ADMIN_ROLE, PLAYER1.address);
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(true);
 
     await asDisableable(accessControl, INITIALIZER).disable();
 
     // this would have failed if the disableable interface was implemented
     await accessControl.grantRole(ADMIN_ROLE, PLAYER2.address);
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(true);
   });
 
   it('should fail when the ERC165 interface is not supported', async () => {
     // access control checks the Disableable interface during grantRole
     const accessControl = asAccessControl(
       await deployDiamond(
-        [buildDiamondFacetCut(await deployAccessControlFacet()), buildDiamondFacetCut(await deployDisableableFacet())],
+        [
+          buildDiamondFacetCut(await deployAccessControlFacet()),
+          buildDiamondFacetCut(await deployAccessControlCheckFacet()),
+          buildDiamondFacetCut(await deployDisableableFacet()),
+        ],
         buildAccessControlInitAdminsInitFunction(await deployAccessControlInit(), [SUPER_ADMIN_ROLE, DISABLER_ROLE]),
       ),
     );
+    const accessCheck = asAccessCheck(accessControl);
 
     // this would have succeeded whether the disableable interface is implemented or not
     await expect<Promise<ContractTransaction>>(accessControl.grantRole(ADMIN_ROLE, PLAYER1.address)).toBeRevertedWith(
       'Function does not exist',
     );
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER1.address)).toBe(false);
 
     await asDisableable(accessControl, INITIALIZER).disable();
 
@@ -120,6 +131,6 @@ describe('isInterfaceSupported', () => {
       'Function does not exist',
     );
 
-    expect<boolean>(await accessControl.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(false);
+    expect<boolean>(await accessCheck.hasRole(ADMIN_ROLE, PLAYER2.address)).toBe(false);
   });
 });

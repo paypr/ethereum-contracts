@@ -19,7 +19,7 @@
 
 import { buildAccessControlAddMembersInitFunction } from '../../../../src/contracts/access';
 import { buildDiamondFacetCut, buildDiamondInitFunction } from '../../../../src/contracts/diamonds';
-import { IAccessControl__factory } from '../../../../types/contracts';
+import { IAccessCheck__factory } from '../../../../types/contracts';
 import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { createDiamond } from '../../../helpers/DiamondHelper';
 import { deployAccessControlInit } from '../../../helpers/facets/AccessControlFacetHelper';
@@ -46,9 +46,9 @@ describe('initializeDiamond', () => {
       buildDiamondInitFunction(diamondInit, [init1, init2]),
     );
 
-    const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
+    const accessCheck = IAccessCheck__factory.connect(diamond.address, INITIALIZER);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
-    expect<boolean>(await accessControl.hasRole(ROLE2, PLAYER2.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE2, PLAYER2.address)).toBe(true);
   });
 });

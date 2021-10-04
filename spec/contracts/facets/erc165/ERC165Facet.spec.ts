@@ -20,7 +20,7 @@
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import {
   ACCESS_CONTROL_INTERFACE_ID,
-  DELEGATING_ACCESS_CONTROL_INTERFACE_ID,
+  DELEGATING_ACCESS_INTERFACE_ID,
   DIAMOND_CUT_INTERFACE_ID,
   ERC165_INTERFACE_ID,
 } from '../../../../src/contracts/erc165InterfaceIds';
@@ -56,6 +56,6 @@ describe('supportsInterface', () => {
     );
 
     expect<boolean>(await erc165.supportsInterface(DIAMOND_CUT_INTERFACE_ID)).toBe(false);
-    expect<boolean>(await erc165.supportsInterface(DELEGATING_ACCESS_CONTROL_INTERFACE_ID)).toBe(false);
+    expect<boolean>(await erc165.supportsInterface(DELEGATING_ACCESS_INTERFACE_ID)).toBe(false);
   });
 });

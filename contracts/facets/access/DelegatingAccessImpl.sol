@@ -24,23 +24,22 @@ pragma solidity ^0.8.4;
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '../context/ContextSupport.sol';
 import '../erc165/ERC165Support.sol';
-import './AccessControlSupport.sol';
+import './AccessCheckSupport.sol';
 import './RoleSupport.sol';
-import './IAccessDelegate.sol';
+import './IAccessCheck.sol';
 
-library DelegatingAccessControlImpl {
+library DelegatingAccessImpl {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  bytes32 private constant DELEGATING_ACCESS_CONTROL_STORAGE_POSITION =
-    keccak256('paypr.delegatingAccessControl.storage');
+  bytes32 private constant DELEGATING_ACCESS_STORAGE_POSITION = keccak256('paypr.delegatingAccess.storage');
 
-  struct DelegatingAccessControlStorage {
+  struct DelegatingAccessStorage {
     EnumerableSet.AddressSet roleDelegates;
   }
 
   //noinspection NoReturn
-  function _delegatingAccessControlStorage() private pure returns (DelegatingAccessControlStorage storage ds) {
-    bytes32 position = DELEGATING_ACCESS_CONTROL_STORAGE_POSITION;
+  function _delegatingAccessStorage() private pure returns (DelegatingAccessStorage storage ds) {
+    bytes32 position = DELEGATING_ACCESS_STORAGE_POSITION;
     // solhint-disable-next-line no-inline-assembly
     assembly {
       ds.slot := position
@@ -48,33 +47,33 @@ library DelegatingAccessControlImpl {
   }
 
   function checkDelegateAdmin() internal view {
-    AccessControlSupport.checkRole(RoleSupport.DELEGATE_ADMIN_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.DELEGATE_ADMIN_ROLE);
   }
 
-  function isRoleDelegate(IAccessDelegate roleDelegate) internal view returns (bool) {
-    return _delegatingAccessControlStorage().roleDelegates.contains(address(roleDelegate));
+  function isRoleDelegate(IAccessCheck roleDelegate) internal view returns (bool) {
+    return _delegatingAccessStorage().roleDelegates.contains(address(roleDelegate));
   }
 
   /**
    * @dev Adds the given role delegate
    */
-  function addRoleDelegate(IAccessDelegate roleDelegate) internal {
+  function addRoleDelegate(IAccessCheck roleDelegate) internal {
     require(address(roleDelegate) != address(0), 'Role delegate cannot be zero address');
     require(
-      IERC165(address(roleDelegate)).supportsInterface(type(IAccessDelegate).interfaceId),
+      IERC165(address(roleDelegate)).supportsInterface(type(IAccessCheck).interfaceId),
       'Role delegate must implement interface'
     );
 
-    _delegatingAccessControlStorage().roleDelegates.add(address(roleDelegate));
+    _delegatingAccessStorage().roleDelegates.add(address(roleDelegate));
     emit RoleDelegateAdded(roleDelegate, ContextSupport.msgSender());
   }
 
   /**
    * @dev Removes the given role delegate
    */
-  function removeRoleDelegate(IAccessDelegate roleDelegate) internal {
+  function removeRoleDelegate(IAccessCheck roleDelegate) internal {
     require(address(roleDelegate) != address(0), 'Role delegate cannot be zero address');
-    _delegatingAccessControlStorage().roleDelegates.remove(address(roleDelegate));
+    _delegatingAccessStorage().roleDelegates.remove(address(roleDelegate));
     emit RoleDelegateRemoved(roleDelegate, ContextSupport.msgSender());
   }
 
@@ -82,10 +81,10 @@ library DelegatingAccessControlImpl {
    * @dev Returns `true` if `account` has been granted `role`.
    */
   function hasRole(bytes32 role, address account) internal view returns (bool) {
-    EnumerableSet.AddressSet storage roleDelegates = _delegatingAccessControlStorage().roleDelegates;
+    EnumerableSet.AddressSet storage roleDelegates = _delegatingAccessStorage().roleDelegates;
     uint256 roleDelegateLength = roleDelegates.length();
     for (uint256 roleDelegateIndex = 0; roleDelegateIndex < roleDelegateLength; roleDelegateIndex++) {
-      IAccessDelegate roleDelegate = IAccessDelegate(roleDelegates.at(roleDelegateIndex));
+      IAccessCheck roleDelegate = IAccessCheck(roleDelegates.at(roleDelegateIndex));
       if (roleDelegate.hasRole(role, account)) {
         return true;
       }
@@ -94,7 +93,7 @@ library DelegatingAccessControlImpl {
     return false;
   }
 
-  // have to redeclare here even though it's already declared in IDelegatingAccessControl
-  event RoleDelegateAdded(IAccessDelegate indexed roleDelegate, address indexed sender);
-  event RoleDelegateRemoved(IAccessDelegate indexed roleDelegate, address indexed sender);
+  // have to redeclare here even though it's already declared in IDelegatingAccess
+  event RoleDelegateAdded(IAccessCheck indexed roleDelegate, address indexed sender);
+  event RoleDelegateRemoved(IAccessCheck indexed roleDelegate, address indexed sender);
 }

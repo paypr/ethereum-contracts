@@ -33,14 +33,14 @@ import {
   Erc165InterfaceId,
   NO_INTERFACE,
 } from '../../src/contracts/erc165';
-import { ACCESS_DELEGATE_INTERFACE_ID } from '../../src/contracts/erc165InterfaceIds';
+import { ACCESS_CHECK_INTERFACE_ID } from '../../src/contracts/erc165InterfaceIds';
 import { DIAMOND_CUTTER_ROLE } from '../../src/contracts/roles';
 import {
   Diamond,
   Diamond__factory,
   DiamondInit,
   ERC165Init,
-  IAccessControl__factory,
+  IAccessCheck__factory,
   IDiamondCut__factory,
 } from '../../types/contracts';
 import { DIAMOND_CUTTER, INITIALIZER } from './Accounts';
@@ -48,9 +48,11 @@ import {
   AccessControlInitOptions,
   asAccessControl,
   buildOneOfAccessControlInitFunction,
+  deployAccessControlCheckFacet,
   deployAccessControlFacet,
   deployCombinedAccessFacet,
-  deployDelegatingAccessControlFacet,
+  deployDelegatingAccessCheckFacet,
+  deployDelegatingAccessFacet,
   OneOfAccessControlInitOptions,
 } from './facets/AccessControlFacetHelper';
 import { deployDiamondCutFacet, deployDiamondInit } from './facets/DiamondFacetHelper';
@@ -77,7 +79,7 @@ export type CreateDiamondOptions = CreateDiamondBaseOptions & OneOfAccessControl
 
 export const createDiamond = async (options: CreateDiamondOptions = {}) => {
   const erc165Init = options.erc165Init || (await deployErc165Init());
-  const additionalInterfaceIds = [ACCESS_DELEGATE_INTERFACE_ID, ...(options.additionalInterfaceIds || [])];
+  const additionalInterfaceIds = [ACCESS_CHECK_INTERFACE_ID, ...(options.additionalInterfaceIds || [])];
 
   const initFunction = await combineDiamondInitFunctions(
     [
@@ -92,7 +94,10 @@ export const createDiamond = async (options: CreateDiamondOptions = {}) => {
   const diamond = await deployDiamond(
     [
       buildDiamondFacetCut(await deployErc165Facet()),
-      buildDiamondFacetCut(delegating ? await deployDelegatingAccessControlFacet() : await deployAccessControlFacet()),
+      buildDiamondFacetCut(delegating ? await deployDelegatingAccessFacet() : await deployAccessControlFacet()),
+      buildDiamondFacetCut(
+        delegating ? await deployDelegatingAccessCheckFacet() : await deployAccessControlCheckFacet(),
+      ),
       buildDiamondFacetCut(await deployDiamondCutFacet()),
       ...(options.additionalCuts || []),
     ],
@@ -113,7 +118,7 @@ export const createDiamondWithCombinedAccess = async (options: CreateDiamondWith
     action: DiamondFacetCutAction.Remove,
     functionSelectors: [
       Interface.getSighash(
-        IAccessControl__factory.connect(ZERO_ADDRESS, INITIALIZER).interface.functions['hasRole(bytes32,address)'],
+        IAccessCheck__factory.connect(ZERO_ADDRESS, INITIALIZER).interface.functions['hasRole(bytes32,address)'],
       ),
     ],
     facetAddress: ZERO_ADDRESS,
@@ -122,8 +127,7 @@ export const createDiamondWithCombinedAccess = async (options: CreateDiamondWith
 
   const additionalCuts = [
     removeHasRoleCut,
-    buildDiamondFacetCut(await deployDelegatingAccessControlFacet()),
-    removeHasRoleCut,
+    buildDiamondFacetCut(await deployDelegatingAccessFacet()),
     buildDiamondFacetCut(await deployCombinedAccessFacet()),
     ...(options.additionalCuts || []),
   ];
