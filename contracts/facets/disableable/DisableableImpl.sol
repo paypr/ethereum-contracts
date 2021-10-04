@@ -21,7 +21,7 @@
 
 pragma solidity ^0.8.4;
 
-import '../access/AccessControlSupport.sol';
+import '../access/AccessCheckSupport.sol';
 import '../access/RoleSupport.sol';
 import '../context/ContextSupport.sol';
 
@@ -42,7 +42,7 @@ library DisableableImpl {
   }
 
   function checkDisabler() internal view {
-    AccessControlSupport.checkRole(RoleSupport.DISABLER_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.DISABLER_ROLE);
   }
 
   function disabled() internal view returns (bool) {

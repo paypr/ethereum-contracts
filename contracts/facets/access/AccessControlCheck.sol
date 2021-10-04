@@ -21,31 +21,11 @@
 
 pragma solidity ^0.8.4;
 
-import './IAccessDelegate.sol';
-import './IDelegatingAccessControl.sol';
-import './DelegatingAccessControlImpl.sol';
-import '../disableable/DisableableSupport.sol';
+import './AccessControlImpl.sol';
+import './IAccessCheck.sol';
 
-contract DelegatingAccessControlFacet is IDelegatingAccessControl {
+contract AccessControlCheckCheck is IAccessCheck {
   function hasRole(bytes32 role, address account) external view override returns (bool) {
-    return DelegatingAccessControlImpl.hasRole(role, account);
-  }
-
-  function isRoleDelegate(IAccessDelegate roleDelegate) external view override returns (bool) {
-    return DelegatingAccessControlImpl.isRoleDelegate(roleDelegate);
-  }
-
-  function addRoleDelegate(IAccessDelegate roleDelegate) external override {
-    DelegatingAccessControlImpl.checkDelegateAdmin();
-    DisableableSupport.checkEnabled();
-
-    DelegatingAccessControlImpl.addRoleDelegate(roleDelegate);
-  }
-
-  function removeRoleDelegate(IAccessDelegate roleDelegate) external override {
-    DelegatingAccessControlImpl.checkDelegateAdmin();
-    DisableableSupport.checkEnabled();
-
-    DelegatingAccessControlImpl.removeRoleDelegate(roleDelegate);
+    return AccessControlImpl.hasRole(role, account);
   }
 }

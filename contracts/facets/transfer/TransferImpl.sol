@@ -25,7 +25,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '../../utils/HookUtils.sol';
 import '../access/RoleSupport.sol';
-import '../access/AccessControlSupport.sol';
+import '../access/AccessCheckSupport.sol';
 import './ITransferring.sol';
 import './ITransferHooks.sol';
 
@@ -48,7 +48,7 @@ library TransferImpl {
   }
 
   function checkTransferAgent() internal view {
-    AccessControlSupport.checkRole(RoleSupport.TRANSFER_AGENT_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.TRANSFER_AGENT_ROLE);
   }
 
   function transferToken(

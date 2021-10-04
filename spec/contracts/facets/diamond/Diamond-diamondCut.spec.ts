@@ -27,7 +27,7 @@ import {
   emptyDiamondInitFunction,
 } from '../../../../src/contracts/diamonds';
 import { DIAMOND_LOUPE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
-import { IAccessControl__factory, IDiamondLoupe__factory, IERC165__factory } from '../../../../types/contracts';
+import { IAccessCheck__factory, IDiamondLoupe__factory, IERC165__factory } from '../../../../types/contracts';
 import { DISABLER, INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import { createDiamond } from '../../../helpers/DiamondHelper';
 import { createAccessControl, deployAccessControlInit } from '../../../helpers/facets/AccessControlFacetHelper';
@@ -62,9 +62,9 @@ describe('add', () => {
       buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
-    const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
+    const accessCheck = IAccessCheck__factory.connect(diamond.address, INITIALIZER);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 
   it('should add interface', async () => {
@@ -153,9 +153,9 @@ describe('replace', () => {
       buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
-    const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
+    const accessCheck = IAccessCheck__factory.connect(diamond.address, INITIALIZER);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 
   it('should not add the interface', async () => {
@@ -288,9 +288,9 @@ describe('remove', () => {
       buildAccessControlAddMembersInitFunction(accessControlInit, [{ role: ROLE1, members: [PLAYER1.address] }]),
     );
 
-    const accessControl = IAccessControl__factory.connect(diamond.address, INITIALIZER);
+    const accessCheck = IAccessCheck__factory.connect(diamond.address, INITIALIZER);
 
-    expect<boolean>(await accessControl.hasRole(ROLE1, PLAYER1.address)).toBe(true);
+    expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toBe(true);
   });
 
   it('should remove interface', async () => {

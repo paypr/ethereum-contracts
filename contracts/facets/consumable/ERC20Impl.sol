@@ -28,7 +28,7 @@ pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import '../../utils/HookUtils.sol';
-import '../access/AccessControlSupport.sol';
+import '../access/AccessCheckSupport.sol';
 import '../access/RoleSupport.sol';
 import '../context/ContextSupport.sol';
 import './IConsumableHooks.sol';
@@ -55,7 +55,7 @@ library ERC20Impl {
   }
 
   function checkMinter() internal view {
-    AccessControlSupport.checkRole(RoleSupport.MINTER_ROLE);
+    AccessCheckSupport.checkRole(RoleSupport.MINTER_ROLE);
   }
 
   function decimals() internal pure returns (uint8) {

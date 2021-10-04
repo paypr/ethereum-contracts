@@ -22,8 +22,8 @@ import { Erc165InterfaceId } from './erc165';
 
 const toByte4String = (value: number): Erc165InterfaceId => hexlify(zeroPad(hexlify(value), 4));
 
-export const ACCESS_CONTROL_INTERFACE_ID = toByte4String(0xdac4949b);
-export const ACCESS_DELEGATE_INTERFACE_ID = toByte4String(0x91d14854);
+export const ACCESS_CHECK_INTERFACE_ID = toByte4String(0x91d14854);
+export const ACCESS_CONTROL_INTERFACE_ID = toByte4String(0x4b15dccf);
 export const ACTIVITY_INTERFACE_ID = toByte4String(0x4cfc28d2);
 export const ACTIVITY_EXECUTOR_INTERFACE_ID = toByte4String(0xb5b615d7);
 export const ARTIFACT_INTERFACE_ID = toByte4String(0xd3abf7f1);
@@ -38,7 +38,7 @@ export const CONSUMABLE_INTERFACE_ID = toByte4String(0x91e04f29);
 export const CONSUMABLE_MINT_INTERFACE_ID = toByte4String(0xdd0390b5);
 export const CONSUMABLE_PROVIDER_INTERFACE_ID = toByte4String(0x8b61faf0);
 export const CONTRACT_INFO_INTERFACE_ID = toByte4String(0x0b6828ac);
-export const DELEGATING_ACCESS_CONTROL_INTERFACE_ID = toByte4String(0xc9eda679);
+export const DELEGATING_ACCESS_INTERFACE_ID = toByte4String(0x583cee2d);
 export const DIAMOND_CUT_INTERFACE_ID = toByte4String(0xd2b1c8f7);
 export const DIAMOND_LOUPE_INTERFACE_ID = toByte4String(0x48e2b093);
 export const DISABLEABLE_INTERFACE_ID = toByte4String(0x413daa4f);

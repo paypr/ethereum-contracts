@@ -23,22 +23,24 @@ import {
   AccessRoleMembers,
   buildAccessControlAddMembersInitFunction,
   buildAccessControlInitAdminsInitFunction,
-  buildDelegatingAccessControlAddDelegateInitFunction,
+  buildDelegatingAccessAddDelegateInitFunction,
 } from '../../../src/contracts/access';
 import { DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
+  AccessControlCheckCheck__factory,
   AccessControlFacet__factory,
   AccessControlInit,
   AccessControlInit__factory,
-  CombinedAccess__factory,
-  DelegatingAccessControlFacet__factory,
-  DelegatingAccessControlInit,
-  DelegatingAccessControlInit__factory,
+  CombinedAccessCheckFacet__factory,
+  DelegatingAccessCheckFacet__factory,
+  DelegatingAccessFacet__factory,
+  DelegatingAccessInit,
+  DelegatingAccessInit__factory,
+  IAccessCheck__factory,
   IAccessControl,
   IAccessControl__factory,
-  IAccessDelegate__factory,
-  IDelegatingAccessControl__factory,
+  IDelegatingAccess__factory,
   TestCheckRole__factory,
 } from '../../../types/contracts';
 import { INITIALIZER } from '../Accounts';
@@ -47,28 +49,30 @@ import { createDiamond } from '../DiamondHelper';
 export const createAccessControl = async (additionalRoles: AccessRole[] = []) =>
   asAccessControl(await createDiamond({ additionalRoles }));
 
-export const createDelegatingAccessControl = async (accessControl: IAccessControl) =>
-  asDelegatingAccessControl(await createDiamond({ delegate: accessControl }));
+export const createDelegatingAccess = async (accessControl: IAccessControl) =>
+  asDelegatingAccess(await createDiamond({ delegate: accessControl }));
 
+export const asAccessCheck = (contract: Contract, signer: Signer = INITIALIZER) =>
+  IAccessCheck__factory.connect(contract.address, signer);
 export const asAccessControl = (contract: Contract, signer: Signer = INITIALIZER) =>
   IAccessControl__factory.connect(contract.address, signer);
-export const asAccessDelegate = (contract: Contract, signer: Signer = INITIALIZER) =>
-  IAccessDelegate__factory.connect(contract.address, signer);
-export const asDelegatingAccessControl = (contract: Contract, signer: Signer = INITIALIZER) =>
-  IDelegatingAccessControl__factory.connect(contract.address, signer);
+export const asDelegatingAccess = (contract: Contract, signer: Signer = INITIALIZER) =>
+  IDelegatingAccess__factory.connect(contract.address, signer);
 export const asTestCheckRole = (contract: Contract, signer: Signer = INITIALIZER) =>
   TestCheckRole__factory.connect(contract.address, signer);
 
+export const deployAccessControlCheckFacet = () => new AccessControlCheckCheck__factory(INITIALIZER).deploy();
 export const deployAccessControlFacet = () => new AccessControlFacet__factory(INITIALIZER).deploy();
 export const deployAccessControlInit = () => new AccessControlInit__factory(INITIALIZER).deploy();
-export const deployCombinedAccessFacet = () => new CombinedAccess__factory(INITIALIZER).deploy();
-export const deployDelegatingAccessControlFacet = () => new DelegatingAccessControlFacet__factory(INITIALIZER).deploy();
-export const deployDelegatingAccessControlInit = () => new DelegatingAccessControlInit__factory(INITIALIZER).deploy();
+export const deployCombinedAccessFacet = () => new CombinedAccessCheckFacet__factory(INITIALIZER).deploy();
+export const deployDelegatingAccessFacet = () => new DelegatingAccessFacet__factory(INITIALIZER).deploy();
+export const deployDelegatingAccessCheckFacet = () => new DelegatingAccessCheckFacet__factory(INITIALIZER).deploy();
+export const deployDelegatingAccessInit = () => new DelegatingAccessInit__factory(INITIALIZER).deploy();
 export const deployTestCheckRole = () => new TestCheckRole__factory(INITIALIZER).deploy();
 
-export type OneOfAccessControlInitOptions = AccessControlInitOptions | DelegatingAccessControlInitOptions;
+export type OneOfAccessControlInitOptions = AccessControlInitOptions | DelegatingAccessInitOptions;
 
-export type CombinedAccessControlInitOptions = AccessControlInitOptions & Partial<DelegatingAccessControlInitOptions>;
+export type CombinedAccessControlInitOptions = AccessControlInitOptions & Partial<DelegatingAccessInitOptions>;
 
 export type AccessControlInitOptions = {
   accessControlInit?: AccessControlInit;
@@ -81,18 +85,17 @@ export type AccessControlInitOptions = {
     }
 );
 
-export type DelegatingAccessControlInitOptions = {
-  delegatingAccessControlInit?: DelegatingAccessControlInit;
+export type DelegatingAccessInitOptions = {
+  delegatingAccessInit?: DelegatingAccessInit;
   delegate: IAccessControl;
 };
 
-export const buildDelegatingAccessControlInitFunction = async (
-  options: DelegatingAccessControlInitOptions,
+export const buildDelegatingAccessInitFunction = async (
+  options: DelegatingAccessInitOptions,
 ): Promise<DiamondInitFunction> => {
-  const delegatingAccessControlInit =
-    options.delegatingAccessControlInit || (await deployDelegatingAccessControlInit());
+  const delegatingAccessInit = options.delegatingAccessInit || (await deployDelegatingAccessInit());
 
-  return buildDelegatingAccessControlAddDelegateInitFunction(delegatingAccessControlInit, options.delegate.address);
+  return buildDelegatingAccessAddDelegateInitFunction(delegatingAccessInit, options.delegate.address);
 };
 
 export const buildAccessControlInitFunction = async (
@@ -111,7 +114,7 @@ export const buildOneOfAccessControlInitFunction = async (
   options: OneOfAccessControlInitOptions = {},
 ): Promise<DiamondInitFunction> => {
   if ('delegate' in options) {
-    return await buildDelegatingAccessControlInitFunction(options);
+    return await buildDelegatingAccessInitFunction(options);
   }
 
   return await buildAccessControlInitFunction(options);

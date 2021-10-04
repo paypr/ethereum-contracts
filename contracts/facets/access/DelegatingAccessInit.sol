@@ -21,9 +21,11 @@
 
 pragma solidity ^0.8.4;
 
-interface IAccessDelegate {
-  /**
-   * @notice Returns `true` if `account` has been granted `role`.
-   */
-  function hasRole(bytes32 role, address account) external view returns (bool);
+import './IAccessCheck.sol';
+import './DelegatingAccessImpl.sol';
+
+contract DelegatingAccessInit {
+  function addDelegate(IAccessCheck roleDelegate) external {
+    DelegatingAccessImpl.addRoleDelegate(roleDelegate);
+  }
 }

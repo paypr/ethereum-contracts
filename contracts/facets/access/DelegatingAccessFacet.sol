@@ -21,10 +21,27 @@
 
 pragma solidity ^0.8.4;
 
-import '../AccessCheckSupport.sol';
+import './IAccessCheck.sol';
+import './IDelegatingAccess.sol';
+import './DelegatingAccessImpl.sol';
+import '../disableable/DisableableSupport.sol';
 
-contract TestCheckRole {
-  function needsRole(bytes32 role) external view {
-    AccessCheckSupport.checkRole(role);
+contract DelegatingAccessFacet is IDelegatingAccess {
+  function isRoleDelegate(IAccessCheck roleDelegate) external view override returns (bool) {
+    return DelegatingAccessImpl.isRoleDelegate(roleDelegate);
+  }
+
+  function addRoleDelegate(IAccessCheck roleDelegate) external override {
+    DelegatingAccessImpl.checkDelegateAdmin();
+    DisableableSupport.checkEnabled();
+
+    DelegatingAccessImpl.addRoleDelegate(roleDelegate);
+  }
+
+  function removeRoleDelegate(IAccessCheck roleDelegate) external override {
+    DelegatingAccessImpl.checkDelegateAdmin();
+    DisableableSupport.checkEnabled();
+
+    DelegatingAccessImpl.removeRoleDelegate(roleDelegate);
   }
 }

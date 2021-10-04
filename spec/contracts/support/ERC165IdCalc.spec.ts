@@ -20,7 +20,7 @@
 import { Erc165InterfaceId } from '../../../src/contracts/erc165';
 import {
   ACCESS_CONTROL_INTERFACE_ID,
-  ACCESS_DELEGATE_INTERFACE_ID,
+  ACCESS_CHECK_INTERFACE_ID,
   ACTIVITY_EXECUTOR_INTERFACE_ID,
   ACTIVITY_INTERFACE_ID,
   ARTIFACT_INTERFACE_ID,
@@ -35,7 +35,7 @@ import {
   CONSUMABLE_MINT_INTERFACE_ID,
   CONSUMABLE_PROVIDER_INTERFACE_ID,
   CONTRACT_INFO_INTERFACE_ID,
-  DELEGATING_ACCESS_CONTROL_INTERFACE_ID,
+  DELEGATING_ACCESS_INTERFACE_ID,
   DIAMOND_CUT_INTERFACE_ID,
   DIAMOND_LOUPE_INTERFACE_ID,
   DISABLEABLE_INTERFACE_ID,
@@ -60,8 +60,8 @@ type InterfaceTest = [string, Erc165InterfaceId, (ERC165IdCalc) => Promise<Erc16
 
 const interfaceTests: InterfaceTest[] = [
   // facets
+  ['AccessCheck', ACCESS_CHECK_INTERFACE_ID, (idCalc) => idCalc.calcAccessCheckInterfaceId()],
   ['AccessControl', ACCESS_CONTROL_INTERFACE_ID, (idCalc) => idCalc.calcAccessControlInterfaceId()],
-  ['AccessDelegate', ACCESS_DELEGATE_INTERFACE_ID, (idCalc) => idCalc.calcAccessDelegateInterfaceId()],
   ['Activity', ACTIVITY_INTERFACE_ID, (idCalc) => idCalc.calcActivityInterfaceId()],
   ['ActivityExecutor', ACTIVITY_EXECUTOR_INTERFACE_ID, (idCalc) => idCalc.calcActivityExecutorInterfaceId()],
   ['Artifact', ARTIFACT_INTERFACE_ID, (idCalc) => idCalc.calcArtifactInterfaceId()],
@@ -84,11 +84,7 @@ const interfaceTests: InterfaceTest[] = [
   ['ConsumableMint', CONSUMABLE_MINT_INTERFACE_ID, (idCalc) => idCalc.calcConsumableMintInterfaceId()],
   ['ConsumableProvider', CONSUMABLE_PROVIDER_INTERFACE_ID, (idCalc) => idCalc.calcConsumableProviderInterfaceId()],
   ['ContractInfo', CONTRACT_INFO_INTERFACE_ID, (idCalc) => idCalc.calcContractInfoInterfaceId()],
-  [
-    'DelegatingAccessControl',
-    DELEGATING_ACCESS_CONTROL_INTERFACE_ID,
-    (idCalc) => idCalc.calcDelegatingAccessControlInterfaceId(),
-  ],
+  ['DelegatingAccess', DELEGATING_ACCESS_INTERFACE_ID, (idCalc) => idCalc.calcDelegatingAccessInterfaceId()],
   ['DiamondCut', DIAMOND_CUT_INTERFACE_ID, (idCalc) => idCalc.calcDiamondCutInterfaceId()],
   ['DiamondLoupe', DIAMOND_LOUPE_INTERFACE_ID, (idCalc) => idCalc.calcDiamondLoupeInterfaceId()],
   ['Disableable', DISABLEABLE_INTERFACE_ID, (idCalc) => idCalc.calcDisableableInterfaceId()],

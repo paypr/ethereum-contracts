@@ -21,11 +21,11 @@
 
 pragma solidity ^0.8.4;
 
-import './IAccessDelegate.sol';
-import './DelegatingAccessControlImpl.sol';
+import './DelegatingAccessImpl.sol';
+import './IAccessCheck.sol';
 
-contract DelegatingAccessControlInit {
-  function addDelegate(IAccessDelegate roleDelegate) external {
-    DelegatingAccessControlImpl.addRoleDelegate(roleDelegate);
+contract DelegatingAccessCheckFacet is IAccessCheck {
+  function hasRole(bytes32 role, address account) external view override returns (bool) {
+    return DelegatingAccessImpl.hasRole(role, account);
   }
 }

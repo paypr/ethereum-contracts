@@ -26,7 +26,7 @@
 
 pragma solidity ^0.8.4;
 
-import './IAccessDelegate.sol';
+import './IAccessCheck.sol';
 
 /**
  * @dev Supports implementations of role-based access control mechanisms.
@@ -55,11 +55,6 @@ import './IAccessDelegate.sol';
  * Complex role relationships can be created by using {setRoleAdmin}.
  */
 interface IAccessControl {
-  /**
-   * @notice Returns `true` if `account` has been granted `role`.
-   */
-  function hasRole(bytes32 role, address account) external view returns (bool);
-
   /**
    * @notice Returns the admin role that controls `role`. See {grantRole} and {revokeRole}.
    *

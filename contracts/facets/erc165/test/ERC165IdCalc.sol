@@ -23,8 +23,8 @@ pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import '../../access/IAccessControl.sol';
-import '../../access/IAccessDelegate.sol';
-import '../../access/IDelegatingAccessControl.sol';
+import '../../access/IAccessCheck.sol';
+import '../../access/IDelegatingAccess.sol';
 import '../../activity/IActivity.sol';
 import '../../activity/activityExecutor/IActivityExecutor.sol';
 import '../../artifact/IArtifact.sol';
@@ -61,8 +61,8 @@ library ERC165IdCalc {
     return type(IAccessControl).interfaceId;
   }
 
-  function calcAccessDelegateInterfaceId() external pure returns (bytes4) {
-    return type(IAccessDelegate).interfaceId;
+  function calcAccessCheckInterfaceId() external pure returns (bytes4) {
+    return type(IAccessCheck).interfaceId;
   }
 
   function calcActivityInterfaceId() external pure returns (bytes4) {
@@ -121,8 +121,8 @@ library ERC165IdCalc {
     return type(IContractInfo).interfaceId;
   }
 
-  function calcDelegatingAccessControlInterfaceId() external pure returns (bytes4) {
-    return type(IDelegatingAccessControl).interfaceId;
+  function calcDelegatingAccessInterfaceId() external pure returns (bytes4) {
+    return type(IDelegatingAccess).interfaceId;
   }
 
   function calcDiamondCutInterfaceId() external pure returns (bytes4) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 The Paypr Company, LLC
+ * Copyright (c) 2021 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,26 +17,13 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import '@nomiclabs/hardhat-ethers';
-import '@nomiclabs/hardhat-waffle';
-import '@typechain/hardhat';
-import { HardhatUserConfig } from 'hardhat/config';
+// SPDX-License-Identifier: GPL-3.0-only
 
-const hardhatConfig: HardhatUserConfig = {
-  solidity: {
-    version: '0.8.9',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-    },
-  },
+pragma solidity ^0.8.4;
 
-  typechain: {
-    outDir: 'types/contracts',
-    target: 'ethers-v5',
-  },
-};
-
-export default hardhatConfig;
+interface IAccessCheck {
+  /**
+   * @notice Returns `true` if `account` has been granted `role`.
+   */
+  function hasRole(bytes32 role, address account) external view returns (bool);
+}
