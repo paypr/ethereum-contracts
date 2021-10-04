@@ -24,7 +24,7 @@ pragma solidity ^0.8.4;
 import './AccessControlImpl.sol';
 import './IAccessCheck.sol';
 
-contract AccessControlCheckCheck is IAccessCheck {
+contract AccessControlCheckFacet is IAccessCheck {
   function hasRole(bytes32 role, address account) external view override returns (bool) {
     return AccessControlImpl.hasRole(role, account);
   }

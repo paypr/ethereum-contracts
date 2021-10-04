@@ -28,7 +28,7 @@ import {
 import { DiamondInitFunction } from '../../../src/contracts/diamonds';
 import { SUPER_ADMIN_ROLE } from '../../../src/contracts/roles';
 import {
-  AccessControlCheckCheck__factory,
+  AccessControlCheckFacet__factory,
   AccessControlFacet__factory,
   AccessControlInit,
   AccessControlInit__factory,
@@ -61,7 +61,7 @@ export const asDelegatingAccess = (contract: Contract, signer: Signer = INITIALI
 export const asTestCheckRole = (contract: Contract, signer: Signer = INITIALIZER) =>
   TestCheckRole__factory.connect(contract.address, signer);
 
-export const deployAccessControlCheckFacet = () => new AccessControlCheckCheck__factory(INITIALIZER).deploy();
+export const deployAccessControlCheckFacet = () => new AccessControlCheckFacet__factory(INITIALIZER).deploy();
 export const deployAccessControlFacet = () => new AccessControlFacet__factory(INITIALIZER).deploy();
 export const deployAccessControlInit = () => new AccessControlInit__factory(INITIALIZER).deploy();
 export const deployCombinedAccessFacet = () => new CombinedAccessCheckFacet__factory(INITIALIZER).deploy();
