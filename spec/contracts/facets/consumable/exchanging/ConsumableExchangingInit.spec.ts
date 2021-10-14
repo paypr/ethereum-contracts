@@ -126,7 +126,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },
             { consumable: consumable2a.address, amount: 20 },
@@ -142,7 +142,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },
             { consumable: consumable2b.address, amount: 20 },
@@ -158,7 +158,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [{ consumable: consumable1.address, amount: 100 }],
           providedConsumables: [
             { consumable: consumable1.address, amount: 10 },
@@ -174,7 +174,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [{ consumable: consumable1.address, amount: 100 }],
           providedConsumables: [
             { consumable: consumable1.address, amount: 10 },
@@ -205,7 +205,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },
             { consumable: consumable2.address, amount: 20 },
@@ -246,7 +246,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingInitFunction(exchangingInit, {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 100 }, // 30_000
           ],

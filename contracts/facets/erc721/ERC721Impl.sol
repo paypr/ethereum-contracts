@@ -45,7 +45,9 @@ library ERC721Impl {
 
   struct ERC721Storage {
     // base URI for token URI
-    string baseURI;
+    string baseUri;
+    // whether or not to include the address in the token
+    bool includeAddressInUri;
     // Mapping from token ID to owner address
     mapping(uint256 => address) owners;
     // Mapping owner address to token count
@@ -89,18 +91,30 @@ library ERC721Impl {
       return '';
     }
 
+    if (includeAddressInUri()) {
+      return string(abi.encodePacked(_baseURI, Strings.toHexString(uint160(address(this))), '/', tokenId.toString()));
+    }
+
     return string(abi.encodePacked(_baseURI, tokenId.toString()));
+  }
+
+  function baseURI() internal view returns (string storage) {
+    return _erc721Storage().baseUri;
   }
 
   /**
    * @dev Base URI for computing {tokenURI}.
    */
   function setBaseURI(string memory _baseURI) internal {
-    _erc721Storage().baseURI = _baseURI;
+    _erc721Storage().baseUri = _baseURI;
   }
 
-  function baseURI() internal view returns (string storage) {
-    return _erc721Storage().baseURI;
+  function includeAddressInUri() internal view returns (bool) {
+    return _erc721Storage().includeAddressInUri;
+  }
+
+  function setIncludeAddressInUri(bool includeAddress) internal {
+    _erc721Storage().includeAddressInUri = includeAddress;
   }
 
   function approve(address to, uint256 tokenId) internal {

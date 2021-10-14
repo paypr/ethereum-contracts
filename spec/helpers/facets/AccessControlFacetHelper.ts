@@ -37,8 +37,8 @@ import {
   DelegatingAccessFacet__factory,
   DelegatingAccessInit,
   DelegatingAccessInit__factory,
+  IAccessCheck,
   IAccessCheck__factory,
-  IAccessControl,
   IAccessControl__factory,
   IDelegatingAccess__factory,
   TestCheckRole__factory,
@@ -49,7 +49,7 @@ import { createDiamond } from '../DiamondHelper';
 export const createAccessControl = async (additionalRoles: AccessRole[] = []) =>
   asAccessControl(await createDiamond({ additionalRoles }));
 
-export const createDelegatingAccess = async (accessControl: IAccessControl) =>
+export const createDelegatingAccess = async (accessControl: IAccessCheck) =>
   asDelegatingAccess(await createDiamond({ delegate: accessControl }));
 
 export const asAccessCheck = (contract: Contract, signer: Signer = INITIALIZER) =>
@@ -87,7 +87,7 @@ export type AccessControlInitOptions = {
 
 export type DelegatingAccessInitOptions = {
   delegatingAccessInit?: DelegatingAccessInit;
-  delegate: IAccessControl;
+  delegate: IAccessCheck;
 };
 
 export const buildDelegatingAccessInitFunction = async (

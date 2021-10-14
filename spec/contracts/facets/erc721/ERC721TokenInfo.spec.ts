@@ -17,6 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { buildERC721TokenInfoSetIncludeAddressInUriInitFunction } from '../../../../src/contracts/artifacts';
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ERC721_TOKEN_INFO_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { PLAYER1 } from '../../../helpers/Accounts';
@@ -28,6 +29,7 @@ import {
   buildERC721TokenInfoAdditions,
   createMintableERC721,
   deployERC721TokenInfoFacet,
+  deployERC721TokenInfoInit,
 } from '../../../helpers/facets/ERC721FacetHelper';
 
 describe('supportsInterface', () => {
@@ -56,8 +58,38 @@ describe('tokenURI', () => {
     expect<string>(await erc721TokenInfo.tokenURI(1001)).toEqual('');
   });
 
+  it('should return the empty string when no base URI set and including address', async () => {
+    const erc721Mint = await createMintableERC721({
+      additionalCuts: [buildDiamondFacetCut(await deployERC721TokenInfoFacet())],
+      additionalInits: [
+        buildERC721TokenInfoSetIncludeAddressInUriInitFunction(await deployERC721TokenInfoInit(), true),
+      ],
+    });
+    const erc721TokenInfo = asERC721TokenInfo(erc721Mint);
+
+    await erc721Mint.mint(PLAYER1.address, 1);
+    await erc721Mint.mint(PLAYER1.address, 1001);
+
+    expect<string>(await erc721TokenInfo.tokenURI(1)).toEqual('');
+    expect<string>(await erc721TokenInfo.tokenURI(1001)).toEqual('');
+  });
+
   it('should return the empty string when base URI set to empty string', async () => {
     const erc721Mint = await createMintableERC721(await buildERC721TokenInfoAdditions({ baseURI: '' }));
+
+    const erc721TokenInfo = asERC721TokenInfo(erc721Mint);
+
+    await erc721Mint.mint(PLAYER1.address, 1);
+    await erc721Mint.mint(PLAYER1.address, 1001);
+
+    expect<string>(await erc721TokenInfo.tokenURI(1)).toEqual('');
+    expect<string>(await erc721TokenInfo.tokenURI(1001)).toEqual('');
+  });
+
+  it('should return the empty string when base URI set to empty string and including address', async () => {
+    const erc721Mint = await createMintableERC721(
+      await buildERC721TokenInfoAdditions({ baseURI: '', includeAddress: true }),
+    );
 
     const erc721TokenInfo = asERC721TokenInfo(erc721Mint);
 
@@ -78,6 +110,22 @@ describe('tokenURI', () => {
 
     expect<string>(await erc721TokenInfo.tokenURI(1)).toEqual('myBase/1');
     expect<string>(await erc721TokenInfo.tokenURI(1001)).toEqual('myBase/1001');
+  });
+
+  it('should return the correct URI when base URI set and including address', async () => {
+    const erc721Mint = await createMintableERC721(
+      await buildERC721TokenInfoAdditions({ baseURI: 'myBase/', includeAddress: true }),
+    );
+
+    const erc721TokenInfo = asERC721TokenInfo(erc721Mint);
+
+    await erc721Mint.mint(PLAYER1.address, 1);
+    await erc721Mint.mint(PLAYER1.address, 1001);
+
+    expect<string>(await erc721TokenInfo.tokenURI(1)).toEqualCaseInsensitive(`myBase/${erc721TokenInfo.address}/1`);
+    expect<string>(await erc721TokenInfo.tokenURI(1001)).toEqualCaseInsensitive(
+      `myBase/${erc721TokenInfo.address}/1001`,
+    );
   });
 
   it('should fail when the token does not exist', async () => {

@@ -41,6 +41,7 @@ import '../../consumable/provider/IConsumableProvider.sol';
 import '../../diamond/IDiamondCut.sol';
 import '../../diamond/IDiamondLoupe.sol';
 import '../../disableable/IDisableable.sol';
+import '../../erc721/enumerable/IERC721Enumerable.sol';
 import '../../erc721/IERC721.sol';
 import '../../erc721/IERC721Burnable.sol';
 import '../../erc721/IERC721Metadata.sol';
@@ -147,6 +148,10 @@ library ERC165IdCalc {
 
   function calcERC721BurnableInterfaceId() external pure returns (bytes4) {
     return type(IERC721Burnable).interfaceId;
+  }
+
+  function calcERC721EnumerableInterfaceId() external pure returns (bytes4) {
+    return type(IERC721Enumerable).interfaceId;
   }
 
   function calcERC721MetadataInterfaceId() external pure returns (bytes4) {

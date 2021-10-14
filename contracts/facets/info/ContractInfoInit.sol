@@ -29,6 +29,7 @@ contract ContractInfoInit {
     string symbol;
     string description;
     string uri;
+    bool includeAddressInUri;
   }
 
   function initialize(InfoData calldata info) external {
@@ -36,6 +37,7 @@ contract ContractInfoInit {
     ContractInfoImpl.setSymbol(info.symbol);
     ContractInfoImpl.setDescription(info.description);
     ContractInfoImpl.setUri(info.uri);
+    ContractInfoImpl.setIncludeAddressInUri(info.includeAddressInUri);
   }
 
   function setName(string calldata name) external {
@@ -52,5 +54,9 @@ contract ContractInfoInit {
 
   function setUri(string calldata uri) external {
     ContractInfoImpl.setUri(uri);
+  }
+
+  function setIncludeAddressInUri(bool includeAddress) external {
+    ContractInfoImpl.setIncludeAddressInUri(includeAddress);
   }
 }

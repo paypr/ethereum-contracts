@@ -20,12 +20,12 @@
 import { BigNumberish } from 'ethers';
 import { ConsumableConversionInit } from '../../../types/contracts';
 import { ConsumableHooksLike } from '../consumables';
+import ContractAddress from '../ContractAddress';
 import { DiamondInitFunction } from '../diamonds';
 import { TransferHooksLike } from '../transfer';
-import { ConsumableExchangeLike } from './exchange';
 
 export interface ConsumableConversionInitData {
-  exchangeToken: ConsumableExchangeLike;
+  exchangeToken: ContractAddress;
   intrinsicValueExchangeRate: BigNumberish;
   purchasePriceExchangeRate: BigNumberish;
   conversionConsumableHooks: ConsumableHooksLike;
@@ -47,7 +47,7 @@ export const encodeConsumableConversionInitCallData = (
 ) =>
   consumableConversionInit.interface.encodeFunctionData('initialize', [
     {
-      exchangeToken: conversionInitData.exchangeToken.address,
+      exchangeToken: conversionInitData.exchangeToken,
       intrinsicValueExchangeRate: conversionInitData.intrinsicValueExchangeRate,
       purchasePriceExchangeRate: conversionInitData.purchasePriceExchangeRate,
       conversionConsumableHooks: conversionInitData.conversionConsumableHooks.address,

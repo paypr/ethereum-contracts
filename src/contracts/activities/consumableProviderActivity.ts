@@ -19,11 +19,11 @@
 
 import { ConsumableProviderActivityInit } from '../../../types/contracts';
 import { ActivityHooksLike } from '../activities';
-import { ConsumableAmount } from '../consumables';
+import { ConsumableAmountLike } from '../consumables';
 import { DiamondInitFunction } from '../diamonds';
 
 export interface ConsumableProviderActivityData {
-  providedConsumables: ConsumableAmount[];
+  providedConsumables: ConsumableAmountLike[];
   consumableProviderActivityHooks: ActivityHooksLike;
 }
 

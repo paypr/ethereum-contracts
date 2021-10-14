@@ -17,20 +17,23 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testTimeout: 120_000,
-  cacheDirectory: './tmp/',
-  setupFilesAfterEnv: [
-    './spec/setup/JestExtensionsSetup.ts',
-    './spec/setup/WaffleSetup.ts',
-    './spec/setup/EthersSetup.ts',
-  ],
-  globals: {
-    'ts-jest': {
-      tsconfig: './spec/tsconfig.json',
-      isolatedModules: true,
-    },
-  },
-};
+// SPDX-License-Identifier: GPL-3.0-only
+
+pragma solidity ^0.8.4;
+
+import './IERC721Enumerable.sol';
+import './ERC721EnumerableImpl.sol';
+
+contract ERC721EnumerableFacet is IERC721Enumerable {
+  function totalSupply() external view override returns (uint256) {
+    return ERC721EnumerableImpl.totalSupply();
+  }
+
+  function tokenOfOwnerByIndex(address owner, uint256 index) external view override returns (uint256 tokenId) {
+    return ERC721EnumerableImpl.tokenOfOwnerByIndex(owner, index);
+  }
+
+  function tokenByIndex(uint256 index) external view override returns (uint256) {
+    return ERC721EnumerableImpl.tokenByIndex(index);
+  }
+}

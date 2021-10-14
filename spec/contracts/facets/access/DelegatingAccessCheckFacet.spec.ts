@@ -46,7 +46,7 @@ describe('supportsInterface', () => {
 describe(`hasRole`, () => {
   it(`should return true for the user`, async () => {
     const accessControl = await createAccessControl();
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
     const accessCheck = asAccessCheck(delegatingAccess);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
@@ -56,7 +56,7 @@ describe(`hasRole`, () => {
 
   it('should return false for someone else', async () => {
     const accessControl = await createAccessControl();
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
     const accessCheck = asAccessCheck(delegatingAccess);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);
@@ -66,7 +66,7 @@ describe(`hasRole`, () => {
 
   it('should return false for all when not set', async () => {
     const accessControl = await createAccessControl();
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
     const accessCheck = asAccessCheck(delegatingAccess);
 
     expect<boolean>(await accessCheck.hasRole(ROLE1, PLAYER1.address)).toEqual(false);
@@ -74,7 +74,7 @@ describe(`hasRole`, () => {
 
   it('should return false for the super admin', async () => {
     const accessControl = await createAccessControl();
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
     const accessCheck = asAccessCheck(delegatingAccess);
 
     await accessControl.grantRole(ROLE1, PLAYER1.address);

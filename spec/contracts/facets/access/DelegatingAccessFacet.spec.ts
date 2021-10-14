@@ -26,6 +26,7 @@ import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import {
+  asAccessCheck,
   asDelegatingAccess,
   asTestCheckRole,
   createAccessControl,
@@ -54,7 +55,7 @@ describe(`checkRole`, () => {
     asDelegatingAccess(
       await createDiamond({
         additionalCuts: [buildDiamondFacetCut(await deployTestCheckRole())],
-        delegate: accessControl,
+        delegate: asAccessCheck(accessControl),
       }),
     );
 
@@ -81,7 +82,9 @@ describe(`checkRole`, () => {
 
 describe('addRoleDelegate', () => {
   it('should add the delegate when called with super admin', async () => {
-    const delegatingAccess = await createDelegatingAccess(await createAccessControl([DELEGATE_ADMIN_ROLE]));
+    const delegatingAccess = await createDelegatingAccess(
+      asAccessCheck(await createAccessControl([DELEGATE_ADMIN_ROLE])),
+    );
     console.log('created delegating access control:', delegatingAccess.address);
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
     console.log('created access control:', accessControl.address);
@@ -92,7 +95,9 @@ describe('addRoleDelegate', () => {
   });
 
   it('should revert when called by someone else', async () => {
-    const delegatingAccess = await createDelegatingAccess(await createAccessControl([DELEGATE_ADMIN_ROLE]));
+    const delegatingAccess = await createDelegatingAccess(
+      asAccessCheck(await createAccessControl([DELEGATE_ADMIN_ROLE])),
+    );
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(false);
@@ -105,7 +110,7 @@ describe('addRoleDelegate', () => {
   it('should revert if disabled', async () => {
     const delegatingAccess = await asDelegatingAccess(
       await createDiamond({
-        delegate: await createAccessControl([DELEGATE_ADMIN_ROLE, DISABLER_ROLE]),
+        delegate: asAccessCheck(await createAccessControl([DELEGATE_ADMIN_ROLE, DISABLER_ROLE])),
         additionalCuts: [buildDiamondFacetCut(await deployDisableableFacet())],
       }),
     );
@@ -123,7 +128,7 @@ describe('addRoleDelegate', () => {
 
   it('should not fail when added twice', async () => {
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(true);
     await delegatingAccess.connect(INITIALIZER).addRoleDelegate(accessControl.address);
@@ -131,7 +136,9 @@ describe('addRoleDelegate', () => {
   });
 
   it('should emit RoleDelegateAdded event when added', async () => {
-    const delegatingAccess = await createDelegatingAccess(await createAccessControl([DELEGATE_ADMIN_ROLE]));
+    const delegatingAccess = await createDelegatingAccess(
+      asAccessCheck(await createAccessControl([DELEGATE_ADMIN_ROLE])),
+    );
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(false);
@@ -147,7 +154,7 @@ describe('addRoleDelegate', () => {
 describe('removeRoleDelegate', () => {
   it('should remove the delegate when called with super admin', async () => {
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(true);
     await delegatingAccess.connect(INITIALIZER).removeRoleDelegate(accessControl.address);
@@ -156,7 +163,7 @@ describe('removeRoleDelegate', () => {
 
   it('should revert when called by someone else', async () => {
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(true);
     await expect<Promise<ContractTransaction>>(
@@ -169,7 +176,7 @@ describe('removeRoleDelegate', () => {
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE, DISABLER_ROLE]);
     const delegatingAccess = await asDelegatingAccess(
       await createDiamond({
-        delegate: accessControl,
+        delegate: asAccessCheck(accessControl),
         additionalCuts: [buildDiamondFacetCut(await deployDisableableFacet())],
       }),
     );
@@ -185,7 +192,9 @@ describe('removeRoleDelegate', () => {
   });
 
   it('should not fail if the delegate is not in the list', async () => {
-    const delegatingAccess = await createDelegatingAccess(await createAccessControl([DELEGATE_ADMIN_ROLE]));
+    const delegatingAccess = await createDelegatingAccess(
+      asAccessCheck(await createAccessControl([DELEGATE_ADMIN_ROLE])),
+    );
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(false);
@@ -195,7 +204,7 @@ describe('removeRoleDelegate', () => {
 
   it('should emit RoleDelegateRemoved event when removed', async () => {
     const accessControl = await createAccessControl([DELEGATE_ADMIN_ROLE]);
-    const delegatingAccess = await createDelegatingAccess(accessControl);
+    const delegatingAccess = await createDelegatingAccess(asAccessCheck(accessControl));
 
     expect<boolean>(await delegatingAccess.isRoleDelegate(accessControl.address)).toBe(true);
 

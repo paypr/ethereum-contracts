@@ -33,7 +33,6 @@ import {
   Erc165InterfaceId,
   NO_INTERFACE,
 } from '../../src/contracts/erc165';
-import { ACCESS_CHECK_INTERFACE_ID } from '../../src/contracts/erc165InterfaceIds';
 import { DIAMOND_CUTTER_ROLE } from '../../src/contracts/roles';
 import {
   Diamond,
@@ -67,24 +66,26 @@ export const deployDiamond = (
     initFunction,
   });
 
-export type CreateDiamondBaseOptions = {
+export interface CreateDiamondBaseOptions {
   additionalCuts?: DiamondFacetCut[];
   diamondInit?: DiamondInit;
   additionalInits?: DiamondInitFunction[];
   erc165Init?: ERC165Init;
   additionalInterfaceIds?: Erc165InterfaceId[];
-};
+}
 
 export type CreateDiamondOptions = CreateDiamondBaseOptions & OneOfAccessControlInitOptions;
 
 export const createDiamond = async (options: CreateDiamondOptions = {}) => {
   const erc165Init = options.erc165Init || (await deployErc165Init());
-  const additionalInterfaceIds = [ACCESS_CHECK_INTERFACE_ID, ...(options.additionalInterfaceIds || [])];
+  const additionalInterfaceIds = options.additionalInterfaceIds;
 
   const initFunction = await combineDiamondInitFunctions(
     [
       await buildOneOfAccessControlInitFunction(options),
-      buildErc165SetSupportedInterfacesDiamondInitFunction(erc165Init, additionalInterfaceIds),
+      ...(additionalInterfaceIds
+        ? [buildErc165SetSupportedInterfacesDiamondInitFunction(erc165Init, additionalInterfaceIds)]
+        : []),
       ...(options.additionalInits || []),
     ],
     options.diamondInit,
@@ -146,7 +147,7 @@ export const combineDiamondInitFunctions = async (
   diamondInit?: DiamondInit,
 ): Promise<DiamondInitFunction> => {
   if (initFunctions.length === 0) {
-    return { initAddress: ZERO_ADDRESS, callData: '' };
+    return emptyDiamondInitFunction;
   }
 
   if (initFunctions.length === 1) {

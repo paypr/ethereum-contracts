@@ -129,7 +129,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingActivityInitFunction(activityInit, {
-          exchange,
+          exchange: exchange.address,
           consumableExchangingActivityHooks,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },
@@ -146,7 +146,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingActivityInitFunction(activityInit, {
-          exchange,
+          exchange: exchange.address,
           consumableExchangingActivityHooks,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },
@@ -163,7 +163,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingActivityInitFunction(activityInit, {
-          exchange,
+          exchange: exchange.address,
           consumableExchangingActivityHooks,
           requiredConsumables: [{ consumable: consumable1.address, amount: 100 }],
           providedConsumables: [
@@ -180,7 +180,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingActivityInitFunction(activityInit, {
-          exchange,
+          exchange: exchange.address,
           consumableExchangingActivityHooks,
           requiredConsumables: [{ consumable: consumable1.address, amount: 100 }],
           providedConsumables: [
@@ -213,7 +213,7 @@ describe('initialize', () => {
         diamondCuts,
 
         buildConsumableExchangingActivityInitFunction(activityInit, {
-          exchange,
+          exchange: exchange.address,
           consumableExchangingActivityHooks,
           requiredConsumables: [
             { consumable: consumable1.address, amount: 10 },

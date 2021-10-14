@@ -53,7 +53,7 @@ describe('grantRole', () => {
 
     const combinedAccess = asAccessCheck(
       await createDiamondWithCombinedAccess({
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 
@@ -91,7 +91,7 @@ describe('hasRole', () => {
 
     const combinedAccess = asAccessCheck(
       await createDiamondWithCombinedAccess({
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 
@@ -145,7 +145,7 @@ describe('hasRole', () => {
 
     const combinedAccess = asAccessCheck(
       await createDiamondWithCombinedAccess({
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 
@@ -181,7 +181,7 @@ describe('checkRole', () => {
     const combinedAccess = asTestCheckRole(
       await createDiamondWithCombinedAccess({
         additionalCuts: [buildDiamondFacetCut(await deployTestCheckRole())],
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 
@@ -218,7 +218,7 @@ describe('checkRole', () => {
     const combinedAccess = asTestCheckRole(
       await createDiamondWithCombinedAccess({
         additionalCuts: [buildDiamondFacetCut(await deployTestCheckRole())],
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 
@@ -241,7 +241,7 @@ describe('checkRole', () => {
     const combinedAccess = asTestCheckRole(
       await createDiamondWithCombinedAccess({
         additionalCuts: [buildDiamondFacetCut(await deployTestCheckRole())],
-        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: accessControl })],
+        additionalInits: [await buildDelegatingAccessInitFunction({ delegate: asAccessCheck(accessControl) })],
       }),
     );
 

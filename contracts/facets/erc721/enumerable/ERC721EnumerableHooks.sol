@@ -21,19 +21,29 @@
 
 pragma solidity ^0.8.4;
 
-import './ERC721Impl.sol';
+import '../ERC721HooksBase.sol';
+import './ERC721EnumerableImpl.sol';
 
-contract ERC721TokenInfoInit {
-  function initialize(string calldata baseURI, bool includeAddress) external {
-    ERC721Impl.setBaseURI(baseURI);
-    ERC721Impl.setIncludeAddressInUri(includeAddress);
-  }
+contract ERC721EnumerableHooks is ERC721HooksBase {
+  function beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 tokenId
+  ) external override {
+    if (from == address(0)) {
+      // minting
+      ERC721EnumerableImpl.addTokenToAllTokensEnumeration(tokenId);
+    } else if (from != to) {
+      // transferring
+      ERC721EnumerableImpl.removeTokenFromOwnerEnumeration(from, tokenId);
+    }
 
-  function setBaseURI(string calldata baseURI) external {
-    ERC721Impl.setBaseURI(baseURI);
-  }
-
-  function setIncludeAddressInUri(bool includeAddress) external {
-    ERC721Impl.setIncludeAddressInUri(includeAddress);
+    if (to == address(0)) {
+      // burning
+      ERC721EnumerableImpl.removeTokenFromAllTokensEnumeration(tokenId);
+    } else if (to != from) {
+      // transferring
+      ERC721EnumerableImpl.addTokenToOwnerEnumeration(to, tokenId);
+    }
   }
 }

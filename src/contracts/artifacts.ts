@@ -18,7 +18,7 @@
  */
 
 import { BigNumber } from 'ethers';
-import { ArtifactInit, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
+import { ArtifactInit, ERC721Init, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
 import { TransferHooksLike } from './transfer';
@@ -65,3 +65,50 @@ export const buildERC721TokenInfoSetBaseUriInitFunction = (
 
 export const encodeERC721TokenInfoSetBaseUriCallData = (erc721TokenInfoInit: ERC721TokenInfoInit, baseURI: string) =>
   erc721TokenInfoInit.interface.encodeFunctionData('setBaseURI', [baseURI]);
+
+export const buildERC721TokenInfoSetIncludeAddressInUriInitFunction = (
+  erc721TokenInfoInit: ERC721TokenInfoInit,
+  includeAddress: boolean,
+): DiamondInitFunction => ({
+  initAddress: erc721TokenInfoInit.address,
+  callData: encodeERC721TokenInfoSetIncludeAddressInUriCallData(erc721TokenInfoInit, includeAddress),
+});
+
+export const encodeERC721TokenInfoSetIncludeAddressInUriCallData = (
+  erc721TokenInfoInit: ERC721TokenInfoInit,
+  includeAddress: boolean,
+) => erc721TokenInfoInit.interface.encodeFunctionData('setIncludeAddressInUri', [includeAddress]);
+
+export const buildERC721TokenInfoInitFunction = (
+  erc721TokenInfoInit: ERC721TokenInfoInit,
+  baseUri: string,
+  includeAddress: boolean = false,
+): DiamondInitFunction => ({
+  initAddress: erc721TokenInfoInit.address,
+  callData: encodeERC721TokenInfoInitCallData(erc721TokenInfoInit, baseUri, includeAddress),
+});
+
+export const encodeERC721TokenInfoInitCallData = (
+  erc721TokenInfoInit: ERC721TokenInfoInit,
+  baseURI: string,
+  includeAddress: boolean = false,
+) => erc721TokenInfoInit.interface.encodeFunctionData('initialize', [baseURI, includeAddress]);
+
+export const buildERC721AddHooksInitFunction = (erc721Init: ERC721Init, hooks: IERC721Hooks): DiamondInitFunction => ({
+  initAddress: erc721Init.address,
+  callData: encodeERC721AddHooksCallData(erc721Init, hooks),
+});
+
+export const encodeERC721AddHooksCallData = (erc721Init: ERC721Init, hooks: IERC721Hooks) =>
+  erc721Init.interface.encodeFunctionData('addHooks', [hooks.address]);
+
+export const buildERC721RemoveHooksInitFunction = (
+  erc721Init: ERC721Init,
+  hooks: IERC721Hooks,
+): DiamondInitFunction => ({
+  initAddress: erc721Init.address,
+  callData: encodeERC721RemoveHooksCallData(erc721Init, hooks),
+});
+
+export const encodeERC721RemoveHooksCallData = (erc721Init: ERC721Init, hooks: IERC721Hooks) =>
+  erc721Init.interface.encodeFunctionData('removeHooks', [hooks.address]);
