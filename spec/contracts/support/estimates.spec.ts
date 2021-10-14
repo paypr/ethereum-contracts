@@ -702,7 +702,7 @@ const estimateTests: EstimateTest[] = [
       diamondCuts: [buildDiamondFacetCut(await deployContractInfoFacet())],
       initFunction: buildContractInfoInitializeInitFunction(await deployContractInfoInit(), { name: 'the name' }),
     }),
-    212622,
+    215643,
   ],
   [
     'ContractInfoFacet with init name and symbol',
@@ -713,7 +713,7 @@ const estimateTests: EstimateTest[] = [
         symbol: 'the symbol',
       }),
     }),
-    233319,
+    236328,
   ],
   [
     'ContractInfoFacet with init all',
@@ -726,7 +726,7 @@ const estimateTests: EstimateTest[] = [
         uri: 'the uri',
       }),
     }),
-    274689,
+    277698,
   ],
   [
     'DiamondCutFacet',
@@ -843,7 +843,7 @@ const estimateTests: EstimateTest[] = [
       diamondCuts: [buildDiamondFacetCut(await deployERC721TokenInfoFacet())],
       initFunction: buildERC721TokenInfoSetBaseUriInitFunction(await deployERC721TokenInfoInit(), 'base uri'),
     }),
-    126878,
+    126939,
   ],
   [
     'SkillAcquirerFacet',
@@ -974,7 +974,9 @@ describe('estimates', () => {
 
       const estimate = await INITIALIZER.estimateGas(deployTransaction);
       console.log(`Total estimate for ${name}: ${estimate.toNumber()}`);
-      expect<BigNumber>(estimate.sub(baseDiamondEstimate)).toEqBN(differenceFromBase);
+      const estimateDiff = estimate.sub(baseDiamondEstimate);
+      expect<BigNumber>(estimateDiff).toBeLteBN(1000 + differenceFromBase);
+      expect<BigNumber>(estimateDiff).toBeGteBN(differenceFromBase - 1000);
     },
   );
 });
