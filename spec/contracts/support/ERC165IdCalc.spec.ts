@@ -50,6 +50,7 @@ import {
   SKILL_INTERFACE_ID,
   SKILL_SELF_ACQUISITION_INTERFACE_ID,
   TRANSFERRING_INTERFACE_ID,
+  ERC721_ENUMERABLE_INTERFACE_ID,
 } from '../../../src/contracts/erc165InterfaceIds';
 import { ERC165IdCalc, ERC165IdCalc__factory } from '../../../types/contracts';
 import { INITIALIZER } from '../../helpers/Accounts';
@@ -59,7 +60,6 @@ export const deployERC165IdCalcContract = () => new ERC165IdCalc__factory(INITIA
 type InterfaceTest = [string, Erc165InterfaceId, (ERC165IdCalc) => Promise<Erc165InterfaceId>];
 
 const interfaceTests: InterfaceTest[] = [
-  // facets
   ['AccessCheck', ACCESS_CHECK_INTERFACE_ID, (idCalc) => idCalc.calcAccessCheckInterfaceId()],
   ['AccessControl', ACCESS_CONTROL_INTERFACE_ID, (idCalc) => idCalc.calcAccessControlInterfaceId()],
   ['Activity', ACTIVITY_INTERFACE_ID, (idCalc) => idCalc.calcActivityInterfaceId()],
@@ -91,6 +91,7 @@ const interfaceTests: InterfaceTest[] = [
   ['ERC165', ERC165_INTERFACE_ID, (idCalc) => idCalc.calcERC165InterfaceId()],
   ['ERC721', ERC721_INTERFACE_ID, (idCalc) => idCalc.calcERC721InterfaceId()],
   ['ERC721Burnable', ERC721_BURNABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721BurnableInterfaceId()],
+  ['ERC721Enumerable', ERC721_ENUMERABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721EnumerableInterfaceId()],
   ['ERC721Metadata', ERC721_METADATA_INTERFACE_ID, (idCalc) => idCalc.calcERC721MetadataInterfaceId()],
   ['ERC721Mintable', ERC721_MINTABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721MintableInterfaceId()],
   ['ERC721TokenInfo', ERC721_TOKEN_INFO_INTERFACE_ID, (idCalc) => idCalc.calcERC721TokenInfoInterfaceId()],

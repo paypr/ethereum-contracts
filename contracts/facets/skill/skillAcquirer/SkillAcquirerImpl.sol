@@ -42,7 +42,7 @@ library SkillAcquirerImpl {
   ) internal {
     require(
       IERC165(address(skill)).supportsInterface(type(ISkillSelfAcquisition).interfaceId),
-      'SkillAcquirer: skill address must support ISkill'
+      'SkillAcquirer: skill address must support ISkillSelfAcquisition'
     );
 
     ArtifactSupport.useItems(address(skill), useItems);

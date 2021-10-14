@@ -20,13 +20,14 @@
 import {
   buildContractInfoInitializeInitFunction,
   buildContractInfoSetDescriptionInitFunction,
+  buildContractInfoSetIncludeAddressInUriInitFunction,
   buildContractInfoSetNameInitFunction,
   buildContractInfoSetSymbolInitFunction,
   buildContractInfoSetUriInitFunction,
 } from '../../../../src/contracts/contractInfo';
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { CONTRACT_INFO_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
-import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
+import { combineDiamondInitFunctions, createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import {
   asContractInfo,
@@ -175,6 +176,17 @@ describe('getUri', () => {
     expect<string>(await contractInfo.uri()).toEqual('');
   });
 
+  it('should return blank when empty and including address', async () => {
+    const contractInfo = asContractInfo(
+      await createDiamond({
+        additionalCuts: [buildDiamondFacetCut(await deployContractInfoFacet())],
+        additionalInits: [buildContractInfoSetIncludeAddressInUriInitFunction(await deployContractInfoInit(), true)],
+      }),
+    );
+
+    expect<string>(await contractInfo.uri()).toEqual('');
+  });
+
   it('should return the uri when initialized', async () => {
     const contractInfo = asContractInfo(
       await createDiamond({
@@ -184,6 +196,23 @@ describe('getUri', () => {
     );
 
     expect<string>(await contractInfo.uri()).toEqual('the uri');
+  });
+
+  it('should return the uri with address when initialized to include address', async () => {
+    const contractInfoInit = await deployContractInfoInit();
+    const contractInfo = asContractInfo(
+      await createDiamond({
+        additionalCuts: [buildDiamondFacetCut(await deployContractInfoFacet())],
+        additionalInits: [
+          await combineDiamondInitFunctions([
+            buildContractInfoSetUriInitFunction(contractInfoInit, 'the uri/'),
+            buildContractInfoSetIncludeAddressInUriInitFunction(contractInfoInit, true),
+          ]),
+        ],
+      }),
+    );
+
+    expect<string>(await contractInfo.uri()).toEqualCaseInsensitive(`the uri/${contractInfo.address}`);
   });
 
   it('should return the uri when initialized fully', async () => {
@@ -202,5 +231,24 @@ describe('getUri', () => {
     );
 
     expect<string>(await contractInfo.uri()).toEqual('the uri');
+  });
+
+  it('should return the uri with address when initialized fully', async () => {
+    const contractInfo = asContractInfo(
+      await createDiamond({
+        additionalCuts: [buildDiamondFacetCut(await deployContractInfoFacet())],
+        additionalInits: [
+          buildContractInfoInitializeInitFunction(await deployContractInfoInit(), {
+            name: 'the name',
+            symbol: 'the symbol',
+            description: 'the description',
+            uri: 'the uri/',
+            includeAddressInUri: true,
+          }),
+        ],
+      }),
+    );
+
+    expect<string>(await contractInfo.uri()).toEqualCaseInsensitive(`the uri/${contractInfo.address}`);
   });
 });

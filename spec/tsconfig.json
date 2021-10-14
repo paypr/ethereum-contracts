@@ -15,6 +15,7 @@
     "outDir": "../out/test"
   },
   "files": [
+    "../node_modules/jest-extended/types/index.d.ts",
     "../node_modules/@ethereum-waffle/jest/src/types.d.ts",
     "../node_modules/@nomiclabs/hardhat-ethers/internal/index.d.ts"
   ],

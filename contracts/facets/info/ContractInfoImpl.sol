@@ -21,6 +21,8 @@
 
 pragma solidity ^0.8.4;
 
+import '@openzeppelin/contracts/utils/Strings.sol';
+
 library ContractInfoImpl {
   bytes32 private constant CONTRACT_INFO_STORAGE_POSITION = keccak256('paypr.contractInfo.storage');
 
@@ -29,6 +31,7 @@ library ContractInfoImpl {
     string symbol;
     string description;
     string uri;
+    bool includeAddressInUri;
   }
 
   //noinspection NoReturn
@@ -65,10 +68,28 @@ library ContractInfoImpl {
   }
 
   function uri() internal view returns (string memory) {
-    return _contractInfoStorage().uri;
+    ContractInfoStorage storage ds = _contractInfoStorage();
+
+    if (bytes(ds.uri).length == 0) {
+      return '';
+    }
+
+    if (!ds.includeAddressInUri) {
+      return ds.uri;
+    }
+
+    return string(abi.encodePacked(ds.uri, Strings.toHexString(uint160(address(this)))));
   }
 
   function setUri(string memory _uri) internal {
     _contractInfoStorage().uri = _uri;
+  }
+
+  function includeAddressInUri() internal view returns (bool) {
+    return _contractInfoStorage().includeAddressInUri;
+  }
+
+  function setIncludeAddressInUri(bool includeAddress) internal {
+    _contractInfoStorage().includeAddressInUri = includeAddress;
   }
 }

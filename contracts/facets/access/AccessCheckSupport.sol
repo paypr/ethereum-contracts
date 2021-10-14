@@ -33,8 +33,6 @@ library AccessCheckSupport {
    * See {buildMissingRoleMessage(bytes32, address)} for the revert reason format
    */
   function checkAdminRole(bytes32 role) internal view {
-    address account = ContextSupport.msgSender();
-
     bytes32 adminRole = (IAccessControl(address(this)).getRoleAdmin(role));
 
     checkRole(adminRole);

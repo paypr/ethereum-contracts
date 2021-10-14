@@ -25,6 +25,7 @@ export interface ContractInfoInitData {
   symbol: string;
   description: string;
   uri: string;
+  includeAddressInUri: boolean;
 }
 
 export type ContractInfoInitOptions = Partial<ContractInfoInitData>;
@@ -34,6 +35,7 @@ const defaultContractInfoInitData: ContractInfoInitData = {
   symbol: '',
   description: '',
   uri: '',
+  includeAddressInUri: false,
 };
 
 export const withDefaultContractInfo = (info?: ContractInfoInitOptions): ContractInfoInitData => ({
@@ -97,3 +99,16 @@ export const buildContractInfoSetUriInitFunction = (
 
 export const encodeContractInfoSetUriCallData = (contractInfoInit: ContractInfoInit, uri: string) =>
   contractInfoInit.interface.encodeFunctionData('setUri', [uri]);
+
+export const buildContractInfoSetIncludeAddressInUriInitFunction = (
+  contractInfoInit: ContractInfoInit,
+  includeAddress: boolean,
+): DiamondInitFunction => ({
+  initAddress: contractInfoInit.address,
+  callData: encodeContractInfoSetIncludeAddressInUriCallData(contractInfoInit, includeAddress),
+});
+
+export const encodeContractInfoSetIncludeAddressInUriCallData = (
+  contractInfoInit: ContractInfoInit,
+  includeAddress: boolean,
+) => contractInfoInit.interface.encodeFunctionData('setIncludeAddressInUri', [includeAddress]);

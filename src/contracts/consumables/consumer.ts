@@ -18,12 +18,12 @@
  */
 
 import { ConsumableConsumerInit } from '../../../types/contracts';
-import { ConsumableAmount } from '../consumables';
+import { ConsumableAmountLike } from '../consumables';
 import { DiamondInitFunction } from '../diamonds';
 
 export const buildSetRequiredConsumablesFunction = (
   consumableConsumerInit: ConsumableConsumerInit,
-  requiredConsumables: ConsumableAmount[],
+  requiredConsumables: ConsumableAmountLike[],
 ): DiamondInitFunction => ({
   initAddress: consumableConsumerInit.address,
   callData: encodeSetRequiredConsumablesCallData(consumableConsumerInit, requiredConsumables),
@@ -31,5 +31,5 @@ export const buildSetRequiredConsumablesFunction = (
 
 export const encodeSetRequiredConsumablesCallData = (
   consumableConsumerInit: ConsumableConsumerInit,
-  requiredConsumables: ConsumableAmount[],
+  requiredConsumables: ConsumableAmountLike[],
 ) => consumableConsumerInit.interface.encodeFunctionData('setRequiredConsumables', [requiredConsumables]);

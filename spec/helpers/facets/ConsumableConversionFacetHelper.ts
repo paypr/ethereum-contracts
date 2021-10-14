@@ -69,7 +69,7 @@ export const createConvertibleConsumable = async (
           additionalCuts: [buildDiamondFacetCut(conversionFacet)],
           additionalInits: [
             buildConsumableConversionInitFunction(conversionInit, {
-              exchangeToken,
+              exchangeToken: exchangeToken.address,
               intrinsicValueExchangeRate,
               purchasePriceExchangeRate,
               conversionConsumableHooks,

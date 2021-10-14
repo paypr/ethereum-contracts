@@ -17,20 +17,19 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testTimeout: 120_000,
-  cacheDirectory: './tmp/',
-  setupFilesAfterEnv: [
-    './spec/setup/JestExtensionsSetup.ts',
-    './spec/setup/WaffleSetup.ts',
-    './spec/setup/EthersSetup.ts',
-  ],
-  globals: {
-    'ts-jest': {
-      tsconfig: './spec/tsconfig.json',
-      isolatedModules: true,
-    },
-  },
-};
+// SPDX-License-Identifier: GPL-3.0-only
+
+pragma solidity ^0.8.4;
+
+import './IERC721Hooks.sol';
+import './ERC721Impl.sol';
+
+contract ERC721Init {
+  function addHooks(IERC721Hooks hooks) external {
+    ERC721Impl.addHooks(hooks);
+  }
+
+  function removeHooks(IERC721Hooks hooks) external {
+    ERC721Impl.removeHooks(hooks);
+  }
+}

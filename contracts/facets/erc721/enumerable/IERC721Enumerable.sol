@@ -17,23 +17,30 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ * Interface based on OpenZeppelin Contracts IERC721Enumerable:
+ * https://openzeppelin.com/contracts/
+ */
+
 // SPDX-License-Identifier: GPL-3.0-only
 
 pragma solidity ^0.8.4;
 
-import './ERC721Impl.sol';
+interface IERC721Enumerable {
+  /**
+   * @notice Returns the total amount of tokens stored by the contract.
+   */
+  function totalSupply() external view returns (uint256);
 
-contract ERC721TokenInfoInit {
-  function initialize(string calldata baseURI, bool includeAddress) external {
-    ERC721Impl.setBaseURI(baseURI);
-    ERC721Impl.setIncludeAddressInUri(includeAddress);
-  }
+  /**
+   * @notice Returns a token ID owned by `owner` at a given `index` of its token list.
+   * Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
+   */
+  function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256 tokenId);
 
-  function setBaseURI(string calldata baseURI) external {
-    ERC721Impl.setBaseURI(baseURI);
-  }
-
-  function setIncludeAddressInUri(bool includeAddress) external {
-    ERC721Impl.setIncludeAddressInUri(includeAddress);
-  }
+  /**
+   * @notice Returns a token ID at a given `index` of all the tokens stored by the contract.
+   * Use along with {totalSupply} to enumerate all tokens.
+   */
+  function tokenByIndex(uint256 index) external view returns (uint256);
 }

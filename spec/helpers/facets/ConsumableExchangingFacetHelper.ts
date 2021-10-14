@@ -66,7 +66,7 @@ export const buildConsumableExchangingDiamondAdditions = async function (
       additionalRoleMembers: [{ role: SUPER_ADMIN_ROLE, members: [INITIALIZER.address] }],
       additionalInits: [
         buildConsumableExchangingInitFunction(await deployConsumableExchangingInit(), {
-          exchange,
+          exchange: exchange.address,
           requiredConsumables,
           providedConsumables,
         }),

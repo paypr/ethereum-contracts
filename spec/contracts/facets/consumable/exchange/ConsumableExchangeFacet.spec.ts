@@ -258,7 +258,7 @@ describe('registerToken', () => {
         buildConsumableConversionInitFunction(conversionInit, {
           conversionConsumableHooks,
           conversionTransferHooks,
-          exchangeToken: exchange,
+          exchangeToken: exchange.address,
           intrinsicValueExchangeRate: 2000,
           purchasePriceExchangeRate: 1000,
           registerWithExchange: true,
@@ -272,7 +272,7 @@ describe('registerToken', () => {
         buildConsumableConversionInitFunction(conversionInit, {
           conversionConsumableHooks,
           conversionTransferHooks,
-          exchangeToken: exchange,
+          exchangeToken: exchange.address,
           intrinsicValueExchangeRate: 2_000_000,
           purchasePriceExchangeRate: 1_000_000,
           registerWithExchange: true,
@@ -321,7 +321,7 @@ describe('registerToken', () => {
         buildConsumableConversionInitFunction(conversionInit, {
           conversionConsumableHooks,
           conversionTransferHooks,
-          exchangeToken: exchange,
+          exchangeToken: exchange.address,
           intrinsicValueExchangeRate: 1000,
           purchasePriceExchangeRate: 1000,
           registerWithExchange: true,

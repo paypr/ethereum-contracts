@@ -57,7 +57,7 @@ export const buildConsumableExchangingActivityAdditions = async (
   ],
   additionalInits: [
     buildConsumableExchangingActivityInitFunction(await deployConsumableExchangingActivityInit(), {
-      exchange,
+      exchange: exchange.address,
       requiredConsumables,
       providedConsumables,
       consumableExchangingActivityHooks: await deployConsumableExchangingActivityHooks(),

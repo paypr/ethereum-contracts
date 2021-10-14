@@ -17,15 +17,16 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ConsumableExchangingActivityInit, IConsumableExchange } from '../../../types/contracts';
+import { ConsumableExchangingActivityInit } from '../../../types/contracts';
 import { ActivityHooksLike } from '../activities';
-import { ConsumableAmount } from '../consumables';
+import { ConsumableAmountLike } from '../consumables';
+import ContractAddress from '../ContractAddress';
 import { DiamondInitFunction } from '../diamonds';
 
 export interface ConsumableExchangingActivityData {
-  exchange: IConsumableExchange;
-  requiredConsumables: ConsumableAmount[];
-  providedConsumables: ConsumableAmount[];
+  exchange: ContractAddress;
+  requiredConsumables: ConsumableAmountLike[];
+  providedConsumables: ConsumableAmountLike[];
   consumableExchangingActivityHooks: ActivityHooksLike;
 }
 
@@ -43,7 +44,7 @@ export const encodeConsumableExchangingActivityInitCallData = (
 ) =>
   init.interface.encodeFunctionData('initialize', [
     {
-      exchange: initData.exchange.address,
+      exchange: initData.exchange,
       requiredConsumables: initData.requiredConsumables,
       providedConsumables: initData.providedConsumables,
       consumableExchangingActivityHooks: initData.consumableExchangingActivityHooks.address,

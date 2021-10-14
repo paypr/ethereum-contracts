@@ -21,6 +21,8 @@ import { BigNumber } from 'ethers';
 import { IConsumable, IConsumableHooks, IERC20 } from '../../types/contracts';
 import ContractAddress from './ContractAddress';
 
+export type ConsumableAmountLike = ConsumableAmount | ConsumableAmountBN;
+
 export interface ConsumableAmount {
   consumable: ContractAddress;
   amount: number;
