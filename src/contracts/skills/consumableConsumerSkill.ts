@@ -18,12 +18,12 @@
  */
 
 import { ConsumableConsumerSkillInit } from '../../../types/contracts';
-import { ConsumableAmount } from '../consumables';
+import { ConsumableAmountLike } from '../consumables';
 import { DiamondInitFunction } from '../diamonds';
 import { SkillHooksLike } from '../skills';
 
 export interface ConsumableConsumerSkillData {
-  requiredConsumables: ConsumableAmount[];
+  requiredConsumables: ConsumableAmountLike[];
   consumableConsumerSkillHooks: SkillHooksLike;
 }
 
