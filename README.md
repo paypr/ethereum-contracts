@@ -55,13 +55,7 @@ This project uses [Jest](https://jestjs.io/) for testing. Run tests before check
 ### Unit Tests
 
 ```
-npm test
-```
-
-### Integration Tests
-
-```
-npm run test:integration
+npm run test
 ```
 
 ## Building
@@ -72,33 +66,9 @@ npm run build
 
 ## Contracts
 
-### Setting up Rinkby
-
-This isn't necessary for local deployment, but eventually you'll want to
-test on a semi-real test network.
-
-1. Create an account at [Infura](https://infura.io)
-2. Create a new mnemonic with the following command:
-
-   ```shell script
-   npx mnemonics
-   ```
-
-3. Create a secrets file at `secrets.json` with the following structure:
-
-   ```json
-   {
-     "mnemonic": "some great words ...",
-     "mnemonicProd": "some better words ...",
-     "projectId": "12345abcde",
-     "projectSecret": "abcde12345"
-   }
-   ```
-
-### Build and deploy
-
-```shell script
-npx oz create
+To create a single file for a contract:
+```
+npx @poanet/solidity-flattener <sol-file>
 ```
 
 ## License Information
