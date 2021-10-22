@@ -17,10 +17,11 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ContractTransaction } from 'ethers';
+import { BigNumber, ContractTransaction } from 'ethers';
+import { ZERO_ADDRESS } from '../../../../src/contracts/accounts';
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { ERC721_MINTABLE_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
-import { INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
+import { INITIALIZER, PLAYER1, PLAYER2 } from '../../../helpers/Accounts';
 import { deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import { asDisableable, buildDisableableDiamondAdditions } from '../../../helpers/facets/DisableableFacetHelper';
@@ -76,6 +77,25 @@ describe('mint', () => {
     await expect<Promise<ContractTransaction>>(erc721Mint.mint(PLAYER1.address, 1)).toBeRevertedWith(
       'Contract is disabled',
     );
+  });
+
+  it('should emit transfer event', async () => {
+    const erc721Mint = await createMintableERC721();
+    const erc721 = asERC721(erc721Mint);
+
+    expect<ContractTransaction>(await erc721Mint.mint(PLAYER1.address, 1)).toHaveEmittedWith(erc721, 'Transfer', [
+      ZERO_ADDRESS,
+      PLAYER1.address,
+      BigNumber.from(1).toString(),
+    ]);
+
+    expect<string>(await erc721.ownerOf(1)).toEqual(PLAYER1.address);
+
+    expect<ContractTransaction>(await erc721Mint.mint(PLAYER2.address, 1001)).toHaveEmittedWith(erc721, 'Transfer', [
+      ZERO_ADDRESS,
+      PLAYER2.address,
+      BigNumber.from(1001).toString(),
+    ]);
   });
 
   it.todo('should mint to ERC721Receiver contract');
