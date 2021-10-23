@@ -52,8 +52,6 @@ Many IDEs and editors support TSLint.
 
 This project uses [Jest](https://jestjs.io/) for testing. Run tests before checking in.
 
-### Unit Tests
-
 ```
 npm run test
 ```
@@ -67,6 +65,7 @@ npm run build
 ## Contracts
 
 To create a single file for a contract:
+
 ```
 npx @poanet/solidity-flattener <sol-file>
 ```

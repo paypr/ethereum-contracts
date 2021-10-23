@@ -1,12 +1,12 @@
 version: 2.1
 orbs:
-  node: circleci/node@4.0.0
+  node: circleci/node@4.7.0
   slack: circleci/slack@3.4.2
 jobs:
   test:
     executor:
       name: node/default
-      tag: '12.16'
+      tag: '16.5'
     steps:
       - checkout
       - run:

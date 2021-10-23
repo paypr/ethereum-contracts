@@ -2,12 +2,13 @@
 node_modules
 spec
 src
+.editorconfig
+.eslintrc.yml
 .gitignore
 .openzeppelin
 .prettierrc
 npm-debug.log
 secrets.json
 tsconfig.json
-tslint.json
 
 *.map
