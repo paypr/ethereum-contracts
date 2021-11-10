@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.10](https://github.com/paypr/ethereum-contracts/compare/v0.3.9...v0.3.10) (2021-11-10)
+
+### Features
+
+- add source to package ([4723b9a](https://github.com/paypr/ethereum-contracts/commit/4723b9a70609612aad53f64267767bb3053919c2))
+
 ### [0.3.9](https://github.com/paypr/ethereum-contracts/compare/v0.3.8...v0.3.9) (2021-10-19)
 
 ### [0.3.8](https://github.com/paypr/ethereum-contracts/compare/v0.3.7...v0.3.8) (2021-10-14)
