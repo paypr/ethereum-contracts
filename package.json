@@ -15,6 +15,7 @@
   "files": [
     "artifacts",
     "dist",
+    "src",
     "CHANGELOG.md",
     "README.md"
   ],
