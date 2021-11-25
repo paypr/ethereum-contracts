@@ -1,3 +1,9 @@
 {
-  "extends": ["config:base"]
+  "extends": [
+    "config:base",
+    "group:allNonMajor"
+  ],
+  "schedule": [
+    "every 6 weeks before 3am on Saturday"
+  ]
 }
