@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.12](https://github.com/paypr/ethereum-contracts/compare/v0.3.11...v0.3.12) (2021-11-26)
+
+### Bug Fixes
+
+- **deps:** update all non-major dependencies ([b7fe90e](https://github.com/paypr/ethereum-contracts/commit/b7fe90e51975d3694c09d0afe6620d9744079c43))
+
 ### [0.3.11](https://github.com/paypr/ethereum-contracts/compare/v0.3.10...v0.3.11) (2021-11-26)
 
 ### [0.3.10](https://github.com/paypr/ethereum-contracts/compare/v0.3.9...v0.3.10) (2021-11-10)
