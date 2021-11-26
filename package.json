@@ -3,7 +3,7 @@
   "name": "@paypr/ethereum-contracts",
   "description": "",
   "license": "GPL-3.0",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "homepage": "https://paypr.money/",
   "repository": {
     "type": "git",
