@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.13](https://github.com/paypr/ethereum-contracts/compare/v0.3.12...v0.3.13) (2022-01-05)
+
+### Features
+
+- [[#36](https://github.com/paypr/CHANGEME/issues/36)] add contracts to npm package ([b37c990](https://github.com/paypr/ethereum-contracts/commit/b37c990bc593ef73153c014dd90dc52bdc5b13e3))
+
 ### [0.3.12](https://github.com/paypr/ethereum-contracts/compare/v0.3.11...v0.3.12) (2021-11-26)
 
 ### Bug Fixes
