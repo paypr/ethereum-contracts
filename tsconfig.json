@@ -5,7 +5,7 @@
     "declaration": true,
     "declarationMap": true,
     "pretty": true,
-    "module": "esnext",
+    "module": "commonjs",
     "target": "es2015",
     "lib": ["es6", "esnext.asynciterable"],
     "moduleResolution": "node",
