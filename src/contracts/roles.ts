@@ -17,7 +17,9 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export const SUPER_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+import { toAccessRole } from './access';
+
+export const SUPER_ADMIN_ROLE = toAccessRole(0);
 export const ADMIN_ROLE = '0xba2f506baa66f1b41fd7e711f3963f5bc14f36bfbb5101094e7aa4c7fbfd9f6f';
 export const DELEGATE_ADMIN_ROLE = '0x1bd844e7bd490b48c05cdd90d547e31d8a9a0164bff754ece928a84a1fd83d67';
 export const DIAMOND_CUTTER_ROLE = '0xa0e7541f04d8d13c0c182f179c6519b324337ae1c53375f6071d8936f460b669';

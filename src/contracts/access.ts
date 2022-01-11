@@ -18,18 +18,15 @@
  */
 
 import { AccessControlInit, DelegatingAccessInit } from '../../types/contracts';
-import { AccountAddress } from './accounts';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
+import { toByte32String } from './fixedBytes';
 
 export type AccessRole = string;
 
-export const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const toAccessRole = (value: number): AccessRole => toByte32String(value);
 
-export interface AccessRoleMembers {
-  role: AccessRole;
-  members: AccountAddress[];
-}
+export type AccessRoleMembers = AccessControlInit.RoleMembersStruct;
 
 export const buildAccessControlInitAdminsInitFunction = (
   accessControlInit: AccessControlInit,

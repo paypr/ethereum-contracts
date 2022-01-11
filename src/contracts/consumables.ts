@@ -17,8 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { BigNumber } from 'ethers';
 import { IConsumable, IConsumableHooks, IERC20 } from '../../types/contracts';
+import { IConsumable as IConsumableNamespace } from '../../types/contracts/IConsumableConsumer';
 import ContractAddress from './ContractAddress';
 
 export type ConsumableAmountLike = ConsumableAmount | ConsumableAmountBN;
@@ -28,10 +28,7 @@ export interface ConsumableAmount {
   amount: number;
 }
 
-export interface ConsumableAmountBN {
-  consumable: ContractAddress;
-  amount: BigNumber;
-}
+export type ConsumableAmountBN = IConsumableNamespace.ConsumableAmountStructOutput;
 
 export type ERC20Like = IERC20 | ConsumableLike;
 export type ConsumableLike = IConsumable;

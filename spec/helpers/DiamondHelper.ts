@@ -17,6 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Contract } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import { AccessRoleMembers } from '../../src/contracts/access';
 import { ZERO_ADDRESS } from '../../src/contracts/accounts';
@@ -35,7 +36,6 @@ import {
 } from '../../src/contracts/erc165';
 import { DIAMOND_CUTTER_ROLE } from '../../src/contracts/roles';
 import {
-  Diamond,
   Diamond__factory,
   DiamondInit,
   ERC165Init,
@@ -137,7 +137,7 @@ export const createDiamondWithCombinedAccess = async (options: CreateDiamondWith
 };
 
 export const cutDiamond = (
-  diamond: Diamond,
+  diamond: Contract,
   diamondCuts: DiamondFacetCut[],
   initFunction: DiamondInitFunction = emptyDiamondInitFunction,
 ) => IDiamondCut__factory.connect(diamond.address, INITIALIZER).diamondCut(diamondCuts, initFunction);

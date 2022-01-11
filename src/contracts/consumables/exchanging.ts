@@ -18,15 +18,9 @@
  */
 
 import { ConsumableExchangingInit } from '../../../types/contracts';
-import { ConsumableAmountLike } from '../consumables';
-import ContractAddress from '../ContractAddress';
 import { DiamondInitFunction } from '../diamonds';
 
-export interface ConsumableExchangingData {
-  exchange: ContractAddress;
-  requiredConsumables: ConsumableAmountLike[];
-  providedConsumables: ConsumableAmountLike[];
-}
+export type ConsumableExchangingData = ConsumableExchangingInit.ConsumableExchangingDataStruct;
 
 export const buildConsumableExchangingInitFunction = (
   init: ConsumableExchangingInit,

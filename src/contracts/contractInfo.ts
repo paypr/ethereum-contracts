@@ -20,13 +20,7 @@
 import { ContractInfoInit } from '../../types/contracts';
 import { DiamondInitFunction } from './diamonds';
 
-export interface ContractInfoInitData {
-  name: string;
-  symbol: string;
-  description: string;
-  uri: string;
-  includeAddressInUri: boolean;
-}
+export type ContractInfoInitData = ContractInfoInit.InfoDataStruct;
 
 export type ContractInfoInitOptions = Partial<ContractInfoInitData>;
 

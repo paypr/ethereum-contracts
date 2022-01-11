@@ -17,8 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { BigNumber } from 'ethers';
 import { ConsumableExchangeInit, IConsumableExchange } from '../../../types/contracts';
+import { IConsumableExchange as IConsumableExchangeNamespace } from '../../../types/contracts/ConsumableExchangeFacet';
 import { ConsumableHooksLike, ERC20Like } from '../consumables';
 import { DiamondInitFunction } from '../diamonds';
 
@@ -27,16 +27,14 @@ export interface ExchangeRate {
   intrinsicValue: number;
 }
 
-export interface ExchangeRateBN {
-  purchasePrice: BigNumber;
-  intrinsicValue: BigNumber;
-}
+export type ExchangeRateBN = IConsumableExchangeNamespace.ExchangeRateStructOutput;
 
 export type ConsumableExchangeLike = ERC20Like | IConsumableExchange;
 
 export interface ConsumableExchangeInitData {
   exchangeConsumableHooks: ConsumableHooksLike;
 }
+
 export const buildConsumableExchangeInitFunction = (
   consumableExchangeInit: ConsumableExchangeInit,
   exchangeInitData: ConsumableExchangeInitData,
