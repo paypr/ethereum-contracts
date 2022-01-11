@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The Paypr Company, LLC
+ * Copyright (c) 2022 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,10 +17,9 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { toFixedByteString } from './fixedBytes';
+import { hexlify, zeroPad } from 'ethers/lib/utils';
 
-export type AccountAddress = string;
+export const toFixedByteString = (value: number, size: number): string => hexlify(zeroPad(hexlify(value), size));
 
-export const toAccountAddress = (value: number) => toFixedByteString(value, 20);
-
-export const ZERO_ADDRESS = toAccountAddress(0);
+export const toByte4String = (value: number) => toFixedByteString(value, 4);
+export const toByte32String = (value: number) => toFixedByteString(value, 32);

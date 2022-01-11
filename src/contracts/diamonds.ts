@@ -17,25 +17,19 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { arrayify, BytesLike } from '@ethersproject/bytes';
+import { arrayify } from '@ethersproject/bytes';
 import { Contract } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
-import { DiamondInit } from '../../types/contracts';
+import { DiamondInit, IDiamondCut } from '../../types/contracts';
+import { IDiamondCut as IDiamondCutNamespace } from '../../types/contracts/DiamondCutFacet';
 import { ZERO_ADDRESS } from './accounts';
-import ContractAddress from './ContractAddress';
-import FunctionSelector from './FunctionSelector';
 
 export interface DiamondConstructorParams {
   diamondCuts: DiamondFacetCut[];
   initFunction: DiamondInitFunction;
 }
 
-export interface DiamondFacetCut {
-  facetAddress: ContractAddress;
-  action: DiamondFacetCutAction;
-  functionSelectors: FunctionSelector[];
-  interfaceId: BytesLike;
-}
+export type DiamondFacetCut = IDiamondCut.FacetCutStruct;
 
 export enum DiamondFacetCutAction {
   Add,
@@ -43,10 +37,7 @@ export enum DiamondFacetCutAction {
   Remove,
 }
 
-export interface DiamondInitFunction {
-  initAddress: ContractAddress;
-  callData: BytesLike;
-}
+export type DiamondInitFunction = IDiamondCutNamespace.DiamondInitFunctionStruct;
 
 export const emptyDiamondInitFunction: DiamondInitFunction = { initAddress: ZERO_ADDRESS, callData: [] };
 

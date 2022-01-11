@@ -19,10 +19,11 @@
 
 import { ERC165Init } from '../../types/contracts';
 import { DiamondInitFunction } from './diamonds';
+import { toErc165InterfaceId } from './erc165InterfaceIds';
 
 export type Erc165InterfaceId = string;
 
-export const NO_INTERFACE = '0x00000000';
+export const NO_INTERFACE = toErc165InterfaceId(0);
 
 export const buildErc165SetSupportedInterfacesDiamondInitFunction = (
   erc165Init: ERC165Init,

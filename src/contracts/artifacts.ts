@@ -17,8 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { BigNumber } from 'ethers';
 import { ArtifactInit, ERC721Init, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
+import { IArtifact } from '../../types/contracts/IActivityExecutor';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
 import { TransferHooksLike } from './transfer';
@@ -28,10 +28,7 @@ export interface Item {
   itemId: string;
 }
 
-export interface ItemBN {
-  artifact: ContractAddress;
-  itemId: BigNumber;
-}
+export type ItemBN = IArtifact.ItemStruct;
 
 export interface ArtifactData {
   initialUses: number;
