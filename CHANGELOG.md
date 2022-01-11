@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/paypr/ethereum-contracts/compare/v0.3.13...v0.4.0) (2022-01-11)
+
+### ⚠ BREAKING CHANGES
+
+- typechain upgrade may introduce breaking changes
+- typechain upgrade may introduce breaking changes
+
+- [[#41](https://github.com/paypr/CHANGEME/issues/41)] update to use new typechain structs ([905115f](https://github.com/paypr/ethereum-contracts/commit/905115f2e49dc793d270b437316f9379fa6a7776))
+- [[#41](https://github.com/paypr/CHANGEME/issues/41)] upgrade typechain version ([5bd997e](https://github.com/paypr/ethereum-contracts/commit/5bd997e88eaa37783c7a03fa4776059c35be8abd))
+
 ### [0.3.13](https://github.com/paypr/ethereum-contracts/compare/v0.3.12...v0.3.13) (2022-01-05)
 
 ### Features
