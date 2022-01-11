@@ -19,6 +19,7 @@
 
 import { IConsumable, IConsumableHooks, IERC20 } from '../../types/contracts';
 import { IConsumable as IConsumableNamespace } from '../../types/contracts/IConsumableConsumer';
+import { LikeInterface } from '../interfaces';
 import ContractAddress from './ContractAddress';
 
 export type ConsumableAmountLike = ConsumableAmount | ConsumableAmountBN;
@@ -30,7 +31,7 @@ export interface ConsumableAmount {
 
 export type ConsumableAmountBN = IConsumableNamespace.ConsumableAmountStructOutput;
 
-export type ERC20Like = IERC20 | ConsumableLike;
-export type ConsumableLike = IConsumable;
+export type ERC20Like = LikeInterface<IERC20> | ConsumableLike;
+export type ConsumableLike = LikeInterface<IConsumable>;
 
-export type ConsumableHooksLike = IConsumableHooks;
+export type ConsumableHooksLike = LikeInterface<IConsumableHooks>;

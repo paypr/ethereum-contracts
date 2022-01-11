@@ -19,6 +19,7 @@
 
 import { ConsumableExchangeInit, IConsumableExchange } from '../../../types/contracts';
 import { IConsumableExchange as IConsumableExchangeNamespace } from '../../../types/contracts/ConsumableExchangeFacet';
+import { LikeInterface } from '../../interfaces';
 import { ConsumableHooksLike, ERC20Like } from '../consumables';
 import { DiamondInitFunction } from '../diamonds';
 
@@ -29,7 +30,7 @@ export interface ExchangeRate {
 
 export type ExchangeRateBN = IConsumableExchangeNamespace.ExchangeRateStructOutput;
 
-export type ConsumableExchangeLike = ERC20Like | IConsumableExchange;
+export type ConsumableExchangeLike = LikeInterface<ERC20Like> | LikeInterface<IConsumableExchange>;
 
 export interface ConsumableExchangeInitData {
   exchangeConsumableHooks: ConsumableHooksLike;

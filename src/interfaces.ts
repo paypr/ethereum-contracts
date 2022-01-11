@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The Paypr Company, LLC
+ * Copyright (c) 2022 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,7 +17,16 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { IActivityHooks } from '../../types/contracts';
-import { LikeInterface } from '../interfaces';
-
-export type ActivityHooksLike = LikeInterface<IActivityHooks>;
+export type LikeInterface<I> = Omit<
+  I,
+  | 'attach'
+  | 'connect'
+  | 'contractName'
+  | 'deployed'
+  | 'interface'
+  | 'off'
+  | 'on'
+  | 'once'
+  | 'removeAllListeners'
+  | 'removeListener'
+>;

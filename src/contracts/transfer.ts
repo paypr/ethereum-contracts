@@ -18,5 +18,6 @@
  */
 
 import { ITransferHooks } from '../../types/contracts';
+import { LikeInterface } from '../interfaces';
 
-export type TransferHooksLike = ITransferHooks;
+export type TransferHooksLike = LikeInterface<ITransferHooks>;

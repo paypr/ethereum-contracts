@@ -19,6 +19,7 @@
 
 import { ArtifactInit, ERC721Init, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
 import { IArtifact } from '../../types/contracts/IActivityExecutor';
+import { LikeInterface } from '../interfaces';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
 import { TransferHooksLike } from './transfer';
@@ -36,7 +37,7 @@ export interface ArtifactData {
   transferHooks: TransferHooksLike;
 }
 
-type ERC721HooksLike = IERC721Hooks;
+type ERC721HooksLike = LikeInterface<IERC721Hooks>;
 
 export const buildArtifactInitFunction = (init: ArtifactInit, initData: ArtifactData): DiamondInitFunction => ({
   initAddress: init.address,
