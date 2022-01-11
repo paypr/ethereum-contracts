@@ -102,7 +102,7 @@ export const buildAccessControlInitFunction = async (
   options: AccessControlInitOptions,
 ): Promise<DiamondInitFunction> => {
   const accessControlInit = options.accessControlInit || (await deployAccessControlInit());
-  if ('additionalRoleMembers' in options && options.additionalRoleMembers) {
+  if ('additionalRoleMembers' in options && options.additionalRoleMembers && options.additionalRoleMembers.length > 0) {
     return buildAccessControlAddMembersInitFunction(accessControlInit, options.additionalRoleMembers);
   }
 
