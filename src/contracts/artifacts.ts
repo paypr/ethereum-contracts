@@ -19,7 +19,7 @@
 
 import { ArtifactInit, ERC721Init, ERC721TokenInfoInit, IERC721Hooks } from '../../types/contracts';
 import { IArtifact } from '../../types/contracts/IActivityExecutor';
-import { LikeInterface } from '../interfaces';
+import { LikeInterface } from './interfaces';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
 import { TransferHooksLike } from './transfer';

@@ -19,7 +19,7 @@
 
 import { ISkillHooks } from '../../types/contracts';
 import { ISkill } from '../../types/contracts/SkillConstrainedInit';
-import { LikeInterface } from '../interfaces';
+import { LikeInterface } from './interfaces';
 import ContractAddress from './ContractAddress';
 
 export interface SkillLevel {

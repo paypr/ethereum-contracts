@@ -18,6 +18,6 @@
  */
 
 import { IActivityHooks } from '../../types/contracts';
-import { LikeInterface } from '../interfaces';
+import { LikeInterface } from './interfaces';
 
 export type ActivityHooksLike = LikeInterface<IActivityHooks>;
