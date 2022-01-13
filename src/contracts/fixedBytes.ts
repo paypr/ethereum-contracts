@@ -17,9 +17,10 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { hexlify, zeroPad } from 'ethers/lib/utils';
+import { BytesLike } from 'ethers';
+import { Hexable, hexlify, zeroPad } from 'ethers/lib/utils';
 
-export const toFixedByteString = (value: number, size: number): string => hexlify(zeroPad(hexlify(value), size));
+export const toFixedByteString = (value: BytesLike | Hexable | number, size: number): string => hexlify(zeroPad(hexlify(value), size));
 
-export const toByte4String = (value: number) => toFixedByteString(value, 4);
-export const toByte32String = (value: number) => toFixedByteString(value, 32);
+export const toByte4String = (value: BytesLike | Hexable | number) => toFixedByteString(value, 4);
+export const toByte32String = (value: BytesLike | Hexable | number) => toFixedByteString(value, 32);

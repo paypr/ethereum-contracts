@@ -18,9 +18,10 @@
  */
 
 import { BytesLike } from 'ethers';
+import { Hexable } from 'ethers/lib/utils';
 import { toByte4String } from './fixedBytes';
 
 type FunctionSelector = BytesLike;
 export default FunctionSelector;
 
-export const toFunctionSelector = (value: number): FunctionSelector => toByte4String(value);
+export const toFunctionSelector = (value: BytesLike | Hexable | number): FunctionSelector => toByte4String(value);

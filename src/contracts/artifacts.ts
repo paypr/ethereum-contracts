@@ -92,12 +92,15 @@ export const encodeERC721TokenInfoInitCallData = (
   includeAddress: boolean = false,
 ) => erc721TokenInfoInit.interface.encodeFunctionData('initialize', [baseURI, includeAddress]);
 
-export const buildERC721AddHooksInitFunction = (erc721Init: ERC721Init, hooks: IERC721Hooks): DiamondInitFunction => ({
+export const buildERC721AddHooksInitFunction = (
+  erc721Init: ERC721Init,
+  hooks: ERC721HooksLike,
+): DiamondInitFunction => ({
   initAddress: erc721Init.address,
   callData: encodeERC721AddHooksCallData(erc721Init, hooks),
 });
 
-export const encodeERC721AddHooksCallData = (erc721Init: ERC721Init, hooks: IERC721Hooks) =>
+export const encodeERC721AddHooksCallData = (erc721Init: ERC721Init, hooks: ERC721HooksLike) =>
   erc721Init.interface.encodeFunctionData('addHooks', [hooks.address]);
 
 export const buildERC721RemoveHooksInitFunction = (
@@ -108,5 +111,5 @@ export const buildERC721RemoveHooksInitFunction = (
   callData: encodeERC721RemoveHooksCallData(erc721Init, hooks),
 });
 
-export const encodeERC721RemoveHooksCallData = (erc721Init: ERC721Init, hooks: IERC721Hooks) =>
+export const encodeERC721RemoveHooksCallData = (erc721Init: ERC721Init, hooks: ERC721HooksLike) =>
   erc721Init.interface.encodeFunctionData('removeHooks', [hooks.address]);

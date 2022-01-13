@@ -17,6 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { BytesLike } from 'ethers';
+import { Hexable } from 'ethers/lib/utils';
 import { AccessControlInit, DelegatingAccessInit } from '../../types/contracts';
 import ContractAddress from './ContractAddress';
 import { DiamondInitFunction } from './diamonds';
@@ -24,7 +26,7 @@ import { toByte32String } from './fixedBytes';
 
 export type AccessRole = string;
 
-export const toAccessRole = (value: number): AccessRole => toByte32String(value);
+export const toAccessRole = (value: BytesLike | Hexable | number): AccessRole => toByte32String(value);
 
 export type AccessRoleMembers = AccessControlInit.RoleMembersStruct;
 

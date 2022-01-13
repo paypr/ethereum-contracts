@@ -19,10 +19,12 @@
 
 // import { toByte4String } from './types';
 
+import { BytesLike } from 'ethers';
+import { Hexable } from 'ethers/lib/utils';
 import { Erc165InterfaceId } from './erc165';
 import { toByte4String } from './fixedBytes';
 
-export const toErc165InterfaceId = (value: number): Erc165InterfaceId => toByte4String(value);
+export const toErc165InterfaceId = (value: BytesLike | Hexable | number): Erc165InterfaceId => toByte4String(value);
 
 export const ACCESS_CHECK_INTERFACE_ID = toErc165InterfaceId(0x91d14854);
 export const ACCESS_CONTROL_INTERFACE_ID = toErc165InterfaceId(0x4b15dccf);
