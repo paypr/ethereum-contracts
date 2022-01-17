@@ -25,7 +25,13 @@ jobs:
       - store_test_results:
           path: ./reports/junit/
       - slack/notify:
+          event: fail
           branch_pattern: main|master
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          branch_pattern: main|master
+          template: basic_success_1
 
 workflows:
   workflow:
