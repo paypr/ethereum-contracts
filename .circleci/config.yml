@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   node: circleci/node@5.0.0
-  slack: circleci/slack@3.4.2
+  slack: circleci/slack@4.6.0
 jobs:
   test:
     executor:
@@ -9,6 +9,9 @@ jobs:
       tag: '16.5'
     steps:
       - checkout
+      - run:
+          name: Install pkg-config
+          command: sudo apt-get update -y && sudo apt-get install -y pkg-config libusb-1.0-0
       - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
@@ -21,8 +24,14 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
       - store_test_results:
           path: ./reports/junit/
-      - slack/status:
-          only_for_branches: master
+      - slack/notify:
+          event: fail
+          branch_pattern: main|master
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          branch_pattern: main|master
+          template: basic_success_1
 
 workflows:
   workflow:

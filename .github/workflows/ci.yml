@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    branches: ['**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:16.13.1-alpine
+      # this is the user that CI uses, which is needed to generate files within the repo directory
+      options: --user 1001
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm run test -- --ci --maxWorkers=1 --reporters=default
