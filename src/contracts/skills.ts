@@ -17,16 +17,19 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { BigNumber } from 'ethers';
 import { ISkillHooks } from '../../types/contracts';
-import { ISkill } from '../../types/contracts/SkillConstrainedInit';
-import { LikeInterface } from './interfaces';
 import ContractAddress from './ContractAddress';
+import { LikeInterface } from './interfaces';
 
 export interface SkillLevel {
   skill: ContractAddress;
   level: number;
 }
 
-export type SkillLevelBN = ISkill.SkillLevelStructOutput;
+export interface SkillLevelBN {
+  skill: string;
+  level: BigNumber;
+}
 
 export type SkillHooksLike = LikeInterface<ISkillHooks>;
