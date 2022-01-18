@@ -7,6 +7,7 @@ jobs:
     executor:
       name: node/default
       tag: '16.5'
+    resource_class: large
     steps:
       - checkout
       - run:
@@ -19,7 +20,7 @@ jobs:
       - run:
           command: npm run build
       - run:
-          command: npm run test -- --ci --maxWorkers=1 --reporters=default --reporters=jest-junit
+          command: npm run test -- --ci --maxWorkers=4 --reporters=default --reporters=jest-junit
           environment:
             JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
       - store_test_results:
