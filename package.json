@@ -13,6 +13,14 @@
   "bugs": {
     "url": "https://github.com/paypr/CHANGEME/issues"
   },
+  "files": [
+    "artifacts",
+    "contracts",
+    "dist",
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ],
   "scripts": {
     "clean": "rm -rf build && rm -rf dist && rm -rf out && rm -rf types && rm -rf artifacts && rm -rf cache",
     "compile:contracts": "hardhat compile && npm run pretty",
