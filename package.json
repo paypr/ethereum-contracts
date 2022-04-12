@@ -21,7 +21,8 @@
     "test": "jest",
     "posttest": "npm run lint",
     "lint": "eslint",
-    "pretty": "pretty-quick"
+    "pretty": "pretty-quick",
+    "release": "standard-version"
   },
   "husky": {
     "hooks": {
