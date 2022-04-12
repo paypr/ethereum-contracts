@@ -17,16 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testTimeout: 120_000,
-  cacheDirectory: './tmp/',
-  setupFilesAfterEnv: ['./spec/setup/WaffleSetup.ts', './spec/setup/EthersSetup.ts'],
-  globals: {
-    'ts-jest': {
-      tsconfig: './spec/tsconfig.json',
-      isolatedModules: true,
-    },
-  },
-};
+import { initAccounts } from '../helpers/Accounts';
+
+global.beforeEach(async () => {
+  await initAccounts();
+});
