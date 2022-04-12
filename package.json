@@ -24,6 +24,7 @@
     "posttest": "npm run lint",
     "lint": "solhint 'contracts/**/*.sol' && eslint",
     "pretty": "pretty-quick",
+    "release": "standard-version",
     "prepublishOnly": "npm run rebuild && npm run release"
   },
   "husky": {
