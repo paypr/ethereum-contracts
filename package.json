@@ -63,7 +63,7 @@
     "ethereum-waffle": "3.4.0",
     "ganache-cli": "6.12.2",
     "hardhat": "2.8.2",
-    "husky": "7.0.4",
+    "husky": "8.0.1",
     "jest": "27.4.7",
     "jest-extended": "1.2.0",
     "jest-junit": "13.0.0",
