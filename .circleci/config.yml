@@ -18,6 +18,8 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - node/install-packages
       - run:
+          command: npm run ci-prepare
+      - run:
           command: npm run build
       - run:
           command: npm run test -- --ci --maxWorkers=4 --reporters=default --reporters=jest-junit

@@ -75,3 +75,33 @@ npx @poanet/solidity-flattener <sol-file>
 
 Paypr Ethereum Contracts may be used in commercial projects and applications
 with the purchase of a commercial license. See https://paypr.money/ to contact us.
+
+## Verification
+
+Set up a `.secrets.json` file that looks similar to `example.secrets.json`:
+
+After deploying your contract, you can verify it by running the following.
+
+### Rinkeby
+```
+npx hardhat verify --network rinkeby CONTRACT_ADDRESS
+```
+
+For a diamond contract, you'll need to pass the arguments to the diamond contract, and pass the contract as well:
+
+```
+npx hardhat verify --network rinkeby \
+  --constructor-args examples/payprConstructorArgs.js \
+  CONTRACT_ADDRESS
+```
+
+### Mainnet
+```
+npx hardhat verify --network rinkeby CONTRACT_ADDRESS
+```
+
+```
+npx hardhat verify --network mainnet \
+  --constructor-args examples/payprConstructorArgs.js \
+  CONTRACT_ADDRESS
+```
