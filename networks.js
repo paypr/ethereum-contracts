@@ -1,5 +1,5 @@
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const { projectId, mnemonic, mnemonicProd } = require('./secrets');
+const { projectId, mnemonic, mnemonicProd } = require('./.secrets.json');
 
 module.exports = {
   networks: {

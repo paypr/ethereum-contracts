@@ -164,4 +164,4 @@ node_modules
 /.openzeppelin/rinkeby*.json
 /.openzeppelin/mainnet.json
 /build/contracts/
-/secrets.json
+/.secrets.json
