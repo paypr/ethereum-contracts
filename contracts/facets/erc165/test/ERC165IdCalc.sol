@@ -54,9 +54,6 @@ import '../../skill/ISkillSelfAcquisition.sol';
 import '../../skill/skillConstrained/ISkillConstrained.sol';
 import '../../transfer/ITransferring.sol';
 
-/**
- * Idea comes from https://medium.com/coinmonks/ethereum-standard-erc165-explained-63b54ca0d273
- */
 library ERC165IdCalc {
   function calcAccessControlInterfaceId() external pure returns (bytes4) {
     return type(IAccessControl).interfaceId;

@@ -57,7 +57,7 @@ import { INITIALIZER } from '../../helpers/Accounts';
 
 export const deployERC165IdCalcContract = () => new ERC165IdCalc__factory(INITIALIZER).deploy();
 
-type InterfaceTest = [string, Erc165InterfaceId, (ERC165IdCalc) => Promise<Erc165InterfaceId>];
+type InterfaceTest = [string, Erc165InterfaceId, (idCalc: ERC165IdCalc) => Promise<Erc165InterfaceId>];
 
 const interfaceTests: InterfaceTest[] = [
   ['AccessCheck', ACCESS_CHECK_INTERFACE_ID, (idCalc) => idCalc.calcAccessCheckInterfaceId()],
