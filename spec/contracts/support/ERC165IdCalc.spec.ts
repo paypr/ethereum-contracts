@@ -51,6 +51,7 @@ import {
   SKILL_SELF_ACQUISITION_INTERFACE_ID,
   TRANSFERRING_INTERFACE_ID,
   ERC721_ENUMERABLE_INTERFACE_ID,
+  CONSUMABLE_CONVERTIBLE_MINT_INTERFACE_ID,
 } from '../../../src/contracts/erc165InterfaceIds';
 import { ERC165IdCalc, ERC165IdCalc__factory } from '../../../types/contracts';
 import { INITIALIZER } from '../../helpers/Accounts';
@@ -72,6 +73,11 @@ const interfaceTests: InterfaceTest[] = [
     'ConsumableConversion',
     CONSUMABLE_CONVERSION_INTERFACE_ID,
     (idCalc) => idCalc.calcConsumableConversionInterfaceId(),
+  ],
+  [
+    'ConsumableConvertibleMint',
+    CONSUMABLE_CONVERTIBLE_MINT_INTERFACE_ID,
+    (idCalc) => idCalc.calcConsumableConvertibleMintInterfaceId(),
   ],
   ['ConsumableExchange', CONSUMABLE_EXCHANGE_INTERFACE_ID, (idCalc) => idCalc.calcConsumableExchangeInterfaceId()],
   [

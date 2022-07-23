@@ -17,7 +17,7 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Contract, Signer } from 'ethers';
+import { BigNumber, Contract, Signer } from 'ethers';
 import { AccessRoleMembers } from '../../../src/contracts/access';
 import { ConsumableAmount, ConsumableAmountBN } from '../../../src/contracts/consumables';
 import { buildDiamondFacetCut, DiamondFacetCut } from '../../../src/contracts/diamonds';
@@ -81,6 +81,10 @@ export const toConsumableAmount = (consumableAmount: ConsumableAmountBN): Consum
   return { consumable, amount: amount.toNumber() };
 };
 
-export const toConsumableAmountAsync = async (
-  consumableAmount: Promise<ConsumableAmountBN> | ConsumableAmountBN,
-): Promise<ConsumableAmount> => toConsumableAmount(await consumableAmount);
+export const toConsumableAmountBN = (consumableAmount: ConsumableAmount): ConsumableAmountBN => {
+  const { consumable, amount } = consumableAmount;
+  return { consumable, amount: BigNumber.from(amount) };
+};
+
+export const extractConsumables = (consumableAmounts: (ConsumableAmountBN | ConsumableAmount)[]) =>
+  consumableAmounts.map(({ consumable }) => consumable);

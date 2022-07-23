@@ -35,7 +35,7 @@ interface IConsumableMint {
    *
    * Requirements:
    *
-   * - `to` cannot be the zero address.
+   * - `account` cannot be the zero address.
    */
   function mint(address account, uint256 amount) external;
 
