@@ -26,7 +26,7 @@ import {
 } from '../../../../helpers/facets/ConsumableConvertibleMintFacetHelper';
 import { createConsumable } from '../../../../helpers/facets/ConsumableFacetHelper';
 
-export const convertibleMintEstimateTests: EstimateTest[] = [
+export const convertibleMintConsumableEstimateTests: EstimateTest[] = [
   [
     'ConsumableConvertibleMintConsumable',
     async () => ({

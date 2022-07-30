@@ -29,24 +29,24 @@ import { PLAYER1 } from '../../../../helpers/Accounts';
 import { deployDiamond } from '../../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../../helpers/ERC165Helper';
 import {
-  createConvertibleMintConsumable,
-  deployConsumableConvertibleMintConsumableFacet,
+  createConvertibleMintArtifact,
+  deployConsumableConvertibleMintArtifactFacet,
   toConsumableCombination,
 } from '../../../../helpers/facets/ConsumableConvertibleMintFacetHelper';
 import {
-  asConsumable,
   asConsumableMint,
   createConsumable,
   toConsumableAmount,
 } from '../../../../helpers/facets/ConsumableFacetHelper';
 import { asErc165, deployErc165Facet } from '../../../../helpers/facets/ERC165FacetHelper';
+import { asERC721 } from '../../../../helpers/facets/ERC721FacetHelper';
 
 describe('supportsInterface', () => {
   const createDiamondForErc165 = async () =>
     asErc165(
       await deployDiamond([
         buildDiamondFacetCut(await deployErc165Facet()),
-        buildDiamondFacetCut(await deployConsumableConvertibleMintConsumableFacet()),
+        buildDiamondFacetCut(await deployConsumableConvertibleMintArtifactFacet()),
       ]),
     );
 
@@ -59,7 +59,7 @@ describe('isValidConsumableCombination', () => {
     const consumable2 = await createConsumable();
     const consumable3 = await createConsumable();
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable([
+    const convertibleMintArtifact = await createConvertibleMintArtifact([
       {
         requiredConsumables: [{ consumable: consumable1.address, amount: 1 }],
         amountProvided: 1,
@@ -88,15 +88,15 @@ describe('isValidConsumableCombination', () => {
       },
     ]);
 
-    expect<boolean>(await convertibleMintConsumable.isValidConsumableCombination([consumable1.address])).toBeTruthy();
+    expect<boolean>(await convertibleMintArtifact.isValidConsumableCombination([consumable1.address])).toBeTruthy();
     expect<boolean>(
-      await convertibleMintConsumable.isValidConsumableCombination([consumable1.address, consumable2.address]),
+      await convertibleMintArtifact.isValidConsumableCombination([consumable1.address, consumable2.address]),
     ).toBeTruthy();
     expect<boolean>(
-      await convertibleMintConsumable.isValidConsumableCombination([consumable1.address, consumable3.address]),
+      await convertibleMintArtifact.isValidConsumableCombination([consumable1.address, consumable3.address]),
     ).toBeTruthy();
     expect<boolean>(
-      await convertibleMintConsumable.isValidConsumableCombination([
+      await convertibleMintArtifact.isValidConsumableCombination([
         consumable1.address,
         consumable2.address,
         consumable3.address,
@@ -110,7 +110,7 @@ describe('isValidConsumableCombination', () => {
     const consumable3 = await createConsumable();
     const consumable4 = await createConsumable();
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable([
+    const convertibleMintArtifact = await createConvertibleMintArtifact([
       {
         requiredConsumables: [{ consumable: consumable1.address, amount: 1 }],
         amountProvided: 1,
@@ -139,14 +139,14 @@ describe('isValidConsumableCombination', () => {
       },
     ]);
 
-    expect<boolean>(await convertibleMintConsumable.isValidConsumableCombination([consumable2.address])).toBeFalsy();
-    expect<boolean>(await convertibleMintConsumable.isValidConsumableCombination([consumable3.address])).toBeFalsy();
-    expect<boolean>(await convertibleMintConsumable.isValidConsumableCombination([consumable4.address])).toBeFalsy();
+    expect<boolean>(await convertibleMintArtifact.isValidConsumableCombination([consumable2.address])).toBeFalsy();
+    expect<boolean>(await convertibleMintArtifact.isValidConsumableCombination([consumable3.address])).toBeFalsy();
+    expect<boolean>(await convertibleMintArtifact.isValidConsumableCombination([consumable4.address])).toBeFalsy();
     expect<boolean>(
-      await convertibleMintConsumable.isValidConsumableCombination([consumable2.address, consumable3.address]),
+      await convertibleMintArtifact.isValidConsumableCombination([consumable2.address, consumable3.address]),
     ).toBeFalsy();
     expect<boolean>(
-      await convertibleMintConsumable.isValidConsumableCombination([
+      await convertibleMintArtifact.isValidConsumableCombination([
         consumable1.address,
         consumable2.address,
         consumable3.address,
@@ -158,9 +158,9 @@ describe('isValidConsumableCombination', () => {
 
 describe('validConsumableCombinations', () => {
   it('should return empty when no combinations set', async () => {
-    const convertibleMintConsumable = await createConvertibleMintConsumable([]);
+    const convertibleMintArtifact = await createConvertibleMintArtifact([]);
 
-    expect<ConsumableCombinationBN[]>(await convertibleMintConsumable.validConsumableCombinations()).toEqual([]);
+    expect<ConsumableCombinationBN[]>(await convertibleMintArtifact.validConsumableCombinations()).toEqual([]);
   });
 
   it('should return all valid consumable combinations', async () => {
@@ -197,10 +197,10 @@ describe('validConsumableCombinations', () => {
       },
     ];
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable(combinations);
+    const convertibleMintArtifact = await createConvertibleMintArtifact(combinations);
 
     expect<ConsumableCombination[]>(
-      (await convertibleMintConsumable.validConsumableCombinations()).map(toConsumableCombination),
+      (await convertibleMintArtifact.validConsumableCombinations()).map(toConsumableCombination),
     ).toEqual(combinations);
   });
 });
@@ -240,14 +240,14 @@ describe('calcRequiredConsumables', () => {
       },
     ];
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable(combinations);
+    const convertibleMintArtifact = await createConvertibleMintArtifact(combinations);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(0, [consumable1.address])).map(toConsumableAmount),
+      (await convertibleMintArtifact.calcRequiredConsumables(0, [consumable1.address])).map(toConsumableAmount),
     ).toEqual([{ consumable: consumable1.address, amount: 0 }]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(0, [consumable1.address, consumable2.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(0, [consumable1.address, consumable2.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -256,7 +256,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(0, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(0, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -266,7 +266,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(0, [
+        await convertibleMintArtifact.calcRequiredConsumables(0, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -313,22 +313,22 @@ describe('calcRequiredConsumables', () => {
       },
     ];
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable(combinations);
+    const convertibleMintArtifact = await createConvertibleMintArtifact(combinations);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(1, [consumable1.address])).map(toConsumableAmount),
+      (await convertibleMintArtifact.calcRequiredConsumables(1, [consumable1.address])).map(toConsumableAmount),
     ).toEqual([{ consumable: consumable1.address, amount: 1 }]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(2, [consumable1.address])).map(toConsumableAmount),
+      (await convertibleMintArtifact.calcRequiredConsumables(2, [consumable1.address])).map(toConsumableAmount),
     ).toEqual([{ consumable: consumable1.address, amount: 2 }]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(100, [consumable1.address])).map(toConsumableAmount),
+      (await convertibleMintArtifact.calcRequiredConsumables(100, [consumable1.address])).map(toConsumableAmount),
     ).toEqual([{ consumable: consumable1.address, amount: 100 }]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(1, [consumable1.address, consumable2.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(1, [consumable1.address, consumable2.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -337,7 +337,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(2, [consumable1.address, consumable2.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(2, [consumable1.address, consumable2.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -346,7 +346,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(1000, [consumable1.address, consumable2.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(1000, [consumable1.address, consumable2.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -355,7 +355,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(1, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(1, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -364,7 +364,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(2, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(2, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -373,7 +373,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(3, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(3, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -382,7 +382,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(4, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(4, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -391,7 +391,7 @@ describe('calcRequiredConsumables', () => {
     ]);
 
     expect<ConsumableAmount[]>(
-      (await convertibleMintConsumable.calcRequiredConsumables(2000, [consumable1.address, consumable3.address])).map(
+      (await convertibleMintArtifact.calcRequiredConsumables(2000, [consumable1.address, consumable3.address])).map(
         toConsumableAmount,
       ),
     ).toEqual([
@@ -401,7 +401,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(1, [
+        await convertibleMintArtifact.calcRequiredConsumables(1, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -415,7 +415,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(2, [
+        await convertibleMintArtifact.calcRequiredConsumables(2, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -429,7 +429,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(3, [
+        await convertibleMintArtifact.calcRequiredConsumables(3, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -443,7 +443,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(4, [
+        await convertibleMintArtifact.calcRequiredConsumables(4, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -457,7 +457,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(5, [
+        await convertibleMintArtifact.calcRequiredConsumables(5, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -471,7 +471,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(6, [
+        await convertibleMintArtifact.calcRequiredConsumables(6, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -485,7 +485,7 @@ describe('calcRequiredConsumables', () => {
 
     expect<ConsumableAmount[]>(
       (
-        await convertibleMintConsumable.calcRequiredConsumables(3000, [
+        await convertibleMintArtifact.calcRequiredConsumables(3000, [
           consumable1.address,
           consumable2.address,
           consumable3.address,
@@ -505,7 +505,7 @@ describe('mint', () => {
     const consumable2 = await createConsumable();
     const consumable3 = await createConsumable();
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable([
+    const convertibleMintArtifact = await createConvertibleMintArtifact([
       {
         requiredConsumables: [{ consumable: consumable1.address, amount: 1 }],
         amountProvided: 1,
@@ -538,131 +538,131 @@ describe('mint', () => {
     await asConsumableMint(consumable2).mint(PLAYER1.address, 1000);
     await asConsumableMint(consumable3).mint(PLAYER1.address, 1000);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
-    await convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address]);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
+    await convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(999);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(1);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(1);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(1);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 2);
-    await convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 2);
+    await convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(998);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(2);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(2);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(998);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(2);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(2);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(2);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(2);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 3);
-    await convertibleMintConsumable.connect(PLAYER1).mint(2, [consumable1.address, consumable3.address]);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 3);
+    await convertibleMintArtifact.connect(PLAYER1).mint(2, [consumable1.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(997);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(3);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(3);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(998);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(2);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(2);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(997);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(3);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(4);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(3);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(4);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 2);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 3);
-    await convertibleMintConsumable
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 2);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 3);
+    await convertibleMintArtifact
       .connect(PLAYER1)
       .mint(3, [consumable1.address, consumable2.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(996);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(4);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(4);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(996);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(4);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(4);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(994);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(6);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(7);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(6);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(7);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 2);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 3);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 4);
-    await convertibleMintConsumable
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 2);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 3);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 4);
+    await convertibleMintArtifact
       .connect(PLAYER1)
       .mint(4, [consumable1.address, consumable2.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(994);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(6);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(6);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(993);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(7);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(7);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(990);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(10);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(11);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(10);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(11);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 2);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 4);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 5);
-    await convertibleMintConsumable
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 2);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 4);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 5);
+    await convertibleMintArtifact
       .connect(PLAYER1)
       .mint(5, [consumable1.address, consumable2.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(992);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(8);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(8);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(989);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(11);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(11);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(985);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(15);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(16);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(15);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(16);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 2);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 4);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 6);
-    await convertibleMintConsumable
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 2);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 4);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 6);
+    await convertibleMintArtifact
       .connect(PLAYER1)
       .mint(6, [consumable1.address, consumable2.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(990);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(10);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(10);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(985);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(15);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(15);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(979);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(21);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(22);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(21);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(22);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 100);
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 200);
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 300);
-    await convertibleMintConsumable
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 100);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 200);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 300);
+    await convertibleMintArtifact
       .connect(PLAYER1)
       .mint(300, [consumable1.address, consumable2.address, consumable3.address]);
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(890);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(110);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(110);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(785);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(215);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(215);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(679);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(321);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(322);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(321);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(322);
   });
 
   it('should fail if invalid consumables provided', async () => {
@@ -671,7 +671,7 @@ describe('mint', () => {
     const consumable3 = await createConsumable();
     const consumable4 = await createConsumable();
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable([
+    const convertibleMintArtifact = await createConvertibleMintArtifact([
       {
         requiredConsumables: [{ consumable: consumable1.address, amount: 1 }],
         amountProvided: 1,
@@ -700,24 +700,24 @@ describe('mint', () => {
       },
     ]);
 
-    await expect(convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable2.address])).toBeRevertedWith(
+    await expect(convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable2.address])).toBeRevertedWith(
       'ConsumableCombinationNotFound',
     );
 
-    await expect(convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable3.address])).toBeRevertedWith(
+    await expect(convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable3.address])).toBeRevertedWith(
       'ConsumableCombinationNotFound',
     );
 
-    await expect(convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable4.address])).toBeRevertedWith(
+    await expect(convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable4.address])).toBeRevertedWith(
       'ConsumableCombinationNotFound',
     );
 
     await expect(
-      convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable2.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable2.address, consumable3.address]),
     ).toBeRevertedWith('ConsumableCombinationNotFound');
 
     await expect(
-      convertibleMintConsumable
+      convertibleMintArtifact
         .connect(PLAYER1)
         .mint(1, [consumable1.address, consumable2.address, consumable3.address, consumable4.address]),
     ).toBeRevertedWith('ConsumableCombinationNotFound');
@@ -728,7 +728,7 @@ describe('mint', () => {
     const consumable2 = await createConsumable();
     const consumable3 = await createConsumable();
 
-    const convertibleMintConsumable = await createConvertibleMintConsumable([
+    const convertibleMintArtifact = await createConvertibleMintArtifact([
       {
         requiredConsumables: [{ consumable: consumable1.address, amount: 1 }],
         amountProvided: 1,
@@ -761,127 +761,121 @@ describe('mint', () => {
     await asConsumableMint(consumable2).mint(PLAYER1.address, 1000);
     await asConsumableMint(consumable3).mint(PLAYER1.address, 1000);
 
-    await expect(convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address])).toBeRevertedWith(
+    await expect(convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address])).toBeRevertedWith(
       'transfer amount exceeds allowance',
     );
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
+    await consumable1.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
     await expect(
-      convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
     await expect(
-      convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address, consumable2.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
     await expect(
-      convertibleMintConsumable.connect(PLAYER1).mint(1, [consumable1.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(1, [consumable1.address, consumable3.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
     await expect(
-      convertibleMintConsumable.connect(PLAYER1).mint(2, [consumable1.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(2, [consumable1.address, consumable3.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
     await expect(
-      convertibleMintConsumable
-        .connect(PLAYER1)
-        .mint(2, [consumable1.address, consumable2.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(2, [consumable1.address, consumable2.address, consumable3.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
+    await consumable3.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
     await expect(
-      convertibleMintConsumable
-        .connect(PLAYER1)
-        .mint(2, [consumable1.address, consumable2.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(2, [consumable1.address, consumable2.address, consumable3.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(2);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(2);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
 
-    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintConsumable.address, 1);
+    await consumable2.connect(PLAYER1).increaseAllowance(convertibleMintArtifact.address, 1);
     await expect(
-      convertibleMintConsumable
-        .connect(PLAYER1)
-        .mint(3, [consumable1.address, consumable2.address, consumable3.address]),
+      convertibleMintArtifact.connect(PLAYER1).mint(3, [consumable1.address, consumable2.address, consumable3.address]),
     ).toBeRevertedWith('transfer amount exceeds allowance');
     expect<BigNumber>(await consumable1.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable1.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(1);
+    expect<BigNumber>(await consumable1.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable1.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(1);
     expect<BigNumber>(await consumable2.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable2.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(2);
+    expect<BigNumber>(await consumable2.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable2.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(2);
     expect<BigNumber>(await consumable3.balanceOf(PLAYER1.address)).toEqBN(1000);
-    expect<BigNumber>(await consumable3.balanceOf(convertibleMintConsumable.address)).toEqBN(0);
-    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintConsumable.address)).toEqBN(2);
-    expect<BigNumber>(await asConsumable(convertibleMintConsumable).balanceOf(PLAYER1.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.balanceOf(convertibleMintArtifact.address)).toEqBN(0);
+    expect<BigNumber>(await consumable3.allowance(PLAYER1.address, convertibleMintArtifact.address)).toEqBN(2);
+    expect<BigNumber>(await asERC721(convertibleMintArtifact).balanceOf(PLAYER1.address)).toEqBN(0);
   });
 });

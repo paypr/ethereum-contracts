@@ -56,8 +56,6 @@ interface IConsumableConvertibleMint {
    * @notice Consumes a certain amount of other resources and creates `amount` tokens and assigns them to the caller,
    * increasing the total supply.
    *
-   * Emits a {IConsumable-Transfer} event with `from` set to the zero address.
-   *
    * Requirements:
    * - caller must approve the proper amount of valid consumables
    */

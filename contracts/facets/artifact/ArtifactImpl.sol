@@ -95,6 +95,17 @@ library ArtifactImpl {
     return itemId;
   }
 
+  function mint(address to, uint256 amount) internal {
+    ArtifactStorage storage ds = _artifactStorage();
+
+    for (uint256 index = 0; index < amount; index++) {
+      ds.lastItemId.increment();
+      uint256 itemId = ds.lastItemId.current();
+
+      ERC721Impl.mint(to, itemId);
+    }
+  }
+
   function checkEnoughConsumable() internal view {
     require(ConsumableProviderSupport.canProvideMultiple(totalUsesLeft()), 'Artifact: not enough consumable for items');
   }

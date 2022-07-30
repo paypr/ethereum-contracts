@@ -26,10 +26,10 @@ import '../../context/ContextSupport.sol';
 import './ConsumableConvertibleMintBase.sol';
 import './ConsumableConvertibleMintImpl.sol';
 
-contract ConsumableConvertibleMintConsumableFacet is ConsumableConvertibleMintBase {
+contract ConsumableConvertibleMintArtifactFacet is ConsumableConvertibleMintBase {
   function mint(uint256 amount, IConsumable[] calldata consumables) external {
     DisableableSupport.checkEnabled();
 
-    ConsumableConvertibleMintImpl.mintConsumable(ContextSupport.msgSender(), amount, consumables);
+    ConsumableConvertibleMintImpl.mintArtifact(ContextSupport.msgSender(), amount, consumables);
   }
 }

@@ -25,6 +25,7 @@ import {
 } from '../../../src/contracts/consumables/convertibleMint';
 import { buildDiamondFacetCut } from '../../../src/contracts/diamonds';
 import {
+  ConsumableConvertibleMintArtifactFacet__factory,
   ConsumableConvertibleMintConsumableFacet__factory,
   ConsumableConvertibleMintInit__factory,
   IConsumableConvertibleMint__factory,
@@ -35,6 +36,28 @@ import { createConsumable, toConsumableAmount, toConsumableAmountBN } from './Co
 
 export const asConsumableConvertibleMint = (contract: Contract, signer: Signer = INITIALIZER) =>
   IConsumableConvertibleMint__factory.connect(contract.address, signer);
+
+export const asConsumableConvertibleMintArtifact = (contract: Contract, signer: Signer = INITIALIZER) =>
+  ConsumableConvertibleMintArtifactFacet__factory.connect(contract.address, signer);
+
+export const createConvertibleMintArtifact = async (
+  combinations: ConsumableCombination[],
+  options: ExtensibleDiamondOptions = {},
+) => {
+  const convertibleMintArtifactFacet = await deployConsumableConvertibleMintArtifactFacet();
+  const conversionInit = await deployConsumableConvertibleMintInit();
+  return asConsumableConvertibleMintArtifact(
+    await createConsumable(
+      combineExtensibleDiamondOptions(
+        {
+          additionalCuts: [buildDiamondFacetCut(convertibleMintArtifactFacet)],
+          additionalInits: [buildConsumableConvertibleMintSetCombinationsFunction(conversionInit, combinations)],
+        },
+        options,
+      ),
+    ),
+  );
+};
 
 export const createConvertibleMintConsumable = async (
   combinations: ConsumableCombination[],
@@ -71,6 +94,8 @@ export const toConsumableCombinationBN = (consumableCombination: ConsumableCombi
   };
 };
 
+export const deployConsumableConvertibleMintArtifactFacet = () =>
+  new ConsumableConvertibleMintConsumableFacet__factory(INITIALIZER).deploy();
 export const deployConsumableConvertibleMintConsumableFacet = () =>
   new ConsumableConvertibleMintConsumableFacet__factory(INITIALIZER).deploy();
 export const deployConsumableConvertibleMintInit = () =>

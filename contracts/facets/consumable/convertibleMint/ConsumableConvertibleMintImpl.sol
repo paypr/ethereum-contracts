@@ -21,6 +21,7 @@
 
 pragma solidity ^0.8.4;
 
+import '../../artifact/ArtifactImpl.sol';
 import '../IConsumable.sol';
 import '../ERC20Impl.sol';
 import '../TransferFailed.sol';
@@ -145,7 +146,7 @@ library ConsumableConvertibleMintImpl {
       // forces the same order, could be improved to support any order but at a higher cost
       for (uint8 consumableIndex = 0; consumableIndex < numAmounts; consumableIndex++) {
         IConsumable consumable = amounts[consumableIndex].consumable;
-        if (amounts[consumableIndex].consumable == consumables[consumableIndex]) {
+        if (consumable == consumables[consumableIndex]) {
           numCorrect++;
         }
       }
@@ -182,6 +183,32 @@ library ConsumableConvertibleMintImpl {
     }
 
     ERC20Impl.mint(to, amount);
+  }
+
+  function mintArtifact(
+    address to,
+    uint256 amount,
+    IConsumable[] calldata consumables
+  ) internal {
+    int256 index = _findConsumableCombinationIndex(consumables);
+    if (index < 0) {
+      revert IConsumableConvertibleMint.ConsumableCombinationNotFound(consumables);
+    }
+
+    IConsumableConvertibleMint.ConsumableCombination storage combination = _consumableConvertibleMintStorage()
+      .combinations[uint256(index)];
+    IConsumable.ConsumableAmount[] storage requiredConsumables = combination.requiredConsumables;
+    uint256 amountProvided = combination.amountProvided;
+    uint256 numRequired = requiredConsumables.length;
+    for (uint8 amountIndex = 0; amountIndex < numRequired; amountIndex++) {
+      IConsumable.ConsumableAmount storage requiredConsumableAmount = requiredConsumables[amountIndex];
+      uint256 requiredAmount = calcRequiredAmount(requiredConsumableAmount.amount, amountProvided, amount);
+      if (!requiredConsumableAmount.consumable.transferFrom(to, address(this), requiredAmount)) {
+        revert TransferFailed();
+      }
+    }
+
+    ArtifactImpl.mint(to, amount);
   }
 
   function calcRequiredAmount(
