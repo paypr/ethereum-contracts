@@ -30,7 +30,11 @@ import { DIAMOND_LOUPE_INTERFACE_ID } from '../../../../src/contracts/erc165Inte
 import { IAccessCheck__factory, IDiamondLoupe__factory, IERC165__factory } from '../../../../types/contracts';
 import { DISABLER, INITIALIZER, PLAYER1 } from '../../../helpers/Accounts';
 import { createDiamond } from '../../../helpers/DiamondHelper';
-import { createAccessControl, deployAccessControlInit } from '../../../helpers/facets/AccessControlFacetHelper';
+import {
+  asAccessCheck,
+  createAccessControl,
+  deployAccessControlInit,
+} from '../../../helpers/facets/AccessControlFacetHelper';
 import { asDiamondCut, deployDiamondLoupeFacet } from '../../../helpers/facets/DiamondFacetHelper';
 import { createDisableable } from '../../../helpers/facets/DisableableFacetHelper';
 import { ROLE1 } from '../../../helpers/RoleIds';
@@ -365,7 +369,7 @@ describe('interaction with other contracts', () => {
 
       const accessControl = await createAccessControl();
 
-      const diamond = await createDiamond({ delegate: accessControl });
+      const diamond = await createDiamond({ delegate: asAccessCheck(accessControl) });
 
       await asDiamondCut(diamond).diamondCut([buildDiamondFacetCut(loupeFacet)], emptyDiamondInitFunction);
 
@@ -382,7 +386,7 @@ describe('interaction with other contracts', () => {
 
       const accessControl = await createAccessControl();
 
-      const diamond = await createDiamond({ delegate: accessControl });
+      const diamond = await createDiamond({ delegate: asAccessCheck(accessControl) });
 
       await expect<Promise<ContractTransaction>>(
         asDiamondCut(diamond, INITIALIZER).diamondCut([buildDiamondFacetCut(loupeFacet)], emptyDiamondInitFunction),
