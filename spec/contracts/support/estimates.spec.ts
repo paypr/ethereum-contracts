@@ -32,6 +32,7 @@ import { consumableEstimateTests } from '../facets/consumable/ConsumableEstimate
 import { consumableMintEstimateTests } from '../facets/consumable/ConsumableMintEstimates';
 import { consumableConsumerEstimateTests } from '../facets/consumable/consumer/ConsumableConsumerEstimates';
 import { consumableConversionEstimateTests } from '../facets/consumable/conversion/ConsumableConversionEstimates';
+import { convertibleMintEstimateTests } from '../facets/consumable/convertibleMint/ConvertibleMintEstimates';
 import { consumableExchangeEstimateTests } from '../facets/consumable/exchange/ConsumableExchangeEstimates';
 import { consumableExchangingEstimateTests } from '../facets/consumable/exchanging/ConsumableExchangingEstimates';
 import { consumableLimiterEstimateTests } from '../facets/consumable/limit/ConsumableLimiterEstimates';
@@ -64,6 +65,7 @@ const estimateTests: EstimateTest[] = [
   ...consumableLimiterEstimateTests,
   ...consumableMintEstimateTests,
   ...consumableProviderEstimateTests,
+  ...convertibleMintEstimateTests,
   ...contractInfoEstimateTests,
   ...diamondEstimateTests,
   ...disableableEstimateTests,
