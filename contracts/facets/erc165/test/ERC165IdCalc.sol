@@ -33,6 +33,7 @@ import '../../consumable/IConsumable.sol';
 import '../../consumable/IConsumableMint.sol';
 import '../../consumable/consumer/IConsumableConsumer.sol';
 import '../../consumable/conversion/IConsumableConversion.sol';
+import '../../consumable/convertibleMint/IConsumableConvertibleMint.sol';
 import '../../consumable/exchange/IConsumableExchange.sol';
 import '../../consumable/exchanging/IConsumableExchanging.sol';
 import '../../consumable/limit/IConsumableLimit.sol';
@@ -89,6 +90,10 @@ library ERC165IdCalc {
 
   function calcConsumableConversionInterfaceId() external pure returns (bytes4) {
     return type(IConsumableConversion).interfaceId;
+  }
+
+  function calcConsumableConvertibleMintInterfaceId() external pure returns (bytes4) {
+    return type(IConsumableConvertibleMint).interfaceId;
   }
 
   function calcConsumableExchangeInterfaceId() external pure returns (bytes4) {

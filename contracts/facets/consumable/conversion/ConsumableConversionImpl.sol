@@ -32,7 +32,7 @@ library ConsumableConversionImpl {
   using SafeMath for uint256;
   using ConsumableConversionMath for uint256;
 
-  bytes32 private constant CONVERTIBLE_CONVERSION_STORAGE_POSITION = keccak256('paypr.consumableConversion.storage');
+  bytes32 private constant CONSUMABLE_CONVERSION_STORAGE_POSITION = keccak256('paypr.consumableConversion.storage');
 
   struct ConsumableConversionStorage {
     /**
@@ -53,7 +53,7 @@ library ConsumableConversionImpl {
 
   //noinspection NoReturn
   function _consumableConversionStorage() private pure returns (ConsumableConversionStorage storage ds) {
-    bytes32 position = CONVERTIBLE_CONVERSION_STORAGE_POSITION;
+    bytes32 position = CONSUMABLE_CONVERSION_STORAGE_POSITION;
     // solhint-disable-next-line no-inline-assembly
     assembly {
       ds.slot := position

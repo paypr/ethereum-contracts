@@ -34,6 +34,7 @@ export const ARTIFACT_INTERFACE_ID = toErc165InterfaceId(0xd3abf7f1);
 export const ARTIFACT_MINTABLE_INTERFACE_ID = toErc165InterfaceId(0x6a627842);
 export const CONSUMABLE_CONSUMER_INTERFACE_ID = toErc165InterfaceId(0xd6870369);
 export const CONSUMABLE_CONVERSION_INTERFACE_ID = toErc165InterfaceId(0x1574139e);
+export const CONSUMABLE_CONVERTIBLE_MINT_INTERFACE_ID = toErc165InterfaceId(0x55c306a0);
 export const CONSUMABLE_EXCHANGE_INTERFACE_ID = toErc165InterfaceId(0x1e34ecc8);
 export const CONSUMABLE_EXCHANGING_INTERFACE_ID = toErc165InterfaceId(0xffd426ac);
 export const CONSUMABLE_LIMIT_INTERFACE_ID = toErc165InterfaceId(0x81b8db38);
