@@ -7,7 +7,7 @@ jobs:
     executor:
       name: node/default
       tag: '16.5'
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout
       - run:
