@@ -67,7 +67,7 @@
     "hardhat": "2.10.1",
     "husky": "8.0.1",
     "jest": "27.5.1",
-    "jest-extended": "1.2.1",
+    "jest-extended": "3.0.2",
     "jest-junit": "13.2.0",
     "prettier": "2.7.1",
     "prettier-plugin-solidity": "1.0.0-dev.23",
