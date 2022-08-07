@@ -4,7 +4,7 @@
 
 ### Node
 
-1.  Install `nvm` ([Node Version Manager](https://github.com/creationix/nvm))
+1.  Install `nvm` ([Node Version Manager](https://github.com/nvm-sh/nvm))
 2.  `cd` to the project directory and execute the following:
     ```
     nvm install
