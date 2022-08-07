@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.6](https://github.com/paypr/ethereum-contracts/compare/v0.4.5...v0.4.6) (2022-08-07)
+
+### Features
+
+- [[#55](https://github.com/paypr/CHANGEME/issues/55)] added ability to verify contracts ([18e9552](https://github.com/paypr/ethereum-contracts/commit/18e95520d422bc34702c9b99e9777fd5f75ca3c8))
+- [[#60](https://github.com/paypr/CHANGEME/issues/60)] added ability to mint consumables directly with conversion ([5d7e00d](https://github.com/paypr/ethereum-contracts/commit/5d7e00d8b020ada3e52064ecb93986ff17255099))
+- [[#60](https://github.com/paypr/CHANGEME/issues/60)] added convertible mint artifact facet ([c422c0e](https://github.com/paypr/ethereum-contracts/commit/c422c0e185028413b50b806560bea90e81eb7e3b))
+
 ### [0.4.5](https://github.com/paypr/ethereum-contracts/compare/v0.4.4...v0.4.5) (2022-01-18)
 
 ### [0.4.4](https://github.com/paypr/ethereum-contracts/compare/v0.4.3...v0.4.4) (2022-01-14)
