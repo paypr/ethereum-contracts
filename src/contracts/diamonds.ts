@@ -21,7 +21,7 @@ import { arrayify } from '@ethersproject/bytes';
 import { Contract } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import { DiamondInit, IDiamondCut } from '../../types/contracts';
-import { IDiamondCut as IDiamondCutNamespace } from '../../types/contracts/DiamondCutFacet';
+import { IDiamondCut as IDiamondCutNamespace } from '../../types/contracts/contracts/facets/diamond/DiamondCutFacet';
 import { ZERO_ADDRESS } from './accounts';
 
 export interface DiamondConstructorParams {

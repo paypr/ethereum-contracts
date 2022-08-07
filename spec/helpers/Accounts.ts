@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The Paypr Company, LLC
+ * Copyright (c) 2022 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -17,8 +17,8 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 export let accounts: SignerWithAddress[] = [];
 

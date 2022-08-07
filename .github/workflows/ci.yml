@@ -9,18 +9,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: node:16.13.1-alpine
+      image: node:18.7.0-alpine
       # this is the user that CI uses, which is needed to generate files within the repo directory
       options: --user 1001
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Prepare CI
         run: npm run ci-prepare
       - name: Build
-        run: npm run build
+        run: npm run build:ci
       - name: Test
         run: npm run test -- --ci --maxWorkers=1 --reporters=default
