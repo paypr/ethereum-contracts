@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: node:18.7.0-alpine
+      image: node:18.7.0
       # this is the user that CI uses, which is needed to generate files within the repo directory
       options: --user 1001
 
@@ -21,8 +21,11 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build
         run: npm run build:ci
       - name: Test
