@@ -24,7 +24,7 @@
     "clean": "rm -rf build && rm -rf dist && rm -rf out && rm -rf types && rm -rf artifacts && rm -rf cache",
     "compile:contracts": "hardhat compile",
     "build": "npm run compile:contracts && npm run pretty && tsc && npm run copy-declarations",
-    "build:ci": "npm run ci-prepare && npm run compile:contracts && tsc",
+    "build:ci": "npm run compile:contracts && tsc",
     "build:watch": "tsc --watch",
     "copy-declarations": "cp -R types dist",
     "rebuild": "npm run clean && npm run build",
