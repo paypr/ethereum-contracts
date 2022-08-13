@@ -1,6 +1,5 @@
 {
   "extends": [
-    "config:base",
-    "group:allNonMajor"
+    "github>code-saplings/renovate-presets"
   ]
 }
