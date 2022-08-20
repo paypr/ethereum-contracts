@@ -44,10 +44,10 @@
     }
   },
   "dependencies": {
-    "@ethersproject/abi": "5.6.4",
-    "@ethersproject/abstract-provider": "5.6.1",
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/abstract-provider": "5.7.0",
     "@openzeppelin/contracts": "4.7.3",
-    "ethers": "5.6.9"
+    "ethers": "5.7.0"
   },
   "devDependencies": {
     "@ethereum-waffle/jest": "3.3.2",
@@ -58,7 +58,7 @@
     "@typechain/ethers-v5": "10.1.0",
     "@typechain/hardhat": "6.1.2",
     "@types/jest": "28.1.7",
-    "@types/node": "16.11.49",
+    "@types/node": "16.11.51",
     "@typescript-eslint/eslint-plugin": "5.33.1",
     "@typescript-eslint/parser": "5.33.1",
     "cz-conventional-changelog": "3.3.0",
