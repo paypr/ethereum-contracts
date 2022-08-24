@@ -1,7 +1,5 @@
 # Paypr Ethereum Contracts
 
-[![Paypr](https://circleci.com/gh/paypr/ethereum-contracts.svg?style=shield)](https://circleci.com/gh/paypr/ethereum-contracts)
-
 ## Setup
 
 ### Node
