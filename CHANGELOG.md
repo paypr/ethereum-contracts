@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.3](https://github.com/paypr/ethereum-contracts/compare/v1.0.2...v1.0.3) (2022-08-25)
+
+### Bug Fixes
+
+- **deps:** update all non-major dependencies ([beb9a58](https://github.com/paypr/ethereum-contracts/commit/beb9a580f34358ad6c6d7ff2a71c98fb5a940a77))
+- **deps:** update dependency @openzeppelin/contracts to v4.7.3 ([b871258](https://github.com/paypr/ethereum-contracts/commit/b87125808026cae64d7850c1b8dec8d1a37ec08c))
+
 ### [1.0.2](https://github.com/paypr/ethereum-contracts/compare/v1.0.1...v1.0.2) (2022-08-12)
 
 ### [1.0.1](https://github.com/paypr/ethereum-contracts/compare/v1.0.0...v1.0.1) (2022-08-10)
