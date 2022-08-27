@@ -29,7 +29,7 @@ contract ArtifactTransferHooks is TransferHooksBase {
     IERC20, /*token*/
     uint256, /*amount*/
     address /*recipient*/
-  ) external override {
+  ) external payable override {
     ArtifactImpl.checkEnoughConsumable();
   }
 }

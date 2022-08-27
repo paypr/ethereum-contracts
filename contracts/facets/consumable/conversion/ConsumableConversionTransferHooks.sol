@@ -29,7 +29,7 @@ contract ConsumableConversionTransferHooks is TransferHooksBase {
     IERC20, /*token*/
     uint256, /*amount*/
     address /*recipient*/
-  ) external override {
+  ) external payable override {
     ConsumableConversionImpl.checkEnoughExchangeTokenAvailable();
   }
 }

@@ -32,7 +32,7 @@ interface ISkillHooks {
     uint256 previousLevel,
     uint256 newLevel,
     address[] calldata providers
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called after any skill acquisition. Called before {Acquired} event is sent.
@@ -44,5 +44,5 @@ interface ISkillHooks {
     uint256 previousLevel,
     uint256 newLevel,
     address[] calldata providers
-  ) external;
+  ) external payable;
 }

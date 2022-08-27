@@ -30,13 +30,13 @@ abstract contract SkillHooksBase is ISkillHooks {
     uint256 previousLevel,
     uint256 newLevel,
     address[] calldata providers
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function afterSkillAcquisition(
     address player,
     uint256 previousLevel,
     uint256 newLevel,
     address[] calldata providers
-  ) external virtual override {}
+  ) external payable virtual override {}
   // solhint-enable no-empty-blocks
 }

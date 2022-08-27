@@ -30,7 +30,7 @@ contract ConsumableExchangeConsumableHooks is ConsumableHooksBase {
     address from,
     address, /* to */
     uint256 /* amount */
-  ) external override {
+  ) external payable override {
     ConsumableExchangeImpl.checkEnoughTokenLeft(from);
   }
 }

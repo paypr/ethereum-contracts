@@ -28,7 +28,7 @@ contract SkillConstrainedActivityHooks is ActivityHooksBase {
   function beforeActivityExecution(
     address player,
     address[] calldata /*providers*/
-  ) external override {
+  ) external payable override {
     SkillConstrainedImpl.checkRequiredSkills(player);
   }
 }

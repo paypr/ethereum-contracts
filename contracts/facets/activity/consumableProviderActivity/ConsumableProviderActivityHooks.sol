@@ -28,7 +28,7 @@ contract ConsumableProviderActivityHooks is ActivityHooksBase {
   function afterActivityExecution(
     address player,
     address[] calldata /*providers*/
-  ) external virtual override {
+  ) external payable virtual override {
     ConsumableProviderSupport.provideConsumables(player);
   }
 }

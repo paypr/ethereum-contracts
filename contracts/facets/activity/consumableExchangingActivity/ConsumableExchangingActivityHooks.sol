@@ -30,7 +30,7 @@ contract ConsumableExchangingActivityHooks is ActivityHooksBase {
   function beforeActivityExecution(
     address, /*player*/
     address[] calldata providers
-  ) external virtual override {
+  ) external payable virtual override {
     ConsumableConsumerSupport.consumeConsumables(providers);
     ConsumableConsumerSupport.convertConsumablesToExchange(ConsumableExchangingImpl.exchange());
   }
@@ -38,7 +38,7 @@ contract ConsumableExchangingActivityHooks is ActivityHooksBase {
   function afterActivityExecution(
     address player,
     address[] calldata /*providers*/
-  ) external virtual override {
+  ) external payable virtual override {
     ConsumableProviderSupport.convertConsumablesFromExchange(ConsumableExchangingImpl.exchange());
     ConsumableProviderSupport.provideConsumables(player);
   }
