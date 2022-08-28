@@ -29,24 +29,24 @@ contract TransferHooksBase is ITransferHooks {
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function afterTokenTransfer(
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function beforeItemTransfer(
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function afterItemTransfer(
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external virtual override {}
+  ) external payable virtual override {}
   // solhint-enable no-empty-blocks
 }

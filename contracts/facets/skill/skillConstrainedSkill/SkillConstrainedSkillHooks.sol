@@ -30,7 +30,7 @@ contract SkillConstrainedSkillHooks is SkillHooksBase {
     uint256, /* previousLevel */
     uint256, /* newLevel */
     address[] calldata /* providers */
-  ) external override {
+  ) external payable override {
     SkillConstrainedImpl.checkRequiredSkills(player);
   }
 }

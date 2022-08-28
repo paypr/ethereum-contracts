@@ -27,12 +27,12 @@ interface IActivityHooks {
    *
    * @param providers includes the player and all of the helpers
    */
-  function beforeActivityExecution(address player, address[] calldata providers) external;
+  function beforeActivityExecution(address player, address[] calldata providers) external payable;
 
   /**
    * @dev Hook that is called after any activity execution. Called before {Executed} event is sent.
    *
    * @param providers includes the player and all of the helpers
    */
-  function afterActivityExecution(address player, address[] calldata providers) external;
+  function afterActivityExecution(address player, address[] calldata providers) external payable;
 }

@@ -38,7 +38,7 @@ interface IConsumableHooks {
     address from,
     address to,
     uint256 amount
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called after any transfer of tokens. This includes
@@ -56,25 +56,25 @@ interface IConsumableHooks {
     address from,
     address to,
     uint256 amount
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called before minting tokens. Called before any beforeTokenTransfer hooks.
    */
-  function beforeMint(address account, uint256 amount) external;
+  function beforeMint(address account, uint256 amount) external payable;
 
   /**
    * @dev Hook that is called after minting tokens. Called after any afterTokenTransfer hooks.
    */
-  function afterMint(address account, uint256 amount) external;
+  function afterMint(address account, uint256 amount) external payable;
 
   /**
    * @dev Hook that is called before burning tokens. Called before any beforeTokenTransfer hooks.
    */
-  function beforeBurn(address account, uint256 amount) external;
+  function beforeBurn(address account, uint256 amount) external payable;
 
   /**
    * @dev Hook that is called after burning tokens. Called after any afterTokenTransfer hooks.
    */
-  function afterBurn(address account, uint256 amount) external;
+  function afterBurn(address account, uint256 amount) external payable;
 }

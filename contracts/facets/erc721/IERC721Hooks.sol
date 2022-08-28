@@ -38,7 +38,7 @@ interface IERC721Hooks {
     address from,
     address to,
     uint256 tokenId
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called after any transfer of tokens. This includes
@@ -56,25 +56,25 @@ interface IERC721Hooks {
     address from,
     address to,
     uint256 tokenId
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called before minting a token. Called before any beforeTokenTransfer hooks.
    */
-  function beforeMint(address account, uint256 tokenId) external;
+  function beforeMint(address account, uint256 tokenId) external payable;
 
   /**
    * @dev Hook that is called after minting a token. Called after any afterTokenTransfer hooks.
    */
-  function afterMint(address account, uint256 tokenId) external;
+  function afterMint(address account, uint256 tokenId) external payable;
 
   /**
    * @dev Hook that is called before burning a token. Called before any beforeTokenTransfer hooks.
    */
-  function beforeBurn(address account, uint256 tokenId) external;
+  function beforeBurn(address account, uint256 tokenId) external payable;
 
   /**
    * @dev Hook that is called after burning a token. Called after any afterTokenTransfer hooks.
    */
-  function afterBurn(address account, uint256 tokenId) external;
+  function afterBurn(address account, uint256 tokenId) external payable;
 }

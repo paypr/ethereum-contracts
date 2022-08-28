@@ -29,20 +29,20 @@ contract ERC721HooksBase is IERC721Hooks {
     address from,
     address to,
     uint256 tokenId
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function afterTokenTransfer(
     address from,
     address to,
     uint256 tokenId
-  ) external virtual override {}
+  ) external payable virtual override {}
 
-  function beforeMint(address account, uint256 tokenId) external virtual override {}
+  function beforeMint(address account, uint256 tokenId) external payable virtual override {}
 
-  function afterMint(address account, uint256 tokenId) external virtual override {}
+  function afterMint(address account, uint256 tokenId) external payable virtual override {}
 
-  function beforeBurn(address account, uint256 tokenId) external virtual override {}
+  function beforeBurn(address account, uint256 tokenId) external payable virtual override {}
 
-  function afterBurn(address account, uint256 tokenId) external virtual override {}
+  function afterBurn(address account, uint256 tokenId) external payable virtual override {}
   // solhint-enable no-empty-blocks
 }

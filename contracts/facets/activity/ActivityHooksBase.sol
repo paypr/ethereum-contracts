@@ -25,8 +25,8 @@ import './IActivityHooks.sol';
 
 contract ActivityHooksBase is IActivityHooks {
   // solhint-disable no-empty-blocks
-  function beforeActivityExecution(address player, address[] calldata providers) external virtual override {}
+  function beforeActivityExecution(address player, address[] calldata providers) external payable virtual override {}
 
-  function afterActivityExecution(address player, address[] calldata providers) external virtual override {}
+  function afterActivityExecution(address player, address[] calldata providers) external payable virtual override {}
   // solhint-enable no-empty-blocks
 }

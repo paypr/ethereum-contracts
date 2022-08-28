@@ -29,20 +29,20 @@ abstract contract ConsumableHooksBase is IConsumableHooks {
     address from,
     address to,
     uint256 amount
-  ) external virtual override {}
+  ) external payable virtual override {}
 
   function afterTokenTransfer(
     address from,
     address to,
     uint256 amount
-  ) external virtual override {}
+  ) external payable virtual override {}
 
-  function beforeMint(address account, uint256 amount) external virtual override {}
+  function beforeMint(address account, uint256 amount) external payable virtual override {}
 
-  function afterMint(address account, uint256 amount) external virtual override {}
+  function afterMint(address account, uint256 amount) external payable virtual override {}
 
-  function beforeBurn(address account, uint256 amount) external virtual override {}
+  function beforeBurn(address account, uint256 amount) external payable virtual override {}
 
-  function afterBurn(address account, uint256 amount) external virtual override {}
+  function afterBurn(address account, uint256 amount) external payable virtual override {}
   // solhint-enable no-empty-blocks
 }

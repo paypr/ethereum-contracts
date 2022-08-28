@@ -32,7 +32,7 @@ interface ITransferHooks {
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called before transfer of tokens.
@@ -41,7 +41,7 @@ interface ITransferHooks {
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called before transfer of tokens.
@@ -50,7 +50,7 @@ interface ITransferHooks {
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external;
+  ) external payable;
 
   /**
    * @dev Hook that is called before transfer of tokens.
@@ -59,5 +59,5 @@ interface ITransferHooks {
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external;
+  ) external payable;
 }

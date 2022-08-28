@@ -30,7 +30,7 @@ contract ConsumableConversionConsumableHooks is ConsumableHooksBase {
     address from,
     address to,
     uint256 amount
-  ) external override {
+  ) external payable override {
     if (ERC20Support.isBurning(from, to) || ERC20Support.isMinting(from, to)) {
       // don't want to do this for minting or burning
       return;
@@ -42,7 +42,7 @@ contract ConsumableConversionConsumableHooks is ConsumableHooksBase {
   function afterMint(
     address, /*account*/
     uint256 /*amount*/
-  ) external override {
+  ) external payable override {
     ConsumableConversionImpl.checkEnoughExchangeTokenAvailable();
   }
 }

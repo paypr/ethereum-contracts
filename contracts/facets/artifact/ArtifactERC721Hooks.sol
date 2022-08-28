@@ -28,14 +28,14 @@ contract ArtifactERC721Hooks is ERC721HooksBase {
   function afterMint(
     address, /*account*/
     uint256 tokenId
-  ) external override {
+  ) external payable override {
     ArtifactImpl.increaseUsesAfterMinting(tokenId);
   }
 
   function beforeBurn(
     address, /*account*/
     uint256 tokenId
-  ) external override {
+  ) external payable override {
     ArtifactImpl.decreaseUsesBeforeBurning(tokenId);
   }
 }

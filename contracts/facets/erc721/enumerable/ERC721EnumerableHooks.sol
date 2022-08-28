@@ -29,7 +29,7 @@ contract ERC721EnumerableHooks is ERC721HooksBase {
     address from,
     address to,
     uint256 tokenId
-  ) external override {
+  ) external payable override {
     if (from == address(0)) {
       // minting
       ERC721EnumerableImpl.addTokenToAllTokensEnumeration(tokenId);
