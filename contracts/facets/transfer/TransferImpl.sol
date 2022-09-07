@@ -51,6 +51,14 @@ library TransferImpl {
     AccessCheckSupport.checkRole(RoleSupport.TRANSFER_AGENT_ROLE);
   }
 
+  function transferValue(uint256 amount, address payable recipient) internal {
+    _beforeValueTransfer(amount, recipient);
+
+    recipient.transfer(amount);
+
+    _afterValueTransfer(amount, recipient);
+  }
+
   function transferToken(
     IERC20 token,
     uint256 amount,
@@ -89,6 +97,16 @@ library TransferImpl {
     require(address(transferHooks) != address(0), 'Transfer: removing hook of the zero address');
 
     _transferStorage().hooks.remove(address(transferHooks));
+  }
+
+  function _beforeValueTransfer(uint256 amount, address recipient) internal {
+    bytes memory callData = abi.encodeWithSelector(ITransferHooks.beforeValueTransfer.selector, amount, recipient);
+    _executeHooks(callData);
+  }
+
+  function _afterValueTransfer(uint256 amount, address recipient) internal {
+    bytes memory callData = abi.encodeWithSelector(ITransferHooks.afterValueTransfer.selector, amount, recipient);
+    _executeHooks(callData);
   }
 
   function _beforeTokenTransfer(

@@ -28,6 +28,6 @@ export const transferEstimateTests: EstimateTest[] = [
       diamondCuts: [buildDiamondFacetCut(await deployTransferFacet())],
       initFunction: emptyDiamondInitFunction,
     }),
-    146355,
+    170609,
   ],
 ];

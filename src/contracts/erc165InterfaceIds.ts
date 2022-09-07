@@ -58,4 +58,4 @@ export const SKILL_INTERFACE_ID = toErc165InterfaceId(0xabdd11bd);
 export const SKILL_ACQUIRER_INTERFACE_ID = toErc165InterfaceId(0x29352f6c);
 export const SKILL_CONSTRAINED_INTERFACE_ID = toErc165InterfaceId(0x530fc73c);
 export const SKILL_SELF_ACQUISITION_INTERFACE_ID = toErc165InterfaceId(0x03ab066c);
-export const TRANSFERRING_INTERFACE_ID = toErc165InterfaceId(0x7aa4d9aa);
+export const TRANSFERRING_INTERFACE_ID = toErc165InterfaceId(0xa4ef3af0);

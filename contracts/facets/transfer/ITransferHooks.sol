@@ -26,6 +26,16 @@ import '../erc721/IERC721.sol';
 
 interface ITransferHooks {
   /**
+   * @dev Hook that is called before transfer of base currency.
+   */
+  function beforeValueTransfer(uint256 amount, address recipient) external payable;
+
+  /**
+   * @dev Hook that is called before transfer of base currency.
+   */
+  function afterValueTransfer(uint256 amount, address recipient) external payable;
+
+  /**
    * @dev Hook that is called before transfer of tokens.
    */
   function beforeTokenTransfer(
