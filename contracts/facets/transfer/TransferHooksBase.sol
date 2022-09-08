@@ -25,6 +25,10 @@ import './ITransferHooks.sol';
 
 contract TransferHooksBase is ITransferHooks {
   // solhint-disable no-empty-blocks
+  function beforeValueTransfer(uint256 amount, address recipient) external payable virtual override {}
+
+  function afterValueTransfer(uint256 amount, address recipient) external payable virtual override {}
+
   function beforeTokenTransfer(
     IERC20 token,
     uint256 amount,

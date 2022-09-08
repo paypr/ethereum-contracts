@@ -26,13 +26,18 @@ import '../erc721/IERC721.sol';
 
 interface ITransferring {
   /**
+   * @notice Transfer the given amount of the base currency to the given recipient address.
+   */
+  function transferValue(uint256 amount, address payable recipient) external payable;
+
+  /**
    * @notice Transfer the given amount of an ERC20 token to the given recipient address.
    */
   function transferToken(
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external;
+  ) external payable;
 
   /**
    * @notice Transfer the given item of an ERC721 token to the given recipient address.
@@ -41,7 +46,7 @@ interface ITransferring {
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external;
+  ) external payable;
 
   /**
    * @notice Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}

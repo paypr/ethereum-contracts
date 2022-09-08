@@ -26,11 +26,18 @@ import './ITransferring.sol';
 import './TransferImpl.sol';
 
 contract TransferFacet is ITransferring {
+  function transferValue(uint256 amount, address payable recipient) external payable override {
+    TransferImpl.checkTransferAgent();
+    DisableableSupport.checkEnabled();
+
+    return TransferImpl.transferValue(amount, recipient);
+  }
+
   function transferToken(
     IERC20 token,
     uint256 amount,
     address recipient
-  ) external override {
+  ) external payable override {
     TransferImpl.checkTransferAgent();
     DisableableSupport.checkEnabled();
 
@@ -41,7 +48,7 @@ contract TransferFacet is ITransferring {
     IERC721 artifact,
     uint256 itemId,
     address recipient
-  ) external override {
+  ) external payable override {
     TransferImpl.checkTransferAgent();
     DisableableSupport.checkEnabled();
 

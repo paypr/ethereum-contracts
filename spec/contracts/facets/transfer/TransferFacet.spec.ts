@@ -18,10 +18,11 @@
  */
 
 import { BigNumber, ContractTransaction } from 'ethers';
+import { ethers } from 'hardhat';
 import { buildDiamondFacetCut } from '../../../../src/contracts/diamonds';
 import { TRANSFERRING_INTERFACE_ID } from '../../../../src/contracts/erc165InterfaceIds';
 import { DISABLER_ROLE, SUPER_ADMIN_ROLE, TRANSFER_AGENT_ROLE } from '../../../../src/contracts/roles';
-import { DISABLER, INITIALIZER, PLAYER3, TRANSFER_AGENT } from '../../../helpers/Accounts';
+import { DISABLER, INITIALIZER, PLAYER1, PLAYER2, PLAYER3, TRANSFER_AGENT } from '../../../helpers/Accounts';
 import { createDiamond, deployDiamond } from '../../../helpers/DiamondHelper';
 import { shouldSupportInterface } from '../../../helpers/ERC165Helper';
 import { asConsumableMint, createConsumable } from '../../../helpers/facets/ConsumableFacetHelper';
@@ -68,6 +69,70 @@ const createDisableableTransferring = async () =>
     }),
   );
 
+describe('transferValue', () => {
+  it('should transfer currency to another address', async () => {
+    const transferring = await createTransferring();
+
+    const startingBalancePlayer3 = await PLAYER3.getBalance();
+
+    await transferring.transferValue(100, PLAYER3.address, { value: 100 });
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(0);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3.add(100));
+
+    await transferring.transferValue(100, PLAYER3.address, { value: 200 });
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(100);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3.add(200));
+  });
+
+  it('should not transfer if not enough currency', async () => {
+    const transferring = await createTransferring();
+
+    const startingBalancePlayer3 = await PLAYER3.getBalance();
+
+    await expect<Promise<ContractTransaction>>(transferring.transferValue(100, PLAYER3.address)).toBeReverted();
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(0);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3);
+
+    await expect<Promise<ContractTransaction>>(
+      transferring.transferValue(100, PLAYER3.address, { value: 99 }),
+    ).toBeReverted();
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(0);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3);
+  });
+
+  it('should not transfer if caller is not transfer agent', async () => {
+    const transferring = await createTransferring();
+
+    const startingBalancePlayer3 = await PLAYER3.getBalance();
+
+    await expect<Promise<ContractTransaction>>(
+      transferring.connect(PLAYER3).transferValue(100, PLAYER3.address, { value: 100 }),
+    ).toBeRevertedWith('missing role');
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(0);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3);
+  });
+
+  it('should not transfer if transfer is disabled', async () => {
+    const transferring = await createDisableableTransferring();
+
+    const startingBalancePlayer3 = await PLAYER3.getBalance();
+
+    await asDisableable(transferring).disable();
+
+    await expect<Promise<ContractTransaction>>(
+      transferring.transferValue(100, PLAYER3.address, { value: 100 }),
+    ).toBeRevertedWith('Contract is disabled');
+
+    expect<BigNumber>(await ethers.provider.getBalance(transferring.address)).toEqBN(0);
+    expect<BigNumber>(await PLAYER3.getBalance()).toEqBN(startingBalancePlayer3);
+  });
+});
+
 describe('transferToken', () => {
   it('should transfer consumable to another address', async () => {
     const transferring = await createTransferring();
@@ -79,6 +144,17 @@ describe('transferToken', () => {
 
     expect<BigNumber>(await consumable.balanceOf(transferring.address)).toEqBN(900);
     expect<BigNumber>(await consumable.balanceOf(PLAYER3.address)).toEqBN(100);
+  });
+
+  it('should send transfer event', async () => {
+    const transferring = await createTransferring();
+
+    const consumable = await createConsumable();
+    await asConsumableMint(consumable).mint(transferring.address, 1000);
+
+    await expect<ContractTransaction>(
+      await transferring.transferToken(consumable.address, 100, PLAYER3.address),
+    ).toHaveEmittedWith(consumable, 'Transfer', [transferring.address, PLAYER3.address, BigNumber.from(100)]);
   });
 
   it('should not transfer if not enough consumable', async () => {
@@ -140,6 +216,20 @@ describe('transferItem', () => {
 
     expect<string>(await erc721.ownerOf(1)).toEqual(PLAYER3.address);
     expect<string>(await erc721.ownerOf(2)).toEqual(transferring.address);
+  });
+
+  it('should send transfer event', async () => {
+    const transferring = await createTransferring();
+
+    const erc721Mint = await createMintableERC721();
+    const erc721 = asERC721(erc721Mint);
+
+    await erc721Mint.mint(transferring.address, 1);
+    await erc721Mint.mint(transferring.address, 2);
+
+    await expect<ContractTransaction>(
+      await transferring.transferItem(erc721Mint.address, 1, PLAYER3.address),
+    ).toHaveEmittedWith(erc721, 'Transfer', [transferring.address, PLAYER3.address, BigNumber.from(1)]);
   });
 
   it('should not transfer if not valid item', async () => {
