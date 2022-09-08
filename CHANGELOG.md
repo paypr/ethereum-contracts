@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/paypr/ethereum-contracts/compare/v1.1.1...v1.2.0) (2022-09-08)
+
+### Features
+
+- [[#98](https://github.com/paypr/CHANGEME/issues/98)] added transferValue to transferring ([0f5dded](https://github.com/paypr/ethereum-contracts/commit/0f5ddedbe1bbbca143411336eb75f7ac088ee3a7))
+
 ### [1.1.1](https://github.com/paypr/ethereum-contracts/compare/v1.1.0...v1.1.1) (2022-09-03)
 
 ## [1.1.0](https://github.com/paypr/ethereum-contracts/compare/v1.0.3...v1.1.0) (2022-08-28)
