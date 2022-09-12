@@ -62,7 +62,7 @@
     "@typescript-eslint/eslint-plugin": "5.36.2",
     "@typescript-eslint/parser": "5.36.2",
     "cz-conventional-changelog": "3.3.0",
-    "eslint": "8.23.0",
+    "eslint": "8.23.1",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-prettier": "4.2.1",
     "ethereum-waffle": "3.4.4",
