@@ -32,6 +32,7 @@ import {
   ERC721Facet__factory,
   ERC721Init__factory,
   ERC721MintFacet__factory,
+  ERC721SoulboundHooks__factory,
   ERC721TokenInfoFacet__factory,
   ERC721TokenInfoInit__factory,
   IERC721__factory,
@@ -103,6 +104,10 @@ export const buildERC721EnumerableAdditions = async (): Promise<ExtensibleDiamon
   additionalInits: [buildERC721AddHooksInitFunction(await deployERC721Init(), await deployERC721EnumerableHooks())],
 });
 
+export const buildERC721SoulboundAdditions = async (): Promise<ExtensibleDiamondOptions> => ({
+  additionalInits: [buildERC721AddHooksInitFunction(await deployERC721Init(), await deployERC721SoulboundHooks())],
+});
+
 interface ERC721TokenInfoOptions {
   baseURI: string;
   includeAddress?: boolean;
@@ -125,5 +130,6 @@ export const deployERC721BurnFacet = () => new ERC721BurnFacet__factory(INITIALI
 export const deployERC721EnumerableFacet = () => new ERC721EnumerableFacet__factory(INITIALIZER).deploy();
 export const deployERC721EnumerableHooks = () => new ERC721EnumerableHooks__factory(INITIALIZER).deploy();
 export const deployERC721Init = () => new ERC721Init__factory(INITIALIZER).deploy();
+export const deployERC721SoulboundHooks = () => new ERC721SoulboundHooks__factory(INITIALIZER).deploy();
 export const deployERC721TokenInfoFacet = () => new ERC721TokenInfoFacet__factory(INITIALIZER).deploy();
 export const deployERC721TokenInfoInit = () => new ERC721TokenInfoInit__factory(INITIALIZER).deploy();
