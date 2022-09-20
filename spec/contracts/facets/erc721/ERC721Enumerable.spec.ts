@@ -27,7 +27,9 @@ import { asErc165, deployErc165Facet } from '../../../helpers/facets/ERC165Facet
 import {
   asERC721,
   asERC721Enumerable,
+  asERC721Mint,
   buildERC721EnumerableAdditions,
+  createBurnableERC721,
   createMintableERC721,
   deployERC721EnumerableFacet,
 } from '../../../helpers/facets/ERC721FacetHelper';
@@ -53,28 +55,40 @@ describe('totalSupply', () => {
   });
 
   it('should return the correct number when there are tokens in supply', async () => {
-    const erc721Mint = await createMintableERC721(await buildERC721EnumerableAdditions());
-    const erc721Enumerable = asERC721Enumerable(erc721Mint);
+    const erc721Burn = await createBurnableERC721(await buildERC721EnumerableAdditions());
+    const erc721Mint = asERC721Mint(erc721Burn);
+    const erc721Enumerable = asERC721Enumerable(erc721Burn);
+    const erc721 = asERC721(erc721Burn);
 
     await erc721Mint.mint(PLAYER1.address, 1);
-
     expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(1);
 
     await erc721Mint.mint(PLAYER2.address, 2);
-
     expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(2);
 
     await erc721Mint.mint(PLAYER1.address, 3);
-
     expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(3);
+
+    await erc721.connect(PLAYER2)['safeTransferFrom(address,address,uint256)'](PLAYER2.address, PLAYER1.address, 2);
+    expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(3);
+
+    await erc721Burn.burn(2);
+    expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(2);
+
+    await erc721Burn.burn(3);
+    expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(1);
+
+    await erc721Burn.burn(1);
+    expect<BigNumber>(await erc721Enumerable.totalSupply()).toEqBN(0);
   });
 });
 
 describe('tokenOfOwnerByIndex', () => {
   it('should return the token for the owner', async () => {
-    const erc721Mint = await createMintableERC721(await buildERC721EnumerableAdditions());
-    const erc721 = asERC721(erc721Mint);
-    const erc721Enumerable = asERC721Enumerable(erc721Mint);
+    const erc721Burn = await createBurnableERC721(await buildERC721EnumerableAdditions());
+    const erc721Mint = asERC721Mint(erc721Burn);
+    const erc721 = asERC721(erc721Burn);
+    const erc721Enumerable = asERC721Enumerable(erc721Burn);
 
     await erc721Mint.mint(PLAYER1.address, 1);
     await erc721Mint.mint(PLAYER2.address, 2);
@@ -99,6 +113,17 @@ describe('tokenOfOwnerByIndex', () => {
     expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER1.address, 1)).toEqBN(2);
     expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER2.address, 0)).toEqBN(1);
     expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER2.address, 1)).toEqBN(4);
+
+    await erc721Burn.burn(3);
+
+    expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER1.address, 0)).toEqBN(2);
+    expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER2.address, 0)).toEqBN(1);
+    expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER2.address, 1)).toEqBN(4);
+
+    await erc721Burn.burn(4);
+
+    expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER1.address, 0)).toEqBN(2);
+    expect<BigNumber>(await erc721Enumerable.tokenOfOwnerByIndex(PLAYER2.address, 0)).toEqBN(1);
   });
 
   it('should fail if index is out of bounds', async () => {
@@ -149,9 +174,10 @@ describe('tokenOfOwnerByIndex', () => {
 
 describe('tokenByIndex', () => {
   it('should return the token', async () => {
-    const erc721Mint = await createMintableERC721(await buildERC721EnumerableAdditions());
-    const erc721 = asERC721(erc721Mint);
-    const erc721Enumerable = asERC721Enumerable(erc721Mint);
+    const erc721Burn = await createBurnableERC721(await buildERC721EnumerableAdditions());
+    const erc721Mint = asERC721Mint(erc721Burn);
+    const erc721 = asERC721(erc721Burn);
+    const erc721Enumerable = asERC721Enumerable(erc721Burn);
 
     await erc721Mint.mint(PLAYER1.address, 1);
     await erc721Mint.mint(PLAYER2.address, 2);
@@ -172,7 +198,24 @@ describe('tokenByIndex', () => {
 
     await erc721Mint.mint(PLAYER2.address, 5);
 
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(0)).toEqBN(1);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(1)).toEqBN(2);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(2)).toEqBN(4);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(3)).toEqBN(3);
     expect<BigNumber>(await erc721Enumerable.tokenByIndex(4)).toEqBN(5);
+
+    await erc721Burn.burn(2);
+
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(0)).toEqBN(1);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(1)).toEqBN(5);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(2)).toEqBN(4);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(3)).toEqBN(3);
+
+    await erc721Burn.burn(3);
+
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(0)).toEqBN(1);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(1)).toEqBN(5);
+    expect<BigNumber>(await erc721Enumerable.tokenByIndex(2)).toEqBN(4);
   });
 
   it('should fail if index is out of bounds', async () => {
