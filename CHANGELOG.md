@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/paypr/ethereum-contracts/compare/v1.2.1...v1.3.0) (2022-09-20)
+
+### Features
+
+- [[#79](https://github.com/paypr/CHANGEME/issues/79)] added soulbound ERC721 hooks ([db6e666](https://github.com/paypr/ethereum-contracts/commit/db6e666c00b66a5e0d64abb0c97d96e947f4bf60))
+
+### Bug Fixes
+
+- **deps:** update all non-major dependencies ([93b308f](https://github.com/paypr/ethereum-contracts/commit/93b308fb0f97f4ce17b013e07575ba435a5b3372))
+
 ### [1.2.1](https://github.com/paypr/ethereum-contracts/compare/v1.2.0...v1.2.1) (2022-09-09)
 
 ## [1.2.0](https://github.com/paypr/ethereum-contracts/compare/v1.1.1...v1.2.0) (2022-09-08)
