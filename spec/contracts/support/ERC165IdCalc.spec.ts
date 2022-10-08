@@ -52,6 +52,7 @@ import {
   TRANSFERRING_INTERFACE_ID,
   ERC721_ENUMERABLE_INTERFACE_ID,
   CONSUMABLE_CONVERTIBLE_MINT_INTERFACE_ID,
+  OWNABLE_INTERFACE_ID,
 } from '../../../src/contracts/erc165InterfaceIds';
 import { ERC165IdCalc, ERC165IdCalc__factory } from '../../../types/contracts';
 import { INITIALIZER } from '../../helpers/Accounts';
@@ -101,6 +102,7 @@ const interfaceTests: InterfaceTest[] = [
   ['ERC721Metadata', ERC721_METADATA_INTERFACE_ID, (idCalc) => idCalc.calcERC721MetadataInterfaceId()],
   ['ERC721Mintable', ERC721_MINTABLE_INTERFACE_ID, (idCalc) => idCalc.calcERC721MintableInterfaceId()],
   ['ERC721TokenInfo', ERC721_TOKEN_INFO_INTERFACE_ID, (idCalc) => idCalc.calcERC721TokenInfoInterfaceId()],
+  ['Ownable', OWNABLE_INTERFACE_ID, (idCalc) => idCalc.calcOwnableInterfaceId()],
   ['Skill', SKILL_INTERFACE_ID, (idCalc) => idCalc.calcSkillInterfaceId()],
   ['SkillAcquirer', SKILL_ACQUIRER_INTERFACE_ID, (idCalc) => idCalc.calcSkillAcquirerInterfaceId()],
   ['SkillConstrained', SKILL_CONSTRAINED_INTERFACE_ID, (idCalc) => idCalc.calcSkillConstrainedInterfaceId()],

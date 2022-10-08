@@ -26,6 +26,7 @@ export let INITIALIZER: SignerWithAddress;
 export let DIAMOND_CUTTER: SignerWithAddress;
 export let DISABLER: SignerWithAddress;
 export let TRANSFER_AGENT: SignerWithAddress;
+export let OWNER_MANAGER: SignerWithAddress;
 export let CONSUMABLE_MINTER: SignerWithAddress;
 export let CONSUMABLE_LIMITER: SignerWithAddress;
 export let ARTIFACT_MINTER: SignerWithAddress;
@@ -51,6 +52,7 @@ export const initAccounts = async () => {
     INITIALIZER,
     DISABLER,
     TRANSFER_AGENT,
+    OWNER_MANAGER,
     DIAMOND_CUTTER,
     CONSUMABLE_LIMITER,
     CONSUMABLE_MINTER,

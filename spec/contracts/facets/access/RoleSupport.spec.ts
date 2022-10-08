@@ -25,6 +25,7 @@ import {
   DISABLER_ROLE,
   LIMITER_ROLE,
   MINTER_ROLE,
+  OWNER_MANAGER_ROLE,
   SUPER_ADMIN_ROLE,
   TRANSFER_AGENT_ROLE,
 } from '../../../../src/contracts/roles';
@@ -41,6 +42,7 @@ const roleTests: RoleTest[] = [
   ['Disabler', DISABLER_ROLE, (roleSupport) => roleSupport.DISABLER_ROLE()],
   ['Limiter', LIMITER_ROLE, (roleSupport) => roleSupport.LIMITER_ROLE()],
   ['Minter', MINTER_ROLE, (roleSupport) => roleSupport.MINTER_ROLE()],
+  ['OwnerManager', OWNER_MANAGER_ROLE, (roleSupport) => roleSupport.OWNER_MANAGER_ROLE()],
   ['TransferAgent', TRANSFER_AGENT_ROLE, (roleSupport) => roleSupport.TRANSFER_AGENT_ROLE()],
 ];
 

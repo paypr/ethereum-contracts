@@ -54,6 +54,7 @@ export const ERC721_ENUMERABLE_INTERFACE_ID = toErc165InterfaceId(0x780e9d63);
 export const ERC721_METADATA_INTERFACE_ID = toErc165InterfaceId(0x5b5e139f);
 export const ERC721_MINTABLE_INTERFACE_ID = toErc165InterfaceId(0x40c10f19);
 export const ERC721_TOKEN_INFO_INTERFACE_ID = toErc165InterfaceId(0xc87b56dd);
+export const OWNABLE_INTERFACE_ID = toErc165InterfaceId(0x215c8f18);
 export const SKILL_INTERFACE_ID = toErc165InterfaceId(0xabdd11bd);
 export const SKILL_ACQUIRER_INTERFACE_ID = toErc165InterfaceId(0x29352f6c);
 export const SKILL_CONSTRAINED_INTERFACE_ID = toErc165InterfaceId(0x530fc73c);

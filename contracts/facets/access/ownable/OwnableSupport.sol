@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The Paypr Company, LLC
+ * Copyright (c) 2022 The Paypr Company, LLC
  *
  * This file is part of Paypr Ethereum Contracts.
  *
@@ -21,14 +21,13 @@
 
 pragma solidity ^0.8.4;
 
-library RoleSupport {
-  bytes32 public constant SUPER_ADMIN_ROLE = 0x00;
-  bytes32 public constant ADMIN_ROLE = keccak256('paypr.Admin');
-  bytes32 public constant DELEGATE_ADMIN_ROLE = keccak256('paypr.DelegateAdmin');
-  bytes32 public constant DIAMOND_CUTTER_ROLE = keccak256('paypr.DiamondCutter');
-  bytes32 public constant DISABLER_ROLE = keccak256('paypr.Disabler');
-  bytes32 public constant LIMITER_ROLE = keccak256('paypr.Limiter');
-  bytes32 public constant MINTER_ROLE = keccak256('paypr.Minter');
-  bytes32 public constant OWNER_MANAGER_ROLE = keccak256('paypr.OwnerManager');
-  bytes32 public constant TRANSFER_AGENT_ROLE = keccak256('paypr.Transfer');
+import '../../context/ContextSupport.sol';
+import './IOwnable.sol';
+
+library OwnableSupport {
+  function checkOwner() internal view {
+    address sender = ContextSupport.msgSender();
+
+    require(IOwnable(address(this)).isOwner(sender), 'Ownable: caller is not the owner');
+  }
 }

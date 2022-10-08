@@ -18,13 +18,16 @@
  */
 
 import { buildAccessControlInitAdminsInitFunction } from '../../../../src/contracts/access';
+import { buildOwnableSetOwnerInitFunction } from '../../../../src/contracts/access/ownable';
 import { buildDiamondFacetCut, emptyDiamondInitFunction } from '../../../../src/contracts/diamonds';
+import { PLAYER1 } from '../../../helpers/Accounts';
 import { EstimateTest, singleFunctionFacetEstimate } from '../../../helpers/EstimateHelper';
 import {
   deployAccessControlCheckFacet,
   deployAccessControlFacet,
   deployAccessControlInit,
 } from '../../../helpers/facets/AccessControlFacetHelper';
+import { deployOwnableInit } from '../../../helpers/facets/OwnableFacetHelper';
 import { ROLE1, ROLE2 } from '../../../helpers/RoleIds';
 
 export const accessControlEstimateTests: EstimateTest[] = [
@@ -59,5 +62,21 @@ export const accessControlEstimateTests: EstimateTest[] = [
       initFunction: buildAccessControlInitAdminsInitFunction(await deployAccessControlInit(), [ROLE1, ROLE2]),
     }),
     251157,
+  ],
+  [
+    'OwnableFacet',
+    async () => ({
+      diamondCuts: [buildDiamondFacetCut(await deployAccessControlFacet())],
+      initFunction: emptyDiamondInitFunction,
+    }),
+    194851,
+  ],
+  [
+    'OwnableFacet with setOwner',
+    async () => ({
+      diamondCuts: [buildDiamondFacetCut(await deployAccessControlFacet())],
+      initFunction: buildOwnableSetOwnerInitFunction(await deployOwnableInit(), PLAYER1.address),
+    }),
+    223730,
   ],
 ];

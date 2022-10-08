@@ -17,13 +17,15 @@
  * along with Paypr Ethereum Contracts.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { toAccessRole } from './access';
 
 export const SUPER_ADMIN_ROLE = toAccessRole(0);
-export const ADMIN_ROLE = '0xba2f506baa66f1b41fd7e711f3963f5bc14f36bfbb5101094e7aa4c7fbfd9f6f';
-export const DELEGATE_ADMIN_ROLE = '0x1bd844e7bd490b48c05cdd90d547e31d8a9a0164bff754ece928a84a1fd83d67';
-export const DIAMOND_CUTTER_ROLE = '0xa0e7541f04d8d13c0c182f179c6519b324337ae1c53375f6071d8936f460b669';
-export const DISABLER_ROLE = '0xfece186541818790125a1dec99013e9c9dffe3a9dca1c8e3a0a9c2afcee9f36a';
-export const LIMITER_ROLE = '0x8f468b9f31d2ed1b7954c23d3f6224f9e819053738925a8765cec21d8cf1b269';
-export const MINTER_ROLE = '0xa62a9e153a7df84fe5b7fc12360f36e90777227fb321eaa3c2492b5bf4b8142a';
-export const TRANSFER_AGENT_ROLE = '0xafcd8250e0fcbf79a5b4e2089975117d5a7d4eb0741ac0473d1fdcca029a4ea0';
+export const ADMIN_ROLE = keccak256(toUtf8Bytes('paypr.Admin'));
+export const DELEGATE_ADMIN_ROLE = keccak256(toUtf8Bytes('paypr.DelegateAdmin'));
+export const DIAMOND_CUTTER_ROLE = keccak256(toUtf8Bytes('paypr.DiamondCutter'));
+export const DISABLER_ROLE = keccak256(toUtf8Bytes('paypr.Disabler'));
+export const LIMITER_ROLE = keccak256(toUtf8Bytes('paypr.Limiter'));
+export const MINTER_ROLE = keccak256(toUtf8Bytes('paypr.Minter'));
+export const OWNER_MANAGER_ROLE = keccak256(toUtf8Bytes('paypr.OwnerManager'));
+export const TRANSFER_AGENT_ROLE = keccak256(toUtf8Bytes('paypr.Transfer'));
