@@ -54,6 +54,7 @@ import '../../skill/skillAcquirer/ISkillAcquirer.sol';
 import '../../skill/ISkillSelfAcquisition.sol';
 import '../../skill/skillConstrained/ISkillConstrained.sol';
 import '../../transfer/ITransferring.sol';
+import '../../access/ownable/IOwnable.sol';
 
 library ERC165IdCalc {
   function calcAccessControlInterfaceId() external pure returns (bytes4) {
@@ -166,6 +167,10 @@ library ERC165IdCalc {
 
   function calcERC721TokenInfoInterfaceId() external pure returns (bytes4) {
     return type(IERC721TokenInfo).interfaceId;
+  }
+
+  function calcOwnableInterfaceId() external pure returns (bytes4) {
+    return type(IOwnable).interfaceId;
   }
 
   function calcSkillInterfaceId() external pure returns (bytes4) {
