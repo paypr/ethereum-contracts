@@ -45,9 +45,9 @@
   "dependencies": {
     "@ethersproject/abi": "5.7.0",
     "@ethersproject/abstract-provider": "5.7.0",
-    "@ethersproject/providers": "5.7.1",
+    "@ethersproject/providers": "5.7.2",
     "@openzeppelin/contracts": "4.7.3",
-    "ethers": "5.7.1"
+    "ethers": "5.7.2"
   },
   "devDependencies": {
     "@ethereum-waffle/jest": "3.3.2",
