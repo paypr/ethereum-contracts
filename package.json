@@ -56,7 +56,7 @@
     "@nomiclabs/hardhat-waffle": "2.0.3",
     "@poanet/solidity-flattener": "3.0.8",
     "@typechain/ethers-v5": "10.2.0",
-    "@typechain/hardhat": "6.1.4",
+    "@typechain/hardhat": "6.1.5",
     "@types/jest": "29.2.4",
     "@types/node": "18.11.9",
     "@typescript-eslint/eslint-plugin": "5.46.0",
