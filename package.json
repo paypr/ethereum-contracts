@@ -82,7 +82,7 @@
     "ts-jest": "29.1.1",
     "ts-node": "10.9.1",
     "tsutils": "3.21.0",
-    "typechain": "8.1.1",
+    "typechain": "8.2.0",
     "typescript": "4.9.5"
   },
   "engines": {
