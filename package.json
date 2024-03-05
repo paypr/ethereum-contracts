@@ -65,7 +65,7 @@
     "eslint": "8.54.0",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-prettier": "4.2.1",
-    "ethereum-waffle": "3.4.4",
+    "ethereum-waffle": "4.0.10",
     "ganache-cli": "6.12.2",
     "hardhat": "2.13.1",
     "husky": "8.0.3",
