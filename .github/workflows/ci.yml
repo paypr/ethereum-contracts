@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: node:18.20.4
+      image: node:20.16.0
       # this is the user that CI uses, which is needed to generate files within the repo directory
       options: --user 1001
 
