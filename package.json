@@ -46,7 +46,7 @@
     "@ethersproject/abi": "5.7.0",
     "@ethersproject/abstract-provider": "5.7.0",
     "@ethersproject/providers": "5.7.2",
-    "@openzeppelin/contracts": "4.7.3",
+    "@openzeppelin/contracts": "4.9.6",
     "ethers": "5.7.2"
   },
   "devDependencies": {
